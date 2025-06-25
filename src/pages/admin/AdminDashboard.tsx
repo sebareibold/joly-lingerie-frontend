@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import {
   Package,
   DollarSign,
@@ -12,32 +12,32 @@ import {
   Tag,
   ChevronDown,
   ChevronUp,
-} from "lucide-react"
-import { Link } from "react-router-dom"
-import { apiService } from "../../services/api"
-import type { Order } from "../../types/Order" // Declare the Order variable
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { apiService } from "../../services/api";
+import type { Order } from "../../types/Order"; // Declare the Order variable
 
 export default function AdminDashboard() {
-  const [loading, setLoading] = useState(true)
-  const [showAllProducts, setShowAllProducts] = useState(false)
-  const [showAllCategories, setShowAllCategories] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const [showAllProducts, setShowAllProducts] = useState(false);
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const [dashboardData, setDashboardData] = useState<{
     stats: {
-      totalProducts: number
-      totalOrders: number
-      totalRevenue: number
-      totalInteractions: number
-    }
-    recentOrders: Order[]
-    mostViewedProducts: any[]
-    mostVisitedCategories: any[]
-    recentInteractions: any[]
+      totalProducts: number;
+      totalOrders: number;
+      totalRevenue: number;
+      totalInteractions: number;
+    };
+    recentOrders: Order[];
+    mostViewedProducts: any[];
+    mostVisitedCategories: any[];
+    recentInteractions: any[];
     ordersByStatus: {
-      pending_manual: number
-      paid: number
-      cancelled: number
-      refunded: number
-    }
+      pending_manual: number;
+      paid: number;
+      cancelled: number;
+      refunded: number;
+    };
   }>({
     stats: {
       totalProducts: 0,
@@ -55,16 +55,18 @@ export default function AdminDashboard() {
       cancelled: 0,
       refunded: 0,
     },
-  })
+  });
 
   useEffect(() => {
-    loadDashboardData()
-  }, [])
+    loadDashboardData();
+  }, []);
 
   const loadDashboardData = async () => {
     try {
-      setLoading(true)
-      console.log("🔄 AdminDashboard - Iniciando carga optimizada del dashboard...")
+      setLoading(true);
+      console.log(
+        "🔄 AdminDashboard - Iniciando carga optimizada del dashboard..."
+      );
 
       // OPTIMIZACIÓN: Hacer todas las peticiones en PARALELO en lugar de secuencial
       const [
@@ -80,73 +82,133 @@ export default function AdminDashboard() {
         apiService.getInteractionsSummary(),
         apiService.getMostViewedProducts(10), // Menos productos más vistos
         apiService.getMostViewedCategories(5),
-      ])
+      ]);
 
-      console.log("✅ Todas las peticiones completadas en paralelo")
+      console.log("✅ Todas las peticiones completadas en paralelo");
 
       // Procesar respuestas de manera segura
-      const products = productsResponse.status === "fulfilled" ? productsResponse.value : { payload: [] }
-      const orders = ordersResponse.status === "fulfilled" ? ordersResponse.value : { orders: [] }
+      const products =
+        productsResponse.status === "fulfilled"
+          ? productsResponse.value
+          : { payload: [] };
+      const orders =
+        ordersResponse.status === "fulfilled"
+          ? ordersResponse.value
+          : { orders: [] };
       const interactions =
         interactionsResponse.status === "fulfilled"
           ? interactionsResponse.value
-          : { summary: { totalInteractions: 0, recentInteractions: [] } }
+          : { summary: { totalInteractions: 0, recentInteractions: [] } };
       const mostViewedProducts =
-        mostViewedProductsResponse.status === "fulfilled" ? mostViewedProductsResponse.value : { products: [] }
+        mostViewedProductsResponse.status === "fulfilled"
+          ? mostViewedProductsResponse.value
+          : { products: [] };
       const mostVisitedCategories =
-        mostVisitedCategoriesResponse.status === "fulfilled" ? mostVisitedCategoriesResponse.value : { categories: [] }
+        mostVisitedCategoriesResponse.status === "fulfilled"
+          ? mostVisitedCategoriesResponse.value
+          : { categories: [] };
 
       // Log de errores si los hay
-      if (productsResponse.status === "rejected") console.error("❌ Error cargando productos:", productsResponse.reason)
-      if (ordersResponse.status === "rejected") console.error("❌ Error cargando órdenes:", ordersResponse.reason)
+      if (productsResponse.status === "rejected")
+        console.error("❌ Error cargando productos:", productsResponse.reason);
+      if (ordersResponse.status === "rejected")
+        console.error("❌ Error cargando órdenes:", ordersResponse.reason);
       if (interactionsResponse.status === "rejected")
-        console.error("❌ Error cargando interacciones:", interactionsResponse.reason)
+        console.error(
+          "❌ Error cargando interacciones:",
+          interactionsResponse.reason
+        );
       if (mostViewedProductsResponse.status === "rejected")
-        console.error("❌ Error cargando productos más vistos:", mostViewedProductsResponse.reason)
+        console.error(
+          "❌ Error cargando productos más vistos:",
+          mostViewedProductsResponse.reason
+        );
       if (mostVisitedCategoriesResponse.status === "rejected")
-        console.error("❌ Error cargando categorías más visitadas:", mostVisitedCategoriesResponse.reason)
+        console.error(
+          "❌ Error cargando categorías más visitadas:",
+          mostVisitedCategoriesResponse.reason
+        );
 
       // Calcular estadísticas con datos seguros
-      const totalProducts = products.payload?.length || 0
-      const ordersArray: Order[] = orders.orders || []
-      const totalOrders = ordersArray.length
+      const totalProducts = products.payload?.length || 0;
+      const ordersArray: Order[] = orders.orders || [];
+      const totalOrders = ordersArray.length;
       const totalRevenue = ordersArray
         .filter((order: Order) => order.status === "paid")
-        .reduce((sum: number, order: Order) => sum + (order.total || 0), 0)
+        .reduce((sum: number, order: Order) => sum + (order.total || 0), 0);
 
       console.log("📈 Estadísticas calculadas:", {
         totalProducts,
         totalOrders,
         totalRevenue,
         ordersCount: ordersArray.length,
-      })
+      });
 
-      // Estadísticas por estado de órdenes
       const ordersByStatus = ordersArray.reduce(
-        (acc: { [key: string]: number }, order: Order) => {
-          acc[order.status] = (acc[order.status] || 0) + 1
-          return acc
+        (
+          acc: {
+            // Explicitly define the keys and types for the accumulator
+            pending_manual: number;
+            pending_transfer_proof: number; // Add missing states based on usage in AdminOrders.tsx
+            pending_transfer_confirmation: number; // Add missing states
+            paid: number;
+            cancelled: number;
+            refunded: number;
+          },
+          order: Order
+        ) => {
+          // Use a type assertion or check if order.status is a valid key of acc
+          const statusKey = order.status as keyof typeof acc;
+          if (acc.hasOwnProperty(statusKey)) {
+            // Safely access property
+            acc[statusKey] = (acc[statusKey] || 0) + 1;
+          } else {
+            // Handle unexpected status values if necessary, though types should prevent this
+            console.warn(
+              `Unexpected order status encountered: ${order.status}`
+            );
+            (acc as any)[order.status] = ((acc as any)[order.status] || 0) + 1; // Fallback for unexpected keys
+          }
+          return acc;
         },
-        { pending_manual: 0, paid: 0, cancelled: 0, refunded: 0 },
-      )
-
+        // Initialize with all possible keys to match the expected type structure
+        {
+          pending_manual: 0,
+          pending_transfer_proof: 0,
+          pending_transfer_confirmation: 0,
+          paid: 0,
+          cancelled: 0,
+          refunded: 0,
+        }
+      );
       // Órdenes recientes
       const recentOrders = ordersArray
-        .sort((a: Order, b: Order) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, 5)
+        .sort(
+          (a: Order, b: Order) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        .slice(0, 5);
 
       // Productos más vistos con nombres claros
-      const processedMostViewedProducts = (mostViewedProducts.products || []).map((product: any) => {
+      const processedMostViewedProducts = (
+        mostViewedProducts.products || []
+      ).map((product: any) => {
         return {
           ...product,
-          displayName: product.productTitle || product.title || product.name || "Producto sin nombre",
+          displayName:
+            product.productTitle ||
+            product.title ||
+            product.name ||
+            "Producto sin nombre",
           viewCount: product.count || 0,
-          category: product.productCategory || product.category || "Sin categoría",
-        }
-      })
+          category:
+            product.productCategory || product.category || "Sin categoría",
+        };
+      });
 
       // Categorías más visitadas
-      const processedMostVisitedCategories = mostVisitedCategories.categories || []
+      const processedMostVisitedCategories =
+        mostVisitedCategories.categories || [];
 
       const finalData = {
         stats: {
@@ -160,24 +222,25 @@ export default function AdminDashboard() {
         mostVisitedCategories: processedMostVisitedCategories,
         recentInteractions: interactions.summary?.recentInteractions || [],
         ordersByStatus,
-      }
+      };
 
-      console.log("🎯 Dashboard cargado exitosamente en paralelo")
-      setDashboardData(finalData)
+      console.log("🎯 Dashboard cargado exitosamente en paralelo");
+      setDashboardData(finalData);
     } catch (error) {
-      console.error("💥 Error general cargando datos del dashboard:", error)
+      console.error("💥 Error general cargando datos del dashboard:", error);
     } finally {
-      setLoading(false)
-      console.log("✅ Carga del dashboard completada")
+      setLoading(false);
+      console.log("✅ Carga del dashboard completada");
     }
-  }
+  };
 
   const stats = [
     {
       name: "Productos Almacenados",
       value: loading ? "-" : dashboardData.stats.totalProducts.toString(),
       icon: Package,
-      gradient: "bg-gradient-to-br from-blue-900/30 via-blue-800/20 to-blue-700/10",
+      gradient:
+        "bg-gradient-to-br from-blue-900/30 via-blue-800/20 to-blue-700/10",
       border: "border-blue-600/40",
       iconBg: "bg-blue-600/20 border-blue-500/30",
       textColor: "text-blue-300",
@@ -188,7 +251,8 @@ export default function AdminDashboard() {
       name: "Órdenes Totales",
       value: loading ? "-" : dashboardData.stats.totalOrders.toString(),
       icon: ShoppingCart,
-      gradient: "bg-gradient-to-br from-purple-900/30 via-purple-800/20 to-purple-700/10",
+      gradient:
+        "bg-gradient-to-br from-purple-900/30 via-purple-800/20 to-purple-700/10",
       border: "border-purple-600/40",
       iconBg: "bg-purple-600/20 border-purple-500/30",
       textColor: "text-purple-300",
@@ -197,9 +261,12 @@ export default function AdminDashboard() {
     },
     {
       name: "Ingresos",
-      value: loading ? "-" : `$${dashboardData.stats.totalRevenue.toLocaleString()}`,
+      value: loading
+        ? "-"
+        : `$${dashboardData.stats.totalRevenue.toLocaleString()}`,
       icon: DollarSign,
-      gradient: "bg-gradient-to-br from-emerald-900/30 via-emerald-800/20 to-emerald-700/10",
+      gradient:
+        "bg-gradient-to-br from-emerald-900/30 via-emerald-800/20 to-emerald-700/10",
       border: "border-emerald-600/40",
       iconBg: "bg-emerald-600/20 border-emerald-500/30",
       textColor: "text-emerald-300",
@@ -211,38 +278,45 @@ export default function AdminDashboard() {
       name: "Interacciones",
       value: loading ? "-" : dashboardData.stats.totalInteractions.toString(),
       icon: Activity,
-      gradient: "bg-gradient-to-br from-amber-900/30 via-amber-800/20 to-amber-700/10",
+      gradient:
+        "bg-gradient-to-br from-amber-900/30 via-amber-800/20 to-amber-700/10",
       border: "border-amber-600/40",
       iconBg: "bg-amber-600/20 border-amber-500/30",
       textColor: "text-amber-300",
       link: "#",
       change: "",
     },
-  ]
+  ];
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { class: string; text: string }> = {
-      pending_manual: { class: "admin-badge-warning", text: "Pendiente (Efectivo)" },
-      pending_transfer_confirmation: { class: "admin-badge-info", text: "Pendiente (Verificar Comprobante)" },
+      pending_manual: {
+        class: "admin-badge-warning",
+        text: "Pendiente (Efectivo)",
+      },
+      pending_transfer_confirmation: {
+        class: "admin-badge-info",
+        text: "Pendiente (Verificar Comprobante)",
+      },
       paid: { class: "admin-badge-success", text: "Pagado" },
       cancelled: { class: "admin-badge-danger", text: "Cancelado" },
       refunded: { class: "admin-badge-info", text: "Reembolsado" },
-    }
+    };
 
     const config = statusConfig[status] || {
       class: "admin-badge",
       text: status,
-    }
-    return <span className={`admin-badge ${config.class}`}>{config.text}</span>
-  }
+    };
+    return <span className={`admin-badge ${config.class}`}>{config.text}</span>;
+  };
 
   // Determinar cuántos productos mostrar
   const productsToShow = showAllProducts
     ? dashboardData.mostViewedProducts
-    : dashboardData.mostViewedProducts.slice(0, 5)
+    : dashboardData.mostViewedProducts.slice(0, 5);
   const categoriesToShow = showAllCategories
     ? dashboardData.mostVisitedCategories
-    : dashboardData.mostVisitedCategories.slice(0, 5)
+    : dashboardData.mostVisitedCategories.slice(0, 5);
 
   return (
     <div className="space-y-8">
@@ -251,8 +325,14 @@ export default function AdminDashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-4 sm:mb-6">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-            <p className="text-gray-400">Panel de administración - Resumen ejecutivo</p>
-            {loading && <div className="mt-2 text-sm text-blue-400">🔄 Cargando datos del dashboard...</div>}
+            <p className="text-gray-400">
+              Panel de administración - Resumen ejecutivo
+            </p>
+            {loading && (
+              <div className="mt-2 text-sm text-blue-400">
+                🔄 Cargando datos del dashboard...
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -270,18 +350,30 @@ export default function AdminDashboard() {
                 <div
                   className={`p-2 sm:p-3 ${stat.iconBg} border rounded-xl mr-3 sm:mr-4 group-hover:scale-110 transition-transform duration-300`}
                 >
-                  <stat.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.textColor}`} />
+                  <stat.icon
+                    className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.textColor}`}
+                  />
                 </div>
                 <div>
                   <div
-                    className={`${stat.valueClassName || "text-2xl sm:text-3xl"} font-bold text-white ${loading ? "admin-animate-pulse" : ""}`}
+                    className={`${
+                      stat.valueClassName || "text-2xl sm:text-3xl"
+                    } font-bold text-white ${
+                      loading ? "admin-animate-pulse" : ""
+                    }`}
                   >
                     {stat.value}
                   </div>
-                  <div className={`text-xs sm:text-sm font-medium ${stat.textColor}`}>{stat.name}</div>
+                  <div
+                    className={`text-xs sm:text-sm font-medium ${stat.textColor}`}
+                  >
+                    {stat.name}
+                  </div>
                 </div>
               </div>
-              <div className="text-xs text-green-400 font-medium">{stat.change}</div>
+              <div className="text-xs text-green-400 font-medium">
+                {stat.change}
+              </div>
             </div>
           </Link>
         ))}
@@ -295,7 +387,9 @@ export default function AdminDashboard() {
               <Activity className="h-6 w-6 text-green-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-green-300">Productos Más Vistos</h2>
+              <h2 className="text-xl font-bold text-green-300">
+                Productos Más Vistos
+              </h2>
               <p className="text-sm text-green-400/80">
                 Análisis de popularidad{" "}
                 {dashboardData.mostViewedProducts.length > 0 &&
@@ -321,22 +415,30 @@ export default function AdminDashboard() {
         ) : dashboardData.mostViewedProducts.length > 0 ? (
           <>
             <div className="space-y-3">
-              {productsToShow.map((product: any, productIndex: number) => (
+              {productsToShow.map((product: any, _index: number) => (
                 <div
-                  key={product._id || productIndex}
+                  key={product._id || _index}
                   className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-green-800/20 via-green-700/10 to-transparent border border-green-700/20 rounded-lg hover:from-green-800/30 hover:via-green-700/20 transition-all duration-300"
                 >
                   <div className="flex items-center min-w-0 flex-1">
                     <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-green-600/30 to-green-700/20 rounded-lg flex items-center justify-center mr-3 sm:mr-4 border border-green-600/40 flex-shrink-0">
-                      <span className="text-green-300 font-bold text-xs sm:text-sm">#{productIndex + 1}</span>
+                      <span className="text-green-300 font-bold text-xs sm:text-sm">
+                        #{_index + 1}
+                      </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-medium text-white truncate text-sm sm:text-base">{product.displayName}</div>
-                      <div className="text-xs sm:text-sm text-green-400/80 truncate">{product.category}</div>
+                      <div className="font-medium text-white truncate text-sm sm:text-base">
+                        {product.displayName}
+                      </div>
+                      <div className="text-xs sm:text-sm text-green-400/80 truncate">
+                        {product.category}
+                      </div>
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 ml-2">
-                    <div className="text-base sm:text-lg font-bold text-green-300">{product.viewCount}</div>
+                    <div className="text-base sm:text-lg font-bold text-green-300">
+                      {product.viewCount}
+                    </div>
                     <div className="text-xs text-green-400/70">vistas</div>
                   </div>
                 </div>
@@ -366,7 +468,9 @@ export default function AdminDashboard() {
             )}
           </>
         ) : (
-          <div className="text-center py-8 text-green-400/60">No hay datos de visualizaciones</div>
+          <div className="text-center py-8 text-green-400/60">
+            No hay datos de visualizaciones
+          </div>
         )}
       </div>
 
@@ -379,7 +483,9 @@ export default function AdminDashboard() {
                 <Tag className="h-6 w-6 text-purple-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-purple-300">Categorías Más Visitadas</h2>
+                <h2 className="text-xl font-bold text-purple-300">
+                  Categorías Más Visitadas
+                </h2>
                 <p className="text-sm text-purple-400/80">
                   Tendencias de navegación{" "}
                   {dashboardData.mostVisitedCategories.length > 0 &&
@@ -414,14 +520,18 @@ export default function AdminDashboard() {
                       <div className="font-medium text-white truncate text-sm sm:text-base">
                         {category.category || "Sin categoría"}
                       </div>
-                      <div className="text-xs sm:text-sm text-purple-400/80">Categoría</div>
+                      <div className="text-xs sm:text-sm text-purple-400/80">
+                        Categoría
+                      </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
                       <span className="px-2 py-1 sm:px-3 bg-purple-600/20 text-purple-300 border border-purple-600/30 rounded-full text-xs sm:text-sm font-medium">
                         {category.count}
                       </span>
                       <div className="text-xs sm:text-sm text-purple-400/70 mt-1">
-                        <span className="hidden sm:inline">visualizaciones</span>
+                        <span className="hidden sm:inline">
+                          visualizaciones
+                        </span>
                         <span className="sm:hidden">vistas</span>
                       </div>
                     </div>
@@ -444,7 +554,8 @@ export default function AdminDashboard() {
                     ) : (
                       <>
                         <ChevronDown className="h-4 w-4 mr-2" />
-                        Mostrar todas ({dashboardData.mostVisitedCategories.length})
+                        Mostrar todas (
+                        {dashboardData.mostVisitedCategories.length})
                       </>
                     )}
                   </button>
@@ -452,7 +563,9 @@ export default function AdminDashboard() {
               )}
             </>
           ) : (
-            <div className="text-center py-8 text-purple-400/60">No hay datos de categorías visitadas</div>
+            <div className="text-center py-8 text-purple-400/60">
+              No hay datos de categorías visitadas
+            </div>
           )}
         </div>
 
@@ -464,7 +577,9 @@ export default function AdminDashboard() {
                 <Clock className="h-6 w-6 text-blue-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-blue-300">Órdenes Recientes</h2>
+                <h2 className="text-xl font-bold text-blue-300">
+                  Órdenes Recientes
+                </h2>
                 <p className="text-sm text-blue-400/80">Actividad reciente</p>
               </div>
             </div>
@@ -491,20 +606,26 @@ export default function AdminDashboard() {
                   className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-800/20 via-blue-700/10 to-transparent border border-blue-700/20 rounded-lg hover:from-blue-800/30 hover:via-blue-700/20 transition-all duration-300 cursor-pointer"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium text-white text-sm sm:text-base">#{order.orderNumber}</div>
+                    <div className="font-medium text-white text-sm sm:text-base">
+                      #{order.orderNumber}
+                    </div>
                     <div className="text-xs sm:text-sm text-blue-400/80 truncate">
                       {order.shippingInfo?.fullName || "N/A"}
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 ml-2">
                     {getStatusBadge(order.status)}
-                    <div className="text-xs sm:text-sm text-blue-400/80 mt-1">${order.total?.toLocaleString()}</div>
+                    <div className="text-xs sm:text-sm text-blue-400/80 mt-1">
+                      ${order.total?.toLocaleString()}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-blue-400/60">No hay órdenes recientes</div>
+            <div className="text-center py-8 text-blue-400/60">
+              No hay órdenes recientes
+            </div>
           )}
         </div>
       </div>
@@ -530,8 +651,12 @@ export default function AdminDashboard() {
               <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-medium text-white text-sm sm:text-base">Nuevo Producto</h3>
-              <p className="text-xs sm:text-sm text-blue-400/80">Añadir al catálogo</p>
+              <h3 className="font-medium text-white text-sm sm:text-base">
+                Nuevo Producto
+              </h3>
+              <p className="text-xs sm:text-sm text-blue-400/80">
+                Añadir al catálogo
+              </p>
             </div>
           </Link>
 
@@ -543,8 +668,12 @@ export default function AdminDashboard() {
               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-medium text-white text-sm sm:text-base">Gestionar Órdenes</h3>
-              <p className="text-xs sm:text-sm text-purple-400/80">Ver pedidos</p>
+              <h3 className="font-medium text-white text-sm sm:text-base">
+                Gestionar Órdenes
+              </h3>
+              <p className="text-xs sm:text-sm text-purple-400/80">
+                Ver pedidos
+              </p>
             </div>
           </Link>
 
@@ -556,8 +685,12 @@ export default function AdminDashboard() {
               <Package className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-medium text-white text-sm sm:text-base">Inventario</h3>
-              <p className="text-xs sm:text-sm text-emerald-400/80">Gestionar productos</p>
+              <h3 className="font-medium text-white text-sm sm:text-base">
+                Inventario
+              </h3>
+              <p className="text-xs sm:text-sm text-emerald-400/80">
+                Gestionar productos
+              </p>
             </div>
           </Link>
 
@@ -569,12 +702,14 @@ export default function AdminDashboard() {
               <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-medium text-white text-sm sm:text-base">Configuración</h3>
+              <h3 className="font-medium text-white text-sm sm:text-base">
+                Configuración
+              </h3>
               <p className="text-xs sm:text-sm text-amber-400/80">Ajustes</p>
             </div>
           </Link>
         </div>
       </div>
     </div>
-  )
+  );
 }
