@@ -58,20 +58,19 @@ interface GeneratedVideo {
 
 const AdminAdvertising: React.FC = () => {
   // Estados principales
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [generationProgress, setGenerationProgress] = useState(0)
+  const [isGenerating, setIsGenerating] = useState<boolean>(false)
+  const [generationProgress, setGenerationProgress] = useState<number>(0)
   const [generationStatus, setGenerationStatus] = useState<"idle" | "generating" | "success" | "error">("idle")
-  const [generationMessage, setGenerationMessage] = useState("")
+  const [generationMessage, setGenerationMessage] = useState<string>("")
   const [generatedVideo, setGeneratedVideo] = useState<GeneratedVideo | null>(null)
 
   // Estados de datos
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<string[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
-  const [isOnline, setIsOnline] = useState(navigator.onLine)
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine)
   const [backendStatus, setBackendStatus] = useState<"checking" | "online" | "offline">("checking")
-
   // Estados de textos personalizables
   const [customTexts, setCustomTexts] = useState({
     brandName: "Joly Lingerie",
@@ -1367,243 +1366,242 @@ const AdminAdvertising: React.FC = () => {
                     </p>
                   </div>
                 </label>
-                </div>
               </div>
+            </div>
 
-              {/* Vista Previa de Productos - Optimizado para móvil */}
-              <div>
-                <h4 className="font-semibold text-white mb-3 lg:mb-4">
-                  Vista Previa ({getFilteredProducts().length} productos
-                  seleccionados)
-                </h4>
+            {/* Vista Previa de Productos - Optimizado para móvil */}
+            <div>
+              <h4 className="font-semibold text-white mb-3 lg:mb-4">
+                Vista Previa ({getFilteredProducts().length} productos
+                seleccionados)
+              </h4>
 
-                {getFilteredProducts().length === 0 ? (
-                  <div className="text-center py-6 lg:py-8 text-slate-400">
-                    <Package className="w-10 h-10 lg:w-12 lg:h-12 mx-auto mb-2" />
-                    <p className="text-sm lg:text-base">
-                      No hay productos disponibles con los filtros seleccionados
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
-                    {getFilteredProducts().map((product, index) => (
-                      <div
-                        key={product._id}
-                        className="bg-slate-800/30 rounded-lg overflow-hidden border border-slate-600"
-                      >
-                        <div className="relative">
-                          <img
-                            src={
-                              getProxiedImageUrl(product.thumbnails[0]) ||
-                              "/placeholder.svg"
-                             || "/placeholder.svg"}
-                            alt={product.title}
-                            className="w-full h-24 lg:h-32 object-cover"
-                            onError={(e) => handleImageError(e, product)}
-                          />
-                          {product.discount &&
-                            product.discount > 0 &&
-                            product.discount !== 0 && (
-                              <div className="absolute top-1 right-1 bg-red-500 text-white px-1 py-0.5 rounded text-xs">
-                                -{product.discount}%
-                              </div>
-                            )}
-                          <div className="absolute top-1 left-1 bg-purple-500 text-white px-1 py-0.5 rounded text-xs">
-                            #{index + 1}
-                          </div>
-                        </div>
-                        <div className="p-2 lg:p-3">
-                          {config.showProductName && (
-                            <h5 className="font-medium text-white text-xs lg:text-sm mb-1 truncate">
-                              {product.title}
-                            </h5>
-                          )}
-                          {config.showProductPrice && (
-                            <div className="flex items-center gap-1 lg:gap-2">
-                              <span className="text-green-400 text-xs lg:text-sm">
-                                $
-                                {product.discount &&
-                                product.discount > 0 &&
-                                product.discount !== 0
-                                  ? (
-                                      product.price *
-                                      (1 - product.discount / 100)
-                                    ).toFixed(2)
-                                  : product.price.toFixed(2)}
-                              </span>
-                              {product.discount &&
-                                product.discount > 0 &&
-                                product.discount !== 0 && (
-                                  <span className="text-xs text-slate-400 line-through">
-                                    ${product.price.toFixed(2)}
-                                  </span>
-                                )}
+              {getFilteredProducts().length === 0 ? (
+                <div className="text-center py-6 lg:py-8 text-slate-400">
+                  <Package className="w-10 h-10 lg:w-12 lg:h-12 mx-auto mb-2" />
+                  <p className="text-sm lg:text-base">
+                    No hay productos disponibles con los filtros seleccionados
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+                  {getFilteredProducts().map((product, index) => (
+                    <div
+                      key={product._id}
+                      className="bg-slate-800/30 rounded-lg overflow-hidden border border-slate-600"
+                    >
+                      <div className="relative">
+                        <img
+                          src={
+                            getProxiedImageUrl(product.thumbnails[0]) ||
+                            "/placeholder.svg"
+                          }
+                          alt={product.title}
+                          className="w-full h-24 lg:h-32 object-cover"
+                          onError={(e) => handleImageError(e, product)}
+                        />
+                        {product.discount &&
+                          product.discount > 0 &&
+                          product.discount !== 0 && (
+                            <div className="absolute top-1 right-1 bg-red-500 text-white px-1 py-0.5 rounded text-xs">
+                              -{product.discount}%
                             </div>
                           )}
-                          <p className="text-xs text-slate-400 mt-1">
-                            {product.category}
+                        <div className="absolute top-1 left-1 bg-purple-500 text-white px-1 py-0.5 rounded text-xs">
+                          #{index + 1}
+                        </div>
+                      </div>
+                      <div className="p-2 lg:p-3">
+                        {config.showProductName && (
+                          <h5 className="font-medium text-white text-xs lg:text-sm mb-1 truncate">
+                            {product.title}
+                          </h5>
+                        )}
+                        {config.showProductPrice && (
+                          <div className="flex items-center gap-1 lg:gap-2">
+                            <span className="text-green-400 text-xs lg:text-sm">
+                              $
+                              {product.discount &&
+                              product.discount > 0 &&
+                              product.discount !== 0
+                                ? (
+                                    product.price *
+                                    (1 - product.discount / 100)
+                                  ).toFixed(2)
+                                : product.price.toFixed(2)}
+                            </span>
+                            {product.discount &&
+                              product.discount > 0 &&
+                              product.discount !== 0 && (
+                                <span className="text-xs text-slate-400 line-through">
+                                  ${product.price.toFixed(2)}
+                                </span>
+                              )}
+                          </div>
+                        )}
+                        <p className="text-xs text-slate-400 mt-1">
+                          {product.category}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Botón de Generación - Optimizado para móvil */}
+          <div className="bg-gradient-to-br from-slate-800/90 via-slate-700/80 to-gray-800/90 backdrop-blur-sm rounded-2xl border border-slate-600/50 p-4 lg:p-6 shadow-xl">
+            <div className="text-center">
+              {generationStatus === "generating" && (
+                <div className="mb-4 lg:mb-6">
+                  <div className="w-full bg-slate-800 rounded-full h-2 lg:h-3 mb-3 lg:mb-4">
+                    <div
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 lg:h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${generationProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-slate-300 text-sm lg:text-base">
+                    {generationMessage}
+                  </p>
+                  <p className="text-slate-400 text-xs lg:text-sm mt-1">
+                    {generationProgress.toFixed(0)}% completado
+                  </p>
+                </div>
+              )}
+
+              <button
+                onClick={handleGenerateVideo}
+                disabled={
+                  isGenerating ||
+                  !isOnline ||
+                  backendStatus !== "online" ||
+                  getFilteredProducts().length === 0
+                }
+                className="w-full lg:w-auto px-6 lg:px-8 py-3 lg:py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-slate-600 disabled:to-slate-700 text-white font-semibold rounded-xl transition-all duration-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 lg:gap-3 text-sm lg:text-base"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 lg:w-5 lg:h-5 animate-spin" />
+                    Generando Video...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 lg:w-5 lg:h-5" />
+                    Generar Video de Desfile
+                  </>
+                )}
+              </button>
+
+              {!isOnline && (
+                <p className="text-red-400 text-xs lg:text-sm mt-2">
+                  Sin conexión a internet
+                </p>
+              )}
+              {backendStatus !== "online" && isOnline && (
+                <p className="text-yellow-400 text-xs lg:text-sm mt-2">
+                  Backend no disponible
+                </p>
+              )}
+              {getFilteredProducts().length === 0 && (
+                <p className="text-yellow-400 text-xs lg:text-sm mt-2">
+                  No hay productos para generar el video
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Video Generado - Optimizado para móvil */}
+          {generatedVideo && (
+            <div className="bg-gradient-to-br from-slate-800/90 via-slate-700/80 to-gray-800/90 backdrop-blur-sm rounded-2xl border border-slate-600/50 p-4 lg:p-6 shadow-xl">
+              <div className="flex items-center gap-3 mb-4 lg:mb-6">
+                <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-green-400" />
+                <h3 className="text-lg lg:text-xl font-semibold text-white">
+                  Video Generado Exitosamente
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                {/* Vista Previa del Video */}
+                <div>
+                  <h4 className="font-semibold text-white mb-3">
+                    Vista Previa
+                  </h4>
+                  <div className="bg-black rounded-lg overflow-hidden">
+                    <video
+                      ref={videoPreviewRef}
+                      src={generatedVideo.videoUrl}
+                      controls
+                      className="w-full h-auto max-h-64 lg:max-h-80"
+                      poster="/placeholder.svg?height=400&width=225"
+                    >
+                      Tu navegador no soporta el elemento video.
+                    </video>
+                  </div>
+                </div>
+
+                {/* Información del Video */}
+                <div>
+                  <h4 className="font-semibold text-white mb-3">
+                    Información del Video
+                  </h4>
+                  <div className="space-y-3 lg:space-y-4">
+                    <div className="p-3 lg:p-4 bg-slate-800/30 rounded-lg">
+                      <div className="grid grid-cols-2 gap-3 lg:gap-4 text-sm">
+                        <div>
+                          <p className="text-slate-400">Duración</p>
+                          <p className="text-white font-medium">
+                            {generatedVideo.duration}s
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400">Tamaño</p>
+                          <p className="text-white font-medium">
+                            {formatFileSize(generatedVideo.size)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400">Productos</p>
+                          <p className="text-white font-medium">
+                            {generatedVideo.products.length}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400">Formato</p>
+                          <p className="text-white font-medium">
+                            {generatedVideo.videoBlob.type.includes("mp4")
+                              ? "MP4"
+                              : "WebM"}
                           </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Botón de Generación - Optimizado para móvil */}
-            <div className="bg-gradient-to-br from-slate-800/90 via-slate-700/80 to-gray-800/90 backdrop-blur-sm rounded-2xl border border-slate-600/50 p-4 lg:p-6 shadow-xl">
-              <div className="text-center">
-                {generationStatus === "generating" && (
-                  <div className="mb-4 lg:mb-6">
-                    <div className="w-full bg-slate-800 rounded-full h-2 lg:h-3 mb-3 lg:mb-4">
-                      <div
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 lg:h-3 rounded-full transition-all duration-300"
-                        style={{ width: `${generationProgress}%` }}
-                      />
                     </div>
-                    <p className="text-slate-300 text-sm lg:text-base">
-                      {generationMessage}
-                    </p>
-                    <p className="text-slate-400 text-xs lg:text-sm mt-1">
-                      {generationProgress.toFixed(0)}% completado
-                    </p>
-                  </div>
-                )}
 
-                <button
-                  onClick={handleGenerateVideo}
-                  disabled={
-                    isGenerating ||
-                    !isOnline ||
-                    backendStatus !== "online" ||
-                    getFilteredProducts().length === 0
-                  }
-                  className="w-full lg:w-auto px-6 lg:px-8 py-3 lg:py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-slate-600 disabled:to-slate-700 text-white font-semibold rounded-xl transition-all duration-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 lg:gap-3 text-sm lg:text-base"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 lg:w-5 lg:h-5 animate-spin" />
-                      Generando Video...
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4 lg:w-5 lg:h-5" />
-                      Generar Video de Desfile
-                    </>
-                  )}
-                </button>
-
-                {!isOnline && (
-                  <p className="text-red-400 text-xs lg:text-sm mt-2">
-                    Sin conexión a internet
-                  </p>
-                )}
-                {backendStatus !== "online" && isOnline && (
-                  <p className="text-yellow-400 text-xs lg:text-sm mt-2">
-                    Backend no disponible
-                  </p>
-                )}
-                {getFilteredProducts().length === 0 && (
-                  <p className="text-yellow-400 text-xs lg:text-sm mt-2">
-                    No hay productos para generar el video
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Video Generado - Optimizado para móvil */}
-            {generatedVideo && (
-              <div className="bg-gradient-to-br from-slate-800/90 via-slate-700/80 to-gray-800/90 backdrop-blur-sm rounded-2xl border border-slate-600/50 p-4 lg:p-6 shadow-xl">
-                <div className="flex items-center gap-3 mb-4 lg:mb-6">
-                  <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-green-400" />
-                  <h3 className="text-lg lg:text-xl font-semibold text-white">
-                    Video Generado Exitosamente
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-                  {/* Vista Previa del Video */}
-                  <div>
-                    <h4 className="font-semibold text-white mb-3">
-                      Vista Previa
-                    </h4>
-                    <div className="bg-black rounded-lg overflow-hidden">
-                      <video
-                        ref={videoPreviewRef}
-                        src={generatedVideo.videoUrl}
-                        controls
-                        className="w-full h-auto max-h-64 lg:max-h-80"
-                        poster="/placeholder.svg?height=400&width=225"
+                    {/* Botones de Acción - Optimizados para móvil */}
+                    <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
+                      <button
+                        onClick={() => handleDownloadVideo(generatedVideo)}
+                        className="flex-1 px-4 py-2 lg:py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm lg:text-base"
                       >
-                        Tu navegador no soporta el elemento video.
-                      </video>
-                    </div>
-                  </div>
-
-                  {/* Información del Video */}
-                  <div>
-                    <h4 className="font-semibold text-white mb-3">
-                      Información del Video
-                    </h4>
-                    <div className="space-y-3 lg:space-y-4">
-                      <div className="p-3 lg:p-4 bg-slate-800/30 rounded-lg">
-                        <div className="grid grid-cols-2 gap-3 lg:gap-4 text-sm">
-                          <div>
-                            <p className="text-slate-400">Duración</p>
-                            <p className="text-white font-medium">
-                              {generatedVideo.duration}s
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-slate-400">Tamaño</p>
-                            <p className="text-white font-medium">
-                              {formatFileSize(generatedVideo.size)}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-slate-400">Productos</p>
-                            <p className="text-white font-medium">
-                              {generatedVideo.products.length}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-slate-400">Formato</p>
-                            <p className="text-white font-medium">
-                              {generatedVideo.videoBlob.type.includes("mp4")
-                                ? "MP4"
-                                : "WebM"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Botones de Acción - Optimizados para móvil */}
-                      <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
-                        <button
-                          onClick={() => handleDownloadVideo(generatedVideo)}
-                          className="flex-1 px-4 py-2 lg:py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm lg:text-base"
-                        >
-                          <Download className="w-4 h-4" />
-                          Descargar
-                        </button>
-                        <button
-                          onClick={() => handleShareVideo(generatedVideo)}
-                          className="flex-1 px-4 py-2 lg:py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm lg:text-base"
-                        >
-                          <Share2 className="w-4 h-4" />
-                          Compartir
-                        </button>
-                      </div>
+                        <Download className="w-4 h-4" />
+                        Descargar
+                      </button>
+                      <button
+                        onClick={() => handleShareVideo(generatedVideo)}
+                        className="flex-1 px-4 py-2 lg:py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm lg:text-base"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        Compartir
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
-  </div>
+    </div>
   )
 }
 
