@@ -515,11 +515,7 @@ body {
     line-height: 1.5 !important;
   }
 
-  /* ===== ICONOS CON TEXTO ===== */
-  .flex.items-center span,
-  .inline-flex span {
-    font-size: 0.7rem !important; /* ~11px */
-  }
+ 
 
   /* ===== TABLAS (para admin) ===== */
   table th,

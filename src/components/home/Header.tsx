@@ -52,9 +52,7 @@ export default function Header() {
               <span className="font-light italic" style={{ color: "var(--clay)" }}>
                 Lingerie
               </span>
-              <sup className="text-xs font-normal" style={{ color: "var(--oak)" }}>
-                ™
-              </sup>
+              
             </Link>
           </div>
           {/* Navigation - Desktop */}
