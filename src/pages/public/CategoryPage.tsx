@@ -129,6 +129,10 @@ export default function CategoryPage() {
       )
       setTotalPages(response.totalPages)
       setCurrentPage(pageToLoad)
+            // AÑADE ESTOS CONSOLE.LOGS
+      console.log("Resultado de apiService.getProducts:", response);
+      console.log("Productos a establecer en el estado:", products);
+      // FIN DE CONSOLE.LOGS
       setError(null)
     } catch (err) {
       console.error("Error loading products by category:", err)
