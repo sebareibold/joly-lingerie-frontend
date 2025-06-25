@@ -438,7 +438,7 @@ export const apiService = {
 
   updateSiteContent: async (contentData: any) => {
     try {
-      const response = (await apiService.put("/site-content", contentData)) as any
+      const response = (await apiService.put("/content", contentData)) as any
       return { success: true, content: response.content }
     } catch (error: unknown) {
       return {
