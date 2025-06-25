@@ -251,12 +251,12 @@ export const apiService = {
   // Product Endpoints
   getProducts: async (params?: any) => {
     try {
-      const response = (await apiService.get("/products", params)) as any
+      const response = (await apiService.get("/products", params)) as any // Esta 'response' ya es el objeto { status, payload, totalPages, totalDocs } del backend
       return {
         success: true,
-        payload: response.products,
-        totalPages: response.totalPages,
-        totalProducts: response.totalProducts,
+        payload: response.products, // ❌ Incorrecto: debería ser response.payload
+        totalPages: response.totalPages, // ✅ Correcto
+        totalProducts: response.totalProducts, // ❌ Incorrecto: debería ser response.totalDocs
       }
     } catch (error: unknown) {
       return {
