@@ -1,4 +1,5 @@
 "use client"
+
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import {
@@ -13,8 +14,6 @@ import {
   Instagram,
   MessageCircle,
   AlertCircle,
-  Wifi,
-  WifiOff,
   Zap,
   Type,
   DollarSign,
@@ -61,13 +60,9 @@ const AdminAdvertising: React.FC = () => {
   // Estados principales
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationProgress, setGenerationProgress] = useState(0)
-  const [generationStatus, setGenerationStatus] = useState<
-    "idle" | "generating" | "success" | "error"
-  >("idle")
+  const [generationStatus, setGenerationStatus] = useState<"idle" | "generating" | "success" | "error">("idle")
   const [generationMessage, setGenerationMessage] = useState("")
-  const [generatedVideo, setGeneratedVideo] = useState<GeneratedVideo | null>(
-    null
-  )
+  const [generatedVideo, setGeneratedVideo] = useState<GeneratedVideo | null>(null)
 
   // Estados de datos
   const [products, setProducts] = useState<Product[]>([])
@@ -75,9 +70,7 @@ const AdminAdvertising: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
-  const [backendStatus, setBackendStatus] = useState<
-    "checking" | "online" | "offline"
-  >("checking")
+  const [backendStatus, setBackendStatus] = useState<"checking" | "online" | "offline">("checking")
 
   // Estados de textos personalizables
   const [customTexts, setCustomTexts] = useState({
@@ -105,8 +98,7 @@ const AdminAdvertising: React.FC = () => {
   const recordedChunksRef = useRef<Blob[]>([])
 
   // Configuración del backend
-  const BACKEND_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:8080/api"
+  const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api"
 
   // Detectar estado de conexión
   useEffect(() => {
@@ -164,9 +156,7 @@ const AdminAdvertising: React.FC = () => {
 
       const backendOnline = await checkBackendStatus()
       if (!backendOnline) {
-        throw new Error(
-          "Backend no disponible. Verifica que el servidor esté corriendo."
-        )
+        throw new Error("Backend no disponible. Verifica que el servidor esté corriendo.")
       }
 
       const productsResponse = await apiService.getProducts({
@@ -179,11 +169,7 @@ const AdminAdvertising: React.FC = () => {
         setProducts(productsResponse.payload)
 
         const uniqueCategories = [
-          ...new Set(
-            productsResponse.payload
-              .map((product: Product) => product.category)
-              .filter(Boolean)
-          ),
+          ...new Set(productsResponse.payload.map((product: Product) => product.category).filter(Boolean)),
         ]
         setCategories(uniqueCategories)
         console.log("📂 Categorías encontradas:", uniqueCategories)
@@ -192,13 +178,9 @@ const AdminAdvertising: React.FC = () => {
       }
 
       console.log("✅ Datos cargados exitosamente")
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Error cargando datos:", error)
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Error desconocido al cargar datos"
-      )
+      setError(error instanceof Error ? error.message : "Error desconocido al cargar datos")
     } finally {
       setIsLoading(false)
     }
@@ -227,10 +209,7 @@ const AdminAdvertising: React.FC = () => {
   }
 
   // Función para cargar imagen con mejor manejo de CORS
-  const loadImage = (
-    src: string,
-    product: Product
-  ): Promise<HTMLImageElement> => {
+  const loadImage = (src: string, product: Product): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
       const img = new Image()
       img.crossOrigin = "anonymous"
@@ -240,10 +219,8 @@ const AdminAdvertising: React.FC = () => {
         resolve(img)
       }
 
-      img.onerror = (error) => {
-        console.warn(
-          `⚠️ Error cargando imagen para ${product.title}, usando placeholder`
-        )
+      img.onerror = (_error) => {
+        console.warn(`⚠️ Error cargando imagen para ${product.title}, usando placeholder`)
 
         // Crear imagen placeholder directamente
         const placeholderImg = new Image()
@@ -290,7 +267,7 @@ const AdminAdvertising: React.FC = () => {
 
         // Intentar con placeholder del servidor
         placeholderImg.src = `${BACKEND_URL}/images/placeholder?width=400&height=400&text=${encodeURIComponent(
-          product.title.substring(0, 15)
+          product.title.substring(0, 15),
         )}`
       }
 
@@ -300,13 +277,9 @@ const AdminAdvertising: React.FC = () => {
 
   // Función para obtener URL de imagen usando proxy
   const getProxiedImageUrl = (originalUrl: string) => {
-    if (!originalUrl)
-      return `${BACKEND_URL}/images/placeholder?width=400&height=400&text=Sin%20imagen`
+    if (!originalUrl) return `${BACKEND_URL}/images/placeholder?width=400&height=400&text=Sin%20imagen`
 
-    if (
-      originalUrl.startsWith("/") ||
-      originalUrl.startsWith(window.location.origin)
-    ) {
+    if (originalUrl.startsWith("/") || originalUrl.startsWith(window.location.origin)) {
       return originalUrl
     }
 
@@ -315,11 +288,7 @@ const AdminAdvertising: React.FC = () => {
 
   // Función para obtener el codec de video soportado por el navegador
   const getSupportedVideoCodec = (): string => {
-    const mp4Codecs = [
-      "video/mp4codecs=h264",
-      "video/mp4codecs=avc1.42E01E",
-      "video/mp4",
-    ]
+    const mp4Codecs = ["video/mp4;codecs=h264", "video/mp4;codecs=avc1.42E01E", "video/mp4"]
     for (const codec of mp4Codecs) {
       if (MediaRecorder.isTypeSupported(codec)) {
         console.log(`✅ Codec MP4 soportado para grabación: ${codec}`)
@@ -327,16 +296,10 @@ const AdminAdvertising: React.FC = () => {
       }
     }
 
-    const webmCodecs = [
-      "video/webmcodecs=vp9",
-      "video/webmcodecs=vp8",
-      "video/webm",
-    ]
+    const webmCodecs = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"]
     for (const codec of webmCodecs) {
       if (MediaRecorder.isTypeSupported(codec)) {
-        console.warn(
-          `⚠️ No se encontró codec MP4. Usando fallback WebM: ${codec}`
-        )
+        console.warn(`⚠️ No se encontró codec MP4. Usando fallback WebM: ${codec}`)
         return codec
       }
     }
@@ -352,25 +315,7 @@ const AdminAdvertising: React.FC = () => {
 
   const easeOutElastic = (t: number): number => {
     const c4 = (2 * Math.PI) / 3
-    return t === 0
-      ? 0
-      : t === 1
-      ? 1
-      : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1
-  }
-
-  const easeOutBounce = (t: number): number => {
-    const n1 = 7.5625
-    const d1 = 2.75
-    if (t < 1 / d1) {
-      return n1 * t * t
-    } else if (t < 2 / d1) {
-      return n1 * (t -= 1.5 / d1) * t + 0.75
-    } else if (t < 2.5 / d1) {
-      return n1 * (t -= 2.25 / d1) * t + 0.9375
-    } else {
-      return n1 * (t -= 2.625 / d1) * t + 0.984375
-    }
+    return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1
   }
 
   const renderProductOnCanvas = (
@@ -379,7 +324,7 @@ const AdminAdvertising: React.FC = () => {
     product: Product,
     image: HTMLImageElement,
     animationProgress = 1,
-    animationType = "zoom"
+    animationType = "zoom",
   ) => {
     const { width, height } = canvas
 
@@ -426,13 +371,7 @@ const AdminAdvertising: React.FC = () => {
     ctx.fillRect(0, 0, width, height)
 
     // Función para dibujar siluetas florales grandes y sutiles
-    const drawFloralSilhouette = (
-      x: number,
-      y: number,
-      size: number,
-      opacity: number,
-      rotation = 0
-    ) => {
+    const drawFloralSilhouette = (x: number, y: number, size: number, opacity: number, rotation = 0) => {
       ctx.save()
       ctx.globalAlpha = opacity * imageOpacity * 0.25
       ctx.translate(x, y)
@@ -442,7 +381,7 @@ const AdminAdvertising: React.FC = () => {
       ctx.fillStyle = "#D1C7BD"
 
       // Dibujar flor estilizada grande
-      for (let i = 0 i < 8 i++) {
+      for (let i = 0; i < 8; i++) {
         ctx.save()
         ctx.rotate((i * Math.PI * 2) / 8)
 
@@ -624,7 +563,7 @@ const AdminAdvertising: React.FC = () => {
     maxWidth: number,
     lineHeight: number,
     font: string,
-    color: string
+    color: string,
   ) => {
     ctx.save()
     ctx.font = font
@@ -664,16 +603,12 @@ const AdminAdvertising: React.FC = () => {
   // Función principal para generar video
   const handleGenerateVideo = async () => {
     if (!isOnline) {
-      setError(
-        "No hay conexión a internet. Verifica tu conexión e intenta nuevamente."
-      )
+      setError("No hay conexión a internet. Verifica tu conexión e intenta nuevamente.")
       return
     }
 
     if (backendStatus !== "online") {
-      setError(
-        "Backend no disponible. Verifica que el servidor esté corriendo."
-      )
+      setError("Backend no disponible. Verifica que el servidor esté corriendo.")
       return
     }
 
@@ -714,10 +649,7 @@ const AdminAdvertising: React.FC = () => {
           setGenerationProgress(((index + 1) / productsToUse.length) * 30)
           return { product, image }
         } catch (error) {
-          console.warn(
-            `⚠️ Error cargando imagen para ${product.title}:`,
-            error
-          )
+          console.warn(`⚠️ Error cargando imagen para ${product.title}:`, error)
           const canvas = document.createElement("canvas")
           canvas.width = 400
           canvas.height = 400
@@ -731,21 +663,19 @@ const AdminAdvertising: React.FC = () => {
             ctx.fillText(product.title.substring(0, 15), 200, 200)
           }
 
-          return new Promise<{ product: Product image: HTMLImageElement }>(
-            (resolve) => {
-              canvas.toBlob((blob) => {
-                if (blob) {
-                  const url = URL.createObjectURL(blob)
-                  const img = new Image()
-                  img.onload = () => {
-                    URL.revokeObjectURL(url)
-                    resolve({ product, image: img })
-                  }
-                  img.src = url
+          return new Promise<{ product: Product; image: HTMLImageElement }>((resolve) => {
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const url = URL.createObjectURL(blob)
+                const img = new Image()
+                img.onload = () => {
+                  URL.revokeObjectURL(url)
+                  resolve({ product, image: img })
                 }
-              })
-            }
-          )
+                img.src = url
+              }
+            })
+          })
         }
       })
 
@@ -809,53 +739,30 @@ const AdminAdvertising: React.FC = () => {
       ctx.fillStyle = "#2C2C2C"
       ctx.font = "300 88px 'Playfair Display', serif"
       ctx.textAlign = "center"
-      ctx.fillText(
-        customTexts.brandName,
-        canvas.width / 2,
-        canvas.height / 2 - 40
-      )
+      ctx.fillText(customTexts.brandName, canvas.width / 2, canvas.height / 2 - 40)
 
       ctx.font = "400 52px 'Playfair Display', serif"
       ctx.fillStyle = "#7A5C4A"
-      ctx.fillText(
-        customTexts.introSubtitle,
-        canvas.width / 2,
-        canvas.height / 2 + 20
-      )
+      ctx.fillText(customTexts.introSubtitle, canvas.width / 2, canvas.height / 2 + 20)
 
       ctx.font = "300 36px 'Playfair Display', serif"
       ctx.fillStyle = "#999999"
-      ctx.fillText(
-        customTexts.introDescription,
-        canvas.width / 2,
-        canvas.height / 2 + 70
-      )
+      ctx.fillText(customTexts.introDescription, canvas.width / 2, canvas.height / 2 + 70)
 
       await new Promise((resolve) => setTimeout(resolve, 2500))
 
       // Renderizar cada producto con animación fluida
-      for (let i = 0 i < productImages.length i++) {
+      for (let i = 0; i < productImages.length; i++) {
         const { product, image } = productImages[i]
 
-        setGenerationMessage(
-          `Renderizando producto ${i + 1} de ${productImages.length}: ${
-            product.title
-          }`
-        )
+        setGenerationMessage(`Renderizando producto ${i + 1} de ${productImages.length}: ${product.title}`)
         setGenerationProgress(30 + (i / productImages.length) * 60)
 
         // Animación de entrada más fluida (90 frames = 1.5 segundos a 60fps)
         const animationFrames = 90
-        for (let frame = 0 frame <= animationFrames frame++) {
+        for (let frame = 0; frame <= animationFrames; frame++) {
           const progress = frame / animationFrames
-          renderProductOnCanvas(
-            canvas,
-            ctx,
-            product,
-            image,
-            progress,
-            config.animationType
-          )
+          renderProductOnCanvas(canvas, ctx, product, image, progress, config.animationType)
           await new Promise((resolve) => setTimeout(resolve, 16.67)) // ~60fps
         }
 
@@ -863,14 +770,7 @@ const AdminAdvertising: React.FC = () => {
         const staticDuration = (config.productDuration - 1.5) * 1000
         const startTime = Date.now()
         while (Date.now() - startTime < staticDuration) {
-          renderProductOnCanvas(
-            canvas,
-            ctx,
-            product,
-            image,
-            1,
-            config.animationType
-          )
+          renderProductOnCanvas(canvas, ctx, product, image, 1, config.animationType)
           await new Promise((resolve) => setTimeout(resolve, 16.67))
         }
       }
@@ -896,7 +796,7 @@ const AdminAdvertising: React.FC = () => {
         maxTextWidth,
         80,
         "400 72px 'Playfair Display', serif",
-        "#2C2C2C"
+        "#2C2C2C",
       )
 
       // Calcular posición para el submensaje basado en cuántas líneas ocupó el mensaje principal
@@ -911,7 +811,7 @@ const AdminAdvertising: React.FC = () => {
         maxTextWidth,
         60,
         "300 48px 'Playfair Display', serif",
-        "#7A5C4A"
+        "#7A5C4A",
       )
 
       // Calcular posición para el nombre de la marca
@@ -929,14 +829,10 @@ const AdminAdvertising: React.FC = () => {
       setGenerationMessage("Finalizando video...")
 
       mediaRecorder.stop()
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Error generando video:", error)
       setGenerationStatus("error")
-      setGenerationMessage(
-        error instanceof Error
-          ? error.message
-          : "Error desconocido al generar el video"
-      )
+      setGenerationMessage(error instanceof Error ? error.message : "Error desconocido al generar el video")
       setIsGenerating(false)
     }
   }
@@ -962,9 +858,7 @@ const AdminAdvertising: React.FC = () => {
     if (
       navigator.share &&
       navigator.canShare({
-        files: [
-          new File([video.videoBlob], fileName, { type: video.videoBlob.type }),
-        ],
+        files: [new File([video.videoBlob], fileName, { type: video.videoBlob.type })],
       })
     ) {
       try {
@@ -994,21 +888,16 @@ const AdminAdvertising: React.FC = () => {
     const k = 1024
     const sizes = ["Bytes", "KB", "MB", "GB"]
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return (
-      Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
-    )
+    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
   }
 
   // Función para manejar errores de carga de imágenes en la UI
-  const handleImageError = (
-    e: React.SyntheticEvent<HTMLImageElement>,
-    product: Product
-  ) => {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>, product: Product) => {
     const target = e.currentTarget
     if (target.src.includes("placeholder")) return
 
     target.src = `${BACKEND_URL}/images/placeholder?width=200&height=200&text=${encodeURIComponent(
-      product.title.substring(0, 10)
+      product.title.substring(0, 10),
     )}`
   }
 
@@ -1019,17 +908,15 @@ const AdminAdvertising: React.FC = () => {
         <div className="text-center">
           <Loader2 className="w-16 h-16 text-purple-400 mx-auto mb-4 animate-spin" />
           <p className="text-white text-lg">Cargando sistema de videos...</p>
-          <p className="text-slate-400 text-sm">
-            Conectando con la base de datos
-          </p>
+          <p className="text-slate-400 text-sm">Conectando con la base de datos</p>
           <div className="mt-4 flex items-center justify-center gap-2">
             <div
               className={`w-2 h-2 rounded-full ${
                 backendStatus === "online"
                   ? "bg-green-400"
                   : backendStatus === "offline"
-                  ? "bg-red-400"
-                  : "bg-yellow-400"
+                    ? "bg-red-400"
+                    : "bg-yellow-400"
               }`}
             />
             <span className="text-sm text-slate-400">
@@ -1037,8 +924,8 @@ const AdminAdvertising: React.FC = () => {
               {backendStatus === "online"
                 ? "Conectado"
                 : backendStatus === "offline"
-                ? "Desconectado"
-                : "Verificando..."}
+                  ? "Desconectado"
+                  : "Verificando..."}
             </span>
           </div>
         </div>
@@ -1052,9 +939,7 @@ const AdminAdvertising: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h2 className="text-white text-xl font-semibold mb-2">
-            Error al cargar datos
-          </h2>
+          <h2 className="text-white text-xl font-semibold mb-2">Error al cargar datos</h2>
           <p className="text-slate-300 mb-4">{error}</p>
           <button
             onClick={loadInitialData}
@@ -1320,12 +1205,12 @@ const AdminAdvertising: React.FC = () => {
                   {categories.map((category) => {
                     const count = products.filter(
                       (p) => p.category === category
-                    ).length
+                    ).length;
                     return (
                       <option key={category} value={category}>
                         {category} ({count} productos)
                       </option>
-                    )
+                    );
                   })}
                 </select>
               </div>
@@ -1482,242 +1367,242 @@ const AdminAdvertising: React.FC = () => {
                     </p>
                   </div>
                 </label>
-              </div>
-            </div>
-
-            {/* Vista Previa de Productos - Optimizado para móvil */}
-            <div>
-              <h4 className="font-semibold text-white mb-3 lg:mb-4">
-                Vista Previa ({getFilteredProducts().length} productos
-                seleccionados)
-              </h4>
-
-              {getFilteredProducts().length === 0 ? (
-                <div className="text-center py-6 lg:py-8 text-slate-400">
-                  <Package className="w-10 h-10 lg:w-12 lg:h-12 mx-auto mb-2" />
-                  <p className="text-sm lg:text-base">
-                    No hay productos disponibles con los filtros seleccionados
-                  </p>
                 </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
-                  {getFilteredProducts().map((product, index) => (
-                    <div
-                      key={product._id}
-                      className="bg-slate-800/30 rounded-lg overflow-hidden border border-slate-600"
-                    >
-                      <div className="relative">
-                        <img
-                          src={
-                            getProxiedImageUrl(product.thumbnails[0]) ||
-                            "/placeholder.svg"
-                          }
-                          alt={product.title}
-                          className="w-full h-24 lg:h-32 object-cover"
-                          onError={(e) => handleImageError(e, product)}
-                        />
-                        {product.discount &&
-                          product.discount > 0 &&
-                          product.discount !== 0 && (
-                            <div className="absolute top-1 right-1 bg-red-500 text-white px-1 py-0.5 rounded text-xs">
-                              -{product.discount}%
+              </div>
+
+              {/* Vista Previa de Productos - Optimizado para móvil */}
+              <div>
+                <h4 className="font-semibold text-white mb-3 lg:mb-4">
+                  Vista Previa ({getFilteredProducts().length} productos
+                  seleccionados)
+                </h4>
+
+                {getFilteredProducts().length === 0 ? (
+                  <div className="text-center py-6 lg:py-8 text-slate-400">
+                    <Package className="w-10 h-10 lg:w-12 lg:h-12 mx-auto mb-2" />
+                    <p className="text-sm lg:text-base">
+                      No hay productos disponibles con los filtros seleccionados
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+                    {getFilteredProducts().map((product, index) => (
+                      <div
+                        key={product._id}
+                        className="bg-slate-800/30 rounded-lg overflow-hidden border border-slate-600"
+                      >
+                        <div className="relative">
+                          <img
+                            src={
+                              getProxiedImageUrl(product.thumbnails[0]) ||
+                              "/placeholder.svg"
+                             || "/placeholder.svg"}
+                            alt={product.title}
+                            className="w-full h-24 lg:h-32 object-cover"
+                            onError={(e) => handleImageError(e, product)}
+                          />
+                          {product.discount &&
+                            product.discount > 0 &&
+                            product.discount !== 0 && (
+                              <div className="absolute top-1 right-1 bg-red-500 text-white px-1 py-0.5 rounded text-xs">
+                                -{product.discount}%
+                              </div>
+                            )}
+                          <div className="absolute top-1 left-1 bg-purple-500 text-white px-1 py-0.5 rounded text-xs">
+                            #{index + 1}
+                          </div>
+                        </div>
+                        <div className="p-2 lg:p-3">
+                          {config.showProductName && (
+                            <h5 className="font-medium text-white text-xs lg:text-sm mb-1 truncate">
+                              {product.title}
+                            </h5>
+                          )}
+                          {config.showProductPrice && (
+                            <div className="flex items-center gap-1 lg:gap-2">
+                              <span className="text-green-400 text-xs lg:text-sm">
+                                $
+                                {product.discount &&
+                                product.discount > 0 &&
+                                product.discount !== 0
+                                  ? (
+                                      product.price *
+                                      (1 - product.discount / 100)
+                                    ).toFixed(2)
+                                  : product.price.toFixed(2)}
+                              </span>
+                              {product.discount &&
+                                product.discount > 0 &&
+                                product.discount !== 0 && (
+                                  <span className="text-xs text-slate-400 line-through">
+                                    ${product.price.toFixed(2)}
+                                  </span>
+                                )}
                             </div>
                           )}
-                        <div className="absolute top-1 left-1 bg-purple-500 text-white px-1 py-0.5 rounded text-xs">
-                          #{index + 1}
+                          <p className="text-xs text-slate-400 mt-1">
+                            {product.category}
+                          </p>
                         </div>
                       </div>
-                      <div className="p-2 lg:p-3">
-                        {config.showProductName && (
-                          <h5 className="font-medium text-white text-xs lg:text-sm mb-1 truncate">
-                            {product.title}
-                          </h5>
-                        )}
-                        {config.showProductPrice && (
-                          <div className="flex items-center gap-1 lg:gap-2">
-                            <span className="text-green-400 text-xs lg:text-sm">
-                              $
-                              {product.discount &&
-                              product.discount > 0 &&
-                              product.discount !== 0
-                                ? (
-                                    product.price *
-                                    (1 - product.discount / 100)
-                                  ).toFixed(2)
-                                : product.price.toFixed(2)}
-                            </span>
-                            {product.discount &&
-                              product.discount > 0 &&
-                              product.discount !== 0 && (
-                                <span className="text-xs text-slate-400 line-through">
-                                  ${product.price.toFixed(2)}
-                                </span>
-                              )}
-                          </div>
-                        )}
-                        <p className="text-xs text-slate-400 mt-1">
-                          {product.category}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Botón de Generación - Optimizado para móvil */}
-          <div className="bg-gradient-to-br from-slate-800/90 via-slate-700/80 to-gray-800/90 backdrop-blur-sm rounded-2xl border border-slate-600/50 p-4 lg:p-6 shadow-xl">
-            <div className="text-center">
-              {generationStatus === "generating" && (
-                <div className="mb-4 lg:mb-6">
-                  <div className="w-full bg-slate-800 rounded-full h-2 lg:h-3 mb-3 lg:mb-4">
-                    <div
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 lg:h-3 rounded-full transition-all duration-300"
-                      style={{ width: `${generationProgress}%` }}
-                    />
+                    ))}
                   </div>
-                  <p className="text-slate-300 text-sm lg:text-base">
-                    {generationMessage}
-                  </p>
-                  <p className="text-slate-400 text-xs lg:text-sm mt-1">
-                    {generationProgress.toFixed(0)}% completado
-                  </p>
-                </div>
-              )}
-
-              <button
-                onClick={handleGenerateVideo}
-                disabled={
-                  isGenerating ||
-                  !isOnline ||
-                  backendStatus !== "online" ||
-                  getFilteredProducts().length === 0
-                }
-                className="w-full lg:w-auto px-6 lg:px-8 py-3 lg:py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-slate-600 disabled:to-slate-700 text-white font-semibold rounded-xl transition-all duration-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 lg:gap-3 text-sm lg:text-base"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 lg:w-5 lg:h-5 animate-spin" />
-                    Generando Video...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4 lg:w-5 lg:h-5" />
-                    Generar Video de Desfile
-                  </>
                 )}
-              </button>
-
-              {!isOnline && (
-                <p className="text-red-400 text-xs lg:text-sm mt-2">
-                  Sin conexión a internet
-                </p>
-              )}
-              {backendStatus !== "online" && isOnline && (
-                <p className="text-yellow-400 text-xs lg:text-sm mt-2">
-                  Backend no disponible
-                </p>
-              )}
-              {getFilteredProducts().length === 0 && (
-                <p className="text-yellow-400 text-xs lg:text-sm mt-2">
-                  No hay productos para generar el video
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Video Generado - Optimizado para móvil */}
-          {generatedVideo && (
-            <div className="bg-gradient-to-br from-slate-800/90 via-slate-700/80 to-gray-800/90 backdrop-blur-sm rounded-2xl border border-slate-600/50 p-4 lg:p-6 shadow-xl">
-              <div className="flex items-center gap-3 mb-4 lg:mb-6">
-                <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-green-400" />
-                <h3 className="text-lg lg:text-xl font-semibold text-white">
-                  Video Generado Exitosamente
-                </h3>
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-                {/* Vista Previa del Video */}
-                <div>
-                  <h4 className="font-semibold text-white mb-3">
-                    Vista Previa
-                  </h4>
-                  <div className="bg-black rounded-lg overflow-hidden">
-                    <video
-                      ref={videoPreviewRef}
-                      src={generatedVideo.videoUrl}
-                      controls
-                      className="w-full h-auto max-h-64 lg:max-h-80"
-                      poster="/placeholder.svg?height=400&width=225"
-                    >
-                      Tu navegador no soporta el elemento video.
-                    </video>
+            {/* Botón de Generación - Optimizado para móvil */}
+            <div className="bg-gradient-to-br from-slate-800/90 via-slate-700/80 to-gray-800/90 backdrop-blur-sm rounded-2xl border border-slate-600/50 p-4 lg:p-6 shadow-xl">
+              <div className="text-center">
+                {generationStatus === "generating" && (
+                  <div className="mb-4 lg:mb-6">
+                    <div className="w-full bg-slate-800 rounded-full h-2 lg:h-3 mb-3 lg:mb-4">
+                      <div
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 lg:h-3 rounded-full transition-all duration-300"
+                        style={{ width: `${generationProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-slate-300 text-sm lg:text-base">
+                      {generationMessage}
+                    </p>
+                    <p className="text-slate-400 text-xs lg:text-sm mt-1">
+                      {generationProgress.toFixed(0)}% completado
+                    </p>
                   </div>
+                )}
+
+                <button
+                  onClick={handleGenerateVideo}
+                  disabled={
+                    isGenerating ||
+                    !isOnline ||
+                    backendStatus !== "online" ||
+                    getFilteredProducts().length === 0
+                  }
+                  className="w-full lg:w-auto px-6 lg:px-8 py-3 lg:py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-slate-600 disabled:to-slate-700 text-white font-semibold rounded-xl transition-all duration-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 lg:gap-3 text-sm lg:text-base"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 lg:w-5 lg:h-5 animate-spin" />
+                      Generando Video...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4 lg:w-5 lg:h-5" />
+                      Generar Video de Desfile
+                    </>
+                  )}
+                </button>
+
+                {!isOnline && (
+                  <p className="text-red-400 text-xs lg:text-sm mt-2">
+                    Sin conexión a internet
+                  </p>
+                )}
+                {backendStatus !== "online" && isOnline && (
+                  <p className="text-yellow-400 text-xs lg:text-sm mt-2">
+                    Backend no disponible
+                  </p>
+                )}
+                {getFilteredProducts().length === 0 && (
+                  <p className="text-yellow-400 text-xs lg:text-sm mt-2">
+                    No hay productos para generar el video
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Video Generado - Optimizado para móvil */}
+            {generatedVideo && (
+              <div className="bg-gradient-to-br from-slate-800/90 via-slate-700/80 to-gray-800/90 backdrop-blur-sm rounded-2xl border border-slate-600/50 p-4 lg:p-6 shadow-xl">
+                <div className="flex items-center gap-3 mb-4 lg:mb-6">
+                  <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-green-400" />
+                  <h3 className="text-lg lg:text-xl font-semibold text-white">
+                    Video Generado Exitosamente
+                  </h3>
                 </div>
 
-                {/* Información del Video */}
-                <div>
-                  <h4 className="font-semibold text-white mb-3">
-                    Información del Video
-                  </h4>
-                  <div className="space-y-3 lg:space-y-4">
-                    <div className="p-3 lg:p-4 bg-slate-800/30 rounded-lg">
-                      <div className="grid grid-cols-2 gap-3 lg:gap-4 text-sm">
-                        <div>
-                          <p className="text-slate-400">Duración</p>
-                          <p className="text-white font-medium">
-                            {generatedVideo.duration}s
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-slate-400">Tamaño</p>
-                          <p className="text-white font-medium">
-                            {formatFileSize(generatedVideo.size)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-slate-400">Productos</p>
-                          <p className="text-white font-medium">
-                            {generatedVideo.products.length}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-slate-400">Formato</p>
-                          <p className="text-white font-medium">
-                            {generatedVideo.videoBlob.type.includes("mp4")
-                              ? "MP4"
-                              : "WebM"}
-                          </p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                  {/* Vista Previa del Video */}
+                  <div>
+                    <h4 className="font-semibold text-white mb-3">
+                      Vista Previa
+                    </h4>
+                    <div className="bg-black rounded-lg overflow-hidden">
+                      <video
+                        ref={videoPreviewRef}
+                        src={generatedVideo.videoUrl}
+                        controls
+                        className="w-full h-auto max-h-64 lg:max-h-80"
+                        poster="/placeholder.svg?height=400&width=225"
+                      >
+                        Tu navegador no soporta el elemento video.
+                      </video>
+                    </div>
+                  </div>
+
+                  {/* Información del Video */}
+                  <div>
+                    <h4 className="font-semibold text-white mb-3">
+                      Información del Video
+                    </h4>
+                    <div className="space-y-3 lg:space-y-4">
+                      <div className="p-3 lg:p-4 bg-slate-800/30 rounded-lg">
+                        <div className="grid grid-cols-2 gap-3 lg:gap-4 text-sm">
+                          <div>
+                            <p className="text-slate-400">Duración</p>
+                            <p className="text-white font-medium">
+                              {generatedVideo.duration}s
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-slate-400">Tamaño</p>
+                            <p className="text-white font-medium">
+                              {formatFileSize(generatedVideo.size)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-slate-400">Productos</p>
+                            <p className="text-white font-medium">
+                              {generatedVideo.products.length}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-slate-400">Formato</p>
+                            <p className="text-white font-medium">
+                              {generatedVideo.videoBlob.type.includes("mp4")
+                                ? "MP4"
+                                : "WebM"}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Botones de Acción - Optimizados para móvil */}
-                    <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
-                      <button
-                        onClick={() => handleDownloadVideo(generatedVideo)}
-                        className="flex-1 px-4 py-2 lg:py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm lg:text-base"
-                      >
-                        <Download className="w-4 h-4" />
-                        Descargar
-                      </button>
-                      <button
-                        onClick={() => handleShareVideo(generatedVideo)}
-                        className="flex-1 px-4 py-2 lg:py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm lg:text-base"
-                      >
-                        <Share2 className="w-4 h-4" />
-                        Compartir
-                      </button>
+                      {/* Botones de Acción - Optimizados para móvil */}
+                      <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
+                        <button
+                          onClick={() => handleDownloadVideo(generatedVideo)}
+                          className="flex-1 px-4 py-2 lg:py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm lg:text-base"
+                        >
+                          <Download className="w-4 h-4" />
+                          Descargar
+                        </button>
+                        <button
+                          onClick={() => handleShareVideo(generatedVideo)}
+                          className="flex-1 px-4 py-2 lg:py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm lg:text-base"
+                        >
+                          <Share2 className="w-4 h-4" />
+                          Compartir
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
   )
 }
 
