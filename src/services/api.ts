@@ -1,7 +1,7 @@
 // Este archivo se comporta como un manager de la API, de tal manera que únicamente los subsistemas del front se comunican con él.
 import axios from "axios"
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://joly-lingerie-backend.onrender.com"
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://joly-lingerie-backend.onrender.com/api"
 
 // Cache para las respuestas de la API
 const apiCache = new Map<string, { data: any; timestamp: number }>()
