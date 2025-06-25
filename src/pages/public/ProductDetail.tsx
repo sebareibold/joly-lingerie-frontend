@@ -203,7 +203,7 @@ export default function ProductDetail() {
         const sizesArray = Array.isArray(response.product.size)
           ? response.product.size
           : typeof response.product.size === "string"
-            ? response.product.size.split(",").map((s) => s.trim())
+            ? response.product.size.split(",").map((sizeItem: string) => sizeItem.trim())
             : []
 
         const originalPrice = response.product.price // Original price from backend

@@ -102,7 +102,7 @@ export default function CategoryPage() {
         const sizesArray = Array.isArray(product.size)
           ? product.size
           : typeof product.size === "string"
-            ? product.size.split(",").map((s) => s.trim())
+            ? product.size.split(",").map((sizeItem: string) => sizeItem.trim())
             : []
 
         return {

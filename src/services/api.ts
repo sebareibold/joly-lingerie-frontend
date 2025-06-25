@@ -181,19 +181,18 @@ export const apiService = {
   // Auth Endpoints
   login: async (credentials: any) => {
     try {
-      const response = await apiService.post("/auth/login", credentials)
+      const response: any = await apiService.post("/auth/login", credentials)
       if (response.token) {
         localStorage.setItem("token", response.token)
       }
-      return { success: true, user: response.user }
+      return { success: true, user: response.user, token: response.token }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error de credenciales"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
@@ -209,14 +208,13 @@ export const apiService = {
       return { success: false, user: null }
     }
     try {
-      const response = await apiService.get("/auth/check", {
+      const response: any = await apiService.get("/auth/check", {
         headers: { Authorization: `Bearer ${token}` },
       })
       return { success: true, user: response.user }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       console.error("Error checking auth:", error)
-      localStorage.removeItem("token") // Token inválido o expirado
+      localStorage.removeItem("token")
       return { success: false, user: null }
     }
   },
@@ -224,38 +222,36 @@ export const apiService = {
   // User Profile Endpoints
   updateProfile: async (profileData: any) => {
     try {
-      const response = await apiService.put("/users/profile", profileData)
+      const response: any = await apiService.put("/users/profile", profileData)
       return { success: true, user: response.user }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al actualizar perfil"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   updatePassword: async (passwordData: any) => {
     try {
-      const response = await apiService.put("/users/password", passwordData)
+      const response: any = await apiService.put("/users/password", passwordData)
       return { success: true, message: response.message }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al actualizar contraseña"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   // Product Endpoints
   getProducts: async (params?: any) => {
     try {
-      const response = await apiService.get("/products", params)
+      const response: any = await apiService.get("/products", params)
       return {
         success: true,
         payload: response.products,
@@ -263,7 +259,6 @@ export const apiService = {
         totalProducts: response.totalProducts,
       }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
@@ -272,105 +267,99 @@ export const apiService = {
         payload: [],
         totalPages: 0,
         totalProducts: 0,
-      } // Narrow type
+      }
     }
   },
 
   getProduct: async (id: string) => {
     try {
-      const response = await apiService.get(`/products/${id}`)
+      const response: any = await apiService.get(`/products/${id}`)
       return { success: true, product: response.product }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al obtener producto"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   createProduct: async (productData: any) => {
     try {
-      const response = await apiService.post("/products", productData)
+      const response: any = await apiService.post("/products", productData)
       return { success: true, product: response.product }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al crear producto"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   updateProduct: async (id: string, productData: any) => {
     try {
-      const response = await apiService.put(`/products/${id}`, productData)
+      const response: any = await apiService.put(`/products/${id}`, productData)
       return { success: true, product: response.product }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al actualizar producto"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   deleteProduct: async (id: string) => {
     try {
-      const response = await apiService.del(`/products/${id}`)
+      const response: any = await apiService.del(`/products/${id}`)
       return { success: true, message: response.message }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al eliminar producto"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   // Order Endpoints
   createOrder: async (orderData: any) => {
     try {
-      const response = await apiService.post("/orders", orderData)
+      const response: any = await apiService.post("/orders", orderData)
       return { success: true, order: response.order }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al crear orden"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   getOrder: async (id: string) => {
     try {
-      const response = await apiService.get(`/orders/${id}`)
+      const response: any = await apiService.get(`/orders/${id}`)
       return { success: true, order: response.order }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al obtener orden"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   getAllOrders: async (page = 1, limit = 10, status?: string) => {
     try {
       const params = { page, limit, ...(status && { status }) }
-      const response = await apiService.get("/orders", params)
+      const response: any = await apiService.get("/orders", params)
       return {
         success: true,
         orders: response.orders,
@@ -378,7 +367,6 @@ export const apiService = {
         totalPages: response.totalPages,
       }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
@@ -387,146 +375,137 @@ export const apiService = {
         orders: [],
         totalOrders: 0,
         totalPages: 0,
-      } // Narrow type
+      }
     }
   },
 
   updateOrderStatus: async (id: string, status: string, adminNotes: string) => {
     try {
-      const response = await apiService.put(`/orders/${id}/status`, { status, adminNotes })
+      const response: any = await apiService.put(`/orders/${id}/status`, { status, adminNotes })
       return { success: true, order: response.order }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al actualizar estado de orden"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   deleteOrder: async (id: string) => {
     try {
-      const response = await apiService.del(`/orders/${id}`)
+      const response: any = await apiService.del(`/orders/${id}`)
       return { success: true, message: response.message }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al eliminar orden"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   getOrdersSummary: async () => {
     try {
-      const response = await apiService.get("/orders/summary")
+      const response: any = await apiService.get("/orders/summary")
       return { success: true, summary: response.summary }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al obtener resumen de órdenes"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   // Site Content Endpoints
   getSiteContent: async () => {
     try {
-      const response = await apiService.get("/site-content")
+      const response: any = await apiService.get("/site-content")
       return { success: true, content: response.content }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al obtener contenido del sitio"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   updateSiteContent: async (contentData: any) => {
     try {
-      const response = await apiService.put("/site-content", contentData)
+      const response: any = await apiService.put("/site-content", contentData)
       return { success: true, content: response.content }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al actualizar contenido del sitio"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   // Interaction Endpoints
   createInteraction: async (type: string, data: any) => {
     try {
-      const response = await apiService.post("/interactions", { type, data })
+      const response: any = await apiService.post("/interactions", { type, data })
       return { success: true, interaction: response.interaction }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al registrar interacción"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   getInteractionsSummary: async () => {
     try {
-      const response = await apiService.get("/interactions/summary")
+      const response: any = await apiService.get("/interactions/summary")
       return { success: true, summary: response.summary }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al obtener resumen de interacciones"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
   getMostViewedProducts: async (limit: number) => {
     try {
-      const response = await apiService.get("/interactions/most-viewed-products", { limit })
+      const response: any = await apiService.get("/interactions/most-viewed-products", { limit })
       return { success: true, products: response.products }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al obtener productos más vistos"
           : "Error desconocido",
         products: [],
-      } // Narrow type
+      }
     }
   },
 
   getMostViewedCategories: async (limit: number) => {
     try {
-      const response = await apiService.get("/interactions/most-viewed-categories", { limit })
+      const response: any = await apiService.get("/interactions/most-viewed-categories", { limit })
       return { success: true, categories: response.categories }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al obtener categorías más vistas"
           : "Error desconocido",
         categories: [],
-      } // Narrow type
+      }
     }
   },
 
@@ -551,6 +530,36 @@ export const apiService = {
           ? error.response?.data?.message || "Error al subir archivo"
           : "Error desconocido",
       } // Narrow type
+    }
+  },
+
+  // Contact Form Endpoint
+  sendContactForm: async (formData: any) => {
+    try {
+      const response = await apiService.post("/contact", formData)
+      return { success: true, message: response.message }
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al enviar formulario de contacto"
+          : "Error desconocido",
+      }
+    }
+  },
+
+  // Order by Order Number Endpoint
+  getOrderByOrderNumber: async (orderNumber: string) => {
+    try {
+      const response = await apiService.get(`/orders/number/${orderNumber}`)
+      return { success: true, order: response.order }
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener orden por número"
+          : "Error desconocido",
+      }
     }
   },
 

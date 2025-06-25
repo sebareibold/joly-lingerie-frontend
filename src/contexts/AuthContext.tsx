@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, useMemo, useCallback, type ReactNode } from "react"
 import { apiService } from "../services/api"
-import type { LoginResponse } from "../services/api" // Import the new type
 
 interface User {
   id: string
@@ -64,10 +63,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("API Service - Intentando iniciar sesión con email:", email)
 
-      // Pass credentials as an object as expected by apiService.login
-      const response: LoginResponse = await apiService.login({ email, password })
+      const response = await apiService.login(email, password)
 
-      if (response.success && response.token) {
+      if (response && response.success && response.token) {
         // Guardar token y datos del usuario
         localStorage.setItem("adminToken", response.token)
 

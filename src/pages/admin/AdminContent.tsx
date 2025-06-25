@@ -162,7 +162,6 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react"
-import type { SiteContentResponse } from "../../services/api" // Import the new type
 
 interface Category {
   name: string
@@ -179,7 +178,7 @@ interface ContactDetail {
   icon: string
   title: string
   details: string[]
-  description?: string // Made optional as per ContactSection.tsx
+  description: string
 }
 
 interface SocialMediaLink {
@@ -515,11 +514,12 @@ export default function AdminContent() {
   }, [content])
 
   const loadContent = async (_forceRefresh = false) => {
+    // Mark as unused
     try {
       setLoading(true)
       setError(null)
 
-      const response: SiteContentResponse = await apiService.getSiteContent()
+      const response = await apiService.getSiteContent()
       if (response.success && response.content) {
         const contentData = response.content
 
@@ -629,7 +629,7 @@ export default function AdminContent() {
 
   const handleRefresh = () => {
     console.log("Refrescando contenido manualmente...")
-    loadContent(true) // Call loadContent with true
+    loadContent()
   }
 
   const handleInputChange = (
@@ -975,13 +975,13 @@ export default function AdminContent() {
       if (!prevContent || !prevContent.sizeGuides[guideIndex]) return prevContent
 
       const newSizeGuides = [...prevContent.sizeGuides]
-      const currentGuide = newSizeGuides[guideIndex]
-      const newHeaders = [...(currentGuide.tableHeaders || [])] // Ensure it's an array
+      const newHeaders = [...(newSizeGuides[guideIndex].tableHeaders || [])] // Ensure it's an array
       newHeaders[headerIndex] = value
 
       // Ajustar las filas existentes al nuevo número de headers
       const measurementsCount = Math.max(0, newHeaders.length - 1)
-      const updatedRows = (currentGuide.tableRows || []).map((row) => {
+      const updatedRows = (newSizeGuides[guideIndex].tableRows || []).map((row) => {
+        // Ensure it's an array
         const currentMeasurements = row.measurements || []
 
         if (currentMeasurements.length < measurementsCount) {
@@ -999,7 +999,7 @@ export default function AdminContent() {
       })
 
       newSizeGuides[guideIndex] = {
-        ...currentGuide,
+        ...newSizeGuides[guideIndex],
         tableHeaders: newHeaders,
         tableRows: updatedRows,
       }
@@ -1077,7 +1077,11 @@ export default function AdminContent() {
     setContent((prevContent) => {
       if (!prevContent) return null
       const newSizeGuides = [...prevContent.sizeGuides]
-      newSizeGuides[guideIndex].tableRows = newSizeGuides[guideIndex].tableRows.filter((_, i) => i !== rowIndex)
+      const newRows = newSizeGuides[guideIndex].tableRows.filter((_, i) => i !== rowIndex)
+      newSizeGuides[guideIndex] = {
+        ...newSizeGuides[guideIndex],
+        tableRows: newRows,
+      }
       return {
         ...prevContent,
         sizeGuides: newSizeGuides,
@@ -2415,21 +2419,21 @@ export default function AdminContent() {
                               "deliveryInfo",
                               "meetingPoint",
                               "enabled",
-                              !(content?.checkout.deliveryInfo.meetingPoint.enabled ?? true),
+                              !content?.checkout.deliveryInfo.meetingPoint.enabled,
                             )
                           }
                           className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-200 ${
-                            (content?.checkout.deliveryInfo.meetingPoint.enabled ?? true)
+                            content?.checkout.deliveryInfo.meetingPoint.enabled
                               ? "bg-green-600/20 border-green-600/30 text-green-400"
                               : "bg-gray-800/50 border-gray-600/50 text-gray-400"
                           }`}
                         >
-                          {(content?.checkout.deliveryInfo.meetingPoint.enabled ?? true) ? (
+                          {content?.checkout.deliveryInfo.meetingPoint.enabled ? (
                             <Eye className="h-4 w-4" />
                           ) : (
                             <EyeOff className="h-4 w-4" />
                           )}
-                          {(content?.checkout.deliveryInfo.meetingPoint.enabled ?? true) ? "Activo" : "Inactivo"}
+                          {content?.checkout.deliveryInfo.meetingPoint.enabled ? "Activo" : "Inactivo"}
                         </button>
                       </div>
 
@@ -2520,21 +2524,21 @@ export default function AdminContent() {
                               "shipping",
                               "homeDelivery",
                               "enabled",
-                              !(content?.checkout.shipping?.homeDelivery.enabled ?? true),
+                              !content?.checkout.shipping?.homeDelivery.enabled,
                             )
                           }
                           className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-200 ${
-                            (content?.checkout.shipping?.homeDelivery.enabled ?? true)
+                            content?.checkout.shipping?.homeDelivery.enabled
                               ? "bg-green-600/20 border-green-600/30 text-green-400"
                               : "bg-gray-800/50 border-gray-600/50 text-gray-400"
                           }`}
                         >
-                          {(content?.checkout.shipping?.homeDelivery.enabled ?? true) ? (
+                          {content?.checkout.shipping?.homeDelivery.enabled ? (
                             <Eye className="h-4 w-4" />
                           ) : (
                             <EyeOff className="h-4 w-4" />
                           )}
-                          {(content?.checkout.shipping?.homeDelivery.enabled ?? true) ? "Activo" : "Inactivo"}
+                          {content?.checkout.shipping?.homeDelivery.enabled ? "Activo" : "Inactivo"}
                         </button>
                       </div>
 
@@ -2659,21 +2663,21 @@ export default function AdminContent() {
                               "paymentInfo",
                               "cashOnDelivery",
                               "enabled",
-                              !(content?.checkout.paymentInfo.cashOnDelivery.enabled ?? true),
+                              !content?.checkout.paymentInfo.cashOnDelivery.enabled,
                             )
                           }
                           className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-200 ${
-                            (content?.checkout.paymentInfo.cashOnDelivery.enabled ?? true)
+                            content?.checkout.paymentInfo.cashOnDelivery.enabled
                               ? "bg-green-600/20 border-green-600/30 text-green-400"
                               : "bg-gray-800/50 border-gray-600/50 text-gray-400"
                           }`}
                         >
-                          {(content?.checkout.paymentInfo.cashOnDelivery.enabled ?? true) ? (
+                          {content?.checkout.paymentInfo.cashOnDelivery.enabled ? (
                             <Eye className="h-4 w-4" />
                           ) : (
                             <EyeOff className="h-4 w-4" />
                           )}
-                          {(content?.checkout.paymentInfo.cashOnDelivery.enabled ?? true) ? "Activo" : "Inactivo"}
+                          {content?.checkout.paymentInfo.cashOnDelivery.enabled ? "Activo" : "Inactivo"}
                         </button>
                       </div>
 
@@ -2755,21 +2759,21 @@ export default function AdminContent() {
                               "paymentInfo",
                               "bankTransfer",
                               "enabled",
-                              !(content?.checkout.paymentInfo.bankTransfer.enabled ?? true),
+                              !content?.checkout.paymentInfo.bankTransfer.enabled,
                             )
                           }
                           className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-200 ${
-                            (content?.checkout.paymentInfo.bankTransfer.enabled ?? true)
+                            content?.checkout.paymentInfo.bankTransfer.enabled
                               ? "bg-green-600/20 border-green-600/30 text-green-400"
                               : "bg-gray-800/50 border-gray-600/50 text-gray-400"
                           }`}
                         >
-                          {(content?.checkout.paymentInfo.bankTransfer.enabled ?? true) ? (
+                          {content?.checkout.paymentInfo.bankTransfer.enabled ? (
                             <Eye className="h-4 w-4" />
                           ) : (
                             <EyeOff className="h-4 w-4" />
                           )}
-                          {(content?.checkout.paymentInfo.bankTransfer.enabled ?? true) ? "Activo" : "Inactivo"}
+                          {content?.checkout.paymentInfo.bankTransfer.enabled ? "Activo" : "Inactivo"}
                         </button>
                       </div>
 

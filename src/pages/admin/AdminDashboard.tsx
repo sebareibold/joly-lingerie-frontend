@@ -16,22 +16,6 @@ import {
 import { Link } from "react-router-dom"
 import { apiService } from "../../services/api"
 import type { Order } from "../../types/Order" // Declare the Order variable
-import type { Product } from "../../services/api" // Import new types
-
-interface ProductViewData {
-  _id: string
-  productTitle: string
-  productCategory: string
-  count: number
-  displayName: string
-  viewCount: number
-  category: string
-}
-
-interface CategoryViewData {
-  category: string
-  count: number
-}
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
@@ -44,9 +28,9 @@ export default function AdminDashboard() {
       totalRevenue: 0,
       totalInteractions: 0,
     },
-    recentOrders: [] as Order[],
-    mostViewedProducts: [] as ProductViewData[],
-    mostVisitedCategories: [] as CategoryViewData[],
+    recentOrders: [],
+    mostViewedProducts: [],
+    mostVisitedCategories: [],
     recentInteractions: [],
     ordersByStatus: {
       pending_manual: 0,
@@ -67,11 +51,11 @@ export default function AdminDashboard() {
 
       // OPTIMIZACIÓN: Hacer todas las peticiones en PARALELO en lugar de secuencial
       const [
-        productsResponsePromise,
-        ordersResponsePromise,
-        interactionsResponsePromise,
-        mostViewedProductsResponsePromise,
-        mostVisitedCategoriesResponsePromise,
+        productsResponse,
+        ordersResponse,
+        interactionsResponse,
+        mostViewedProductsResponse,
+        mostVisitedCategoriesResponse,
       ] = await Promise.allSettled([
         // Reducir la cantidad de datos iniciales para mayor velocidad
         apiService.getProducts({ limit: 10 }), // Menos productos inicialmente
@@ -83,43 +67,35 @@ export default function AdminDashboard() {
 
       console.log("✅ Todas las peticiones completadas en paralelo")
 
-      // Process responses safely
-      const products =
-        productsResponsePromise.status === "fulfilled" ? productsResponsePromise.value : { payload: [] as Product[] }
-      const orders =
-        ordersResponsePromise.status === "fulfilled" ? ordersResponsePromise.value : { orders: [] as Order[] }
+      // Procesar respuestas de manera segura
+      const products = productsResponse.status === "fulfilled" ? productsResponse.value : { payload: [] }
+      const orders = ordersResponse.status === "fulfilled" ? ordersResponse.value : { orders: [] }
       const interactions =
-        interactionsResponsePromise.status === "fulfilled"
-          ? interactionsResponsePromise.value
+        interactionsResponse.status === "fulfilled"
+          ? interactionsResponse.value
           : { summary: { totalInteractions: 0, recentInteractions: [] } }
       const mostViewedProducts =
-        mostViewedProductsResponsePromise.status === "fulfilled"
-          ? mostViewedProductsResponsePromise.value
-          : { products: [] }
+        mostViewedProductsResponse.status === "fulfilled" ? mostViewedProductsResponse.value : { products: [] }
       const mostVisitedCategories =
-        mostVisitedCategoriesResponsePromise.status === "fulfilled"
-          ? mostVisitedCategoriesResponsePromise.value
-          : { categories: [] }
+        mostVisitedCategoriesResponse.status === "fulfilled" ? mostVisitedCategoriesResponse.value : { categories: [] }
 
       // Log de errores si los hay
-      if (productsResponsePromise.status === "rejected")
-        console.error("❌ Error cargando productos:", productsResponsePromise.reason)
-      if (ordersResponsePromise.status === "rejected")
-        console.error("❌ Error cargando órdenes:", ordersResponsePromise.reason)
-      if (interactionsResponsePromise.status === "rejected")
-        console.error("❌ Error cargando interacciones:", interactionsResponsePromise.reason)
-      if (mostViewedProductsResponsePromise.status === "rejected")
-        console.error("❌ Error cargando productos más vistos:", mostViewedProductsResponsePromise.reason)
-      if (mostVisitedCategoriesResponsePromise.status === "rejected")
-        console.error("❌ Error cargando categorías más visitadas:", mostVisitedCategoriesResponsePromise.reason)
+      if (productsResponse.status === "rejected") console.error("❌ Error cargando productos:", productsResponse.reason)
+      if (ordersResponse.status === "rejected") console.error("❌ Error cargando órdenes:", ordersResponse.reason)
+      if (interactionsResponse.status === "rejected")
+        console.error("❌ Error cargando interacciones:", interactionsResponse.reason)
+      if (mostViewedProductsResponse.status === "rejected")
+        console.error("❌ Error cargando productos más vistos:", mostViewedProductsResponse.reason)
+      if (mostVisitedCategoriesResponse.status === "rejected")
+        console.error("❌ Error cargando categorías más visitadas:", mostVisitedCategoriesResponse.reason)
 
       // Calcular estadísticas con datos seguros
       const totalProducts = products.payload?.length || 0
-      const ordersArray: Order[] = orders.orders || [] // Explicitly type ordersArray
+      const ordersArray: Order[] = orders.orders || []
       const totalOrders = ordersArray.length
       const totalRevenue = ordersArray
-        .filter((order: Order) => order.status === "paid") // Explicitly type order
-        .reduce((sum: number, order: Order) => sum + (order.total || 0), 0) // Explicitly type sum and order
+        .filter((order: Order) => order.status === "paid")
+        .reduce((sum: number, order: Order) => sum + (order.total || 0), 0)
 
       console.log("📈 Estadísticas calculadas:", {
         totalProducts,
@@ -131,7 +107,6 @@ export default function AdminDashboard() {
       // Estadísticas por estado de órdenes
       const ordersByStatus = ordersArray.reduce(
         (acc: { [key: string]: number }, order: Order) => {
-          // Explicitly type acc and order
           acc[order.status] = (acc[order.status] || 0) + 1
           return acc
         },
@@ -140,33 +115,21 @@ export default function AdminDashboard() {
 
       // Órdenes recientes
       const recentOrders = ordersArray
-        .sort((a: Order, b: Order) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Explicitly type a and b
+        .sort((a: Order, b: Order) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 5)
 
       // Productos más vistos con nombres claros
-      const processedMostViewedProducts: ProductViewData[] = (mostViewedProducts.products || []).map(
-        (product: {
-          productTitle?: string
-          title?: string
-          name?: string
-          productCategory?: string
-          category?: string
-          count?: number
-        }) => {
-          return {
-            _id: product.productTitle || product.title || product.name || "unknown", // Provide a fallback for _id
-            productTitle: product.productTitle || product.title || product.name || "Producto sin nombre",
-            productCategory: product.productCategory || product.category || "Sin categoría",
-            count: product.count || 0,
-            displayName: product.productTitle || product.title || product.name || "Producto sin nombre",
-            viewCount: product.count || 0,
-            category: product.productCategory || product.category || "Sin categoría",
-          }
-        },
-      )
+      const processedMostViewedProducts = (mostViewedProducts.products || []).map((product: any) => {
+        return {
+          ...product,
+          displayName: product.productTitle || product.title || product.name || "Producto sin nombre",
+          viewCount: product.count || 0,
+          category: product.productCategory || product.category || "Sin categoría",
+        }
+      })
 
       // Categorías más visitadas
-      const processedMostVisitedCategories: CategoryViewData[] = mostVisitedCategories.categories || []
+      const processedMostVisitedCategories = mostVisitedCategories.categories || []
 
       const finalData = {
         stats: {
@@ -341,14 +304,14 @@ export default function AdminDashboard() {
         ) : dashboardData.mostViewedProducts.length > 0 ? (
           <>
             <div className="space-y-3">
-              {productsToShow.map((product: ProductViewData, index: number) => (
+              {productsToShow.map((product: any, productIndex: number) => (
                 <div
-                  key={product._id || index}
+                  key={product._id || productIndex}
                   className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-green-800/20 via-green-700/10 to-transparent border border-green-700/20 rounded-lg hover:from-green-800/30 hover:via-green-700/20 transition-all duration-300"
                 >
                   <div className="flex items-center min-w-0 flex-1">
                     <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-green-600/30 to-green-700/20 rounded-lg flex items-center justify-center mr-3 sm:mr-4 border border-green-600/40 flex-shrink-0">
-                      <span className="text-green-300 font-bold text-xs sm:text-sm">#{index + 1}</span>
+                      <span className="text-green-300 font-bold text-xs sm:text-sm">#{productIndex + 1}</span>
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-medium text-white truncate text-sm sm:text-base">{product.displayName}</div>
@@ -425,7 +388,7 @@ export default function AdminDashboard() {
           ) : dashboardData.mostVisitedCategories.length > 0 ? (
             <>
               <div className="space-y-3">
-                {categoriesToShow.map((category: CategoryViewData, index: number) => (
+                {categoriesToShow.map((category: any, index: number) => (
                   <div
                     key={category.category || index}
                     className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-800/20 via-purple-700/10 to-transparent border border-purple-700/20 rounded-lg hover:from-purple-800/30 hover:via-purple-700/20 transition-all duration-300"
@@ -505,7 +468,7 @@ export default function AdminDashboard() {
             </div>
           ) : dashboardData.recentOrders.length > 0 ? (
             <div className="space-y-3">
-              {dashboardData.recentOrders.map((order: Order) => (
+              {dashboardData.recentOrders.map((order: any) => (
                 <div
                   key={order._id}
                   className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-800/20 via-blue-700/10 to-transparent border border-blue-700/20 rounded-lg hover:from-blue-800/30 hover:via-blue-700/20 transition-all duration-300 cursor-pointer"

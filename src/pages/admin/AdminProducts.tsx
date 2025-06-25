@@ -2,7 +2,20 @@
 
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { PlusCircle, Edit, Trash2, Search, Filter, RefreshCw, ArrowLeft, Package, DollarSign, CheckCircle, XCircle, Eye } from 'lucide-react'
+import {
+  PlusCircle,
+  Edit,
+  Trash2,
+  Search,
+  Filter,
+  RefreshCw,
+  ArrowLeft,
+  Package,
+  DollarSign,
+  CheckCircle,
+  XCircle,
+  Eye,
+} from "lucide-react"
 import { apiService } from "../../services/api"
 
 interface Product {
@@ -21,8 +34,8 @@ interface Product {
 }
 
 interface Category {
-  name: string;
-  display_name: string;
+  name: string
+  display_name: string
 }
 
 export default function AdminProducts() {
@@ -80,7 +93,7 @@ export default function AdminProducts() {
       }
 
       // Manejar tanto respuestas exitosas como de error
-      if (response.status === "error") {
+      if (!response.success) {
         console.warn("AdminProducts - Error en la respuesta:", response.error)
         setProducts([])
         setTotalProductsCount(0)
@@ -88,8 +101,8 @@ export default function AdminProducts() {
         return
       }
 
-      const products = response.payload || response.products || []
-      const totalDocs = response.totalDocs || response.total || 0
+      const products = response.payload || []
+      const totalDocs = response.totalProducts || 0
       const totalPages = response.totalPages || Math.ceil(totalDocs / 10) || 1
 
       console.log("AdminProducts - Datos procesados:", {
@@ -479,7 +492,6 @@ export default function AdminProducts() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-white font-medium">{product.stock}</div>
-                        
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {product.status ? (

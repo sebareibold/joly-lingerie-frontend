@@ -92,7 +92,7 @@ export default function CheckoutPage() {
   const [checkoutContent, setCheckoutContent] = useState<CheckoutContent | null>(null)
 
   const subtotal = getTotalPrice()
-  // Usar el costo de envío dinámico del contenido y verificar envío gratis
+
   const shouldHaveFreeShipping =
     checkoutContent?.shipping?.homeDelivery?.freeShippingThreshold &&
     subtotal >= (checkoutContent.shipping.homeDelivery.freeShippingThreshold ?? 0)
@@ -100,7 +100,12 @@ export default function CheckoutPage() {
   const shippingCost =
     wantsShipping && !shouldHaveFreeShipping ? (checkoutContent?.shipping?.homeDelivery?.baseCost ?? 2500) : 0
 
-  const total = subtotal + shippingCost
+  const total =
+    subtotal +
+    shippingCost +
+    (paymentMethod === "cash" && checkoutContent?.paymentInfo?.cashOnDelivery?.additionalFee
+      ? checkoutContent.paymentInfo.cashOnDelivery.additionalFee
+      : 0)
 
   console.log("💰 Cálculo de totales:", {
     subtotal,
@@ -960,16 +965,18 @@ export default function CheckoutPage() {
                     )}
 
                   {/* Mostrar cargo adicional por pago en efectivo si aplica */}
-                  {paymentMethod === "cash" && checkoutContent?.paymentInfo.cashOnDelivery.additionalFee > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-sm sm:text-base" style={{ color: "var(--oak)" }}>
-                        Cargo pago en efectivo
-                      </span>
-                      <span className="font-medium text-sm sm:text-base" style={{ color: "var(--deep-clay)" }}>
-                        ${checkoutContent.paymentInfo.cashOnDelivery.additionalFee.toLocaleString()}
-                      </span>
-                    </div>
-                  )}
+                  {paymentMethod === "cash" &&
+                    checkoutContent?.paymentInfo?.cashOnDelivery?.additionalFee &&
+                    checkoutContent.paymentInfo.cashOnDelivery.additionalFee > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-sm sm:text-base" style={{ color: "var(--oak)" }}>
+                          Cargo pago en efectivo
+                        </span>
+                        <span className="font-medium text-sm sm:text-base" style={{ color: "var(--deep-clay)" }}>
+                          ${checkoutContent.paymentInfo.cashOnDelivery.additionalFee.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
                 </div>
 
                 {/* Botón de Checkout - Optimizado para móvil */}
