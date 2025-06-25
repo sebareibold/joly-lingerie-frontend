@@ -45,7 +45,7 @@ const PRODUCTS_PER_PAGE = 12 // Define how many products to load per page
 export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState("Todos")
   const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true) // For initial full page load
   const [error, setError] = useState<string | null>(null)
   const [retrying, setRetrying] = useState(false)
   const { addToCart } = useCart()
@@ -56,27 +56,35 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [loadingMore, setLoadingMore] = useState(false) // State for "Load More" button
+  const [isCategoryChanging, setIsCategoryChanging] = useState(false) // NEW: State for category change loading
 
   // Categorías dinámicas del contenido, más "Todos"
   const categories = [{ name: "Todos", display_name: "Todos" }, ...content.categories]
 
+  // Effect for category change
   useEffect(() => {
-    // Reset pagination when category changes
     setCurrentPage(1)
-    setProducts([]) // Clear products when category changes
-    setTotalPages(1) // Reset total pages
+    // setProducts([]) // REMOVED: Do not clear products immediately
+    setTotalPages(1)
+    setIsCategoryChanging(true) // Indicate category is loading
     loadProducts(1, selectedCategory) // Load first page for the new category
   }, [selectedCategory]) // Depend on selectedCategory
 
   // Initial load (only once on component mount)
   useEffect(() => {
+    if (products.length === 0 && !loadingMore && !isCategoryChanging) {
+      setLoading(true) // Only set full loading if no products are present initially
+    }
     loadProducts(1, selectedCategory)
   }, []) // Empty dependency array means it runs once on mount
 
   const loadProducts = async (pageToLoad: number, categoryToLoad: string) => {
     try {
       if (pageToLoad === 1) {
-        setLoading(true)
+        // Only show full-page loading spinner if it's the very first load and no products are present
+        if (products.length === 0) {
+          setLoading(true)
+        }
         setRetrying(false)
       } else {
         setLoadingMore(true)
@@ -128,12 +136,13 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
       } else {
         setError("No se pudieron cargar los productos. Intente nuevamente más tarde.")
       }
-      if (pageToLoad === 1) {
-        setProducts([]) // Clear products only if it's the initial load
+      if (pageToLoad === 1 && products.length === 0) {
+        setProducts([]) // Clear products only if it's the initial load and nothing loaded
       }
     } finally {
       setLoading(false)
       setLoadingMore(false)
+      setIsCategoryChanging(false) // Reset category loading state
     }
   }
 
@@ -275,12 +284,13 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
                     selectedCategory === category.name
                       ? "text-white shadow-warm"
                       : "text-gray-700 border hover:shadow-warm"
-                  }`}
+                  } ${isCategoryChanging ? "opacity-50 cursor-not-allowed" : ""}`} // Disable and dim
                   style={{
                     backgroundColor: selectedCategory === category.name ? "var(--clay)" : "var(--pure-white)",
                     borderColor: selectedCategory === category.name ? "var(--clay)" : "var(--oak)",
                     borderWidth: selectedCategory === category.name ? "0" : "1px",
                   }}
+                  disabled={isCategoryChanging} // Disable button
                 >
                   {category.display_name}
                 </button>
@@ -297,13 +307,14 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
               onClick={() => setSelectedCategory(category.name)}
               className={`px-6 py-3 rounded-full text-xs font-medium uppercase tracking-[0.15em] transition-all duration-400 animate-fade-in-up ${
                 selectedCategory === category.name ? "text-white shadow-warm" : "text-gray-700 border hover:shadow-warm"
-              }`}
+              } ${isCategoryChanging ? "opacity-50 cursor-not-allowed" : ""}`} // Disable and dim
               style={{
                 backgroundColor: selectedCategory === category.name ? "var(--clay)" : "var(--pure-white)",
                 borderColor: selectedCategory === category.name ? "var(--clay)" : "var(--oak)",
                 borderWidth: selectedCategory === category.name ? "0" : "1px",
                 animationDelay: `${index * 0.1}s`,
               }}
+              disabled={isCategoryChanging} // Disable button
             >
               {category.display_name}
             </button>
@@ -311,7 +322,14 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
         </div>
 
         {/* Products Grid - 2 fixed columns on mobile */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8 lg:gap-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8 lg:gap-10 relative">
+          {isCategoryChanging && (
+            <div className="absolute inset-0 flex items-center justify-center z-20 rounded-lg" style={{
+                backgroundColor: "var(--creme)",
+              }}>
+              <Loader2 className="h-10 w-10 animate-spin" style={{ color: "var(--clay)" }} />
+            </div>
+          )}
           {filteredProducts.map((product, index) => (
             <div
               key={product._id}
@@ -358,7 +376,7 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
                       e.stopPropagation() // Prevents card click from firing
                       navigate(`/product/${product._id}`)
                     }}
-                    className="p-2 md:p-3 rounded-full bg-white/90 backdrop-blur-sm hover:scale-110 transition-all duration-300 shadow-md"
+                    className="p-2 md:p-3 rounded-full  backdrop-blur-sm hover:scale-110 transition-all duration-300 shadow-md"
                     style={{ color: "var(--clay)" }}
                   >
                     <Eye className="h-4 w-4 md:h-5 md:w-5" />
@@ -452,13 +470,13 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
         )}
 
         {hasMore && (
-          <div className="text-center mt-12">
+          <div className="text-center mt-12" style={{ backgroundColor: "var(--creme)" }}>
             <button
               onClick={handleLoadMore}
               disabled={loadingMore}
               className="px-8 py-3 rounded-full text-white font-semibold text-base uppercase tracking-[0.1em] transition-all duration-300 hover:brightness-110 shadow-md hover:shadow-lg flex items-center justify-center mx-auto"
               style={{
-                background: "linear-gradient(to right, var(--clay), var(--dark-clay))",
+                background:  "var(--creme)",
               }}
             >
               {loadingMore ? (

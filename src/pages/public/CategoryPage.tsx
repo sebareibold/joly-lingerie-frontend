@@ -36,7 +36,7 @@ export default function CategoryPage() {
   const { category } = useParams<{ category: string }>()
   const [sortBy, setSortBy] = useState("name")
   const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true) // For initial full page load
   const [error, setError] = useState<string | null>(null)
   const { addToCart } = useCart()
 
@@ -45,13 +45,15 @@ export default function CategoryPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [loadingMore, setLoadingMore] = useState(false) // State for "Load More" button
   const [retrying, setRetrying] = useState(false) // State for retry button
+  const [isCategoryChanging, setIsCategoryChanging] = useState(false) // NEW: State for category/sort change loading
 
   useEffect(() => {
     if (category) {
       // Reset pagination when category or sort order changes
       setCurrentPage(1)
-      setProducts([]) // Clear products when category changes
-      setTotalPages(1) // Reset total pages
+      // setProducts([]) // REMOVED: Do not clear products immediately
+      setTotalPages(1)
+      setIsCategoryChanging(true) // Indicate category/sort is loading
       loadProductsByCategory(1, category, sortBy) // Load first page for the new category
     }
   }, [category, sortBy]) // Depend on category and sortBy
@@ -59,7 +61,10 @@ export default function CategoryPage() {
   const loadProductsByCategory = async (pageToLoad: number, categoryName: string, currentSortBy: string) => {
     try {
       if (pageToLoad === 1) {
-        setLoading(true)
+        // Only show full-page loading spinner if it's the very first load and no products are present
+        if (products.length === 0) {
+          setLoading(true)
+        }
         setRetrying(false)
       } else {
         setLoadingMore(true)
@@ -131,12 +136,13 @@ export default function CategoryPage() {
       } else {
         setError("No se pudieron cargar los productos. Intente nuevamente más tarde.")
       }
-      if (pageToLoad === 1) {
-        setProducts([]) // Clear products only if it's the initial load
+      if (pageToLoad === 1 && products.length === 0) {
+        setProducts([]) // Clear products only if it's the initial load and nothing loaded
       }
     } finally {
       setLoading(false)
       setLoadingMore(false)
+      setIsCategoryChanging(false) // Reset category/sort loading state
     }
   }
 
@@ -211,7 +217,8 @@ export default function CategoryPage() {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2"
+          className={`border border-gray-300 rounded-md px-3 py-2 ${isCategoryChanging ? "opacity-50 cursor-not-allowed" : ""}`}
+          disabled={isCategoryChanging} // Disable select while loading
         >
           <option value="name">Ordenar por nombre</option>
           <option value="price-low">Precio: menor a mayor</option>
@@ -219,7 +226,12 @@ export default function CategoryPage() {
         </select>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 relative">
+        {isCategoryChanging && (
+          <div className="absolute inset-0flex items-center justify-center z-20 rounded-lg"  >
+            <Loader2 className="h-10 w-10 animate-spin" style={{ color: "var(--clay)" }} />
+          </div>
+        )}
         {products.map(
           (
             product, // Use 'products' directly as it's already paginated and sorted by API
