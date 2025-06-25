@@ -25,7 +25,6 @@ api.interceptors.request.use(
 
 // Interceptor para manejar errores de respuesta (ej. 401 Unauthorized)
 const MAX_RETRIES = 3
-const RETRY_DELAY_MS = 3000 // Aumentado a 3 segundos
 const RATE_LIMIT_DELAY_MS = 5000 // 5 segundos para rate limit
 
 api.interceptors.response.use(
@@ -67,47 +66,6 @@ api.interceptors.response.use(
   },
 )
 
-interface SiteContent {
-  hero: {
-    mainDescription: string
-    slogan: string
-    buttonText: string
-    buttonLink: string
-  }
-  productCatalog: {
-    mainTitle: string
-    subtitle: string
-    categories: any[] // Declared as any[] for now, replace with actual type if available
-  }
-  whyChooseJoly: {
-    mainTitle: string
-    description: string
-    values: any[] // Declared as any[] for now, replace with actual type if available
-  }
-  contact: {
-    mainTitle: string
-    subtitle: string
-    description: string
-    formTitle: string
-    formDescription: string
-    responseMessage: string
-    responseDisclaimer: string
-    // NUEVOS CAMPOS DE CONTACTO
-    contactInfo: {
-      icon: string
-      title: string
-      details: string[]
-      description?: string
-    }[]
-    socialMedia: {
-      icon: string
-      name: string
-      handle: string
-      link: string
-    }[]
-  }
-}
-
 class ApiService {
   API_BASE_URL = API_URL
   TOKEN_KEY = "admin_token"
@@ -115,15 +73,15 @@ class ApiService {
   LOW_STOCK_THRESHOLD = 10
 
   // Cache para almacenar respuestas y reducir solicitudes
-  private cache: Record<string, { data: any; timestamp: number }> = {}
+  private cache: Record<string, { data: unknown; timestamp: number }> = {}
   private CACHE_DURATION = 5 * 60 * 1000 // 5 minutos en milisegundos
 
   // Cache variables
-  private productsCache: any = null
+  private productsCache: unknown = null
   private productsCacheTimestamp = 0
-  private siteContentCache: any = null
+  private siteContentCache: unknown = null
   private siteContentCacheTimestamp = 0
-  private ordersCache: any = null
+  private ordersCache: unknown = null
   private ordersCacheTimestamp = 0
 
   // Cache durations
@@ -132,7 +90,7 @@ class ApiService {
   private ORDERS_CACHE_DURATION = 60 * 1000 // 1 minute
 
   // Enhanced cache management with route-based prefetching
-  private routeDataCache: Map<string, { data: any; timestamp: number; loading: boolean }> = new Map()
+  private routeDataCache: Map<string, { data: unknown; timestamp: number; loading: boolean }> = new Map()
   private readonly ROUTE_CACHE_DURATION = 2 * 60 * 1000 // 2 minutes
 
   // Sistema de throttling
@@ -1182,6 +1140,26 @@ class ApiService {
     } catch (error) {
       console.error("Error obteniendo estadísticas de videos:", error)
       throw error
+    }
+  }
+
+  // Actualiza el perfil del usuario
+  async updateProfile(data: { username: string; email: string }) {
+    try {
+      const response = await api.put("/admin/profile", data)
+      return response.data
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : "Error desconocido" }
+    }
+  }
+
+  // Actualiza la contraseña del usuario
+  async updatePassword(data: { currentPassword: string; newPassword: string }) {
+    try {
+      const response = await api.put("/admin/password", data)
+      return response.data
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : "Error desconocido" }
     }
   }
 }

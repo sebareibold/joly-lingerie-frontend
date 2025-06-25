@@ -27,6 +27,10 @@ interface Product {
   new?: boolean
   colors?: ProductColor[]
   sizes?: string[]
+  // Compatibilidad para UI
+  id?: string
+  name?: string
+  images?: string[]
 }
 
 // NUEVO: Interfaz para el contenido del catálogo
@@ -156,23 +160,6 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
   const handleLoadMore = () => {
     if (currentPage < totalPages && !loadingMore) {
       loadProducts(currentPage + 1, selectedCategory)
-    }
-  }
-
-  const scrollToSection = (sectionId: string) => {
-    if (window.location.pathname !== "/") {
-      navigate("/")
-      setTimeout(() => {
-        const element = document.getElementById(sectionId)
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth" })
-        }
-      }, 100)
-    } else {
-      const element = document.getElementById(sectionId)
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" })
-      }
     }
   }
 
@@ -330,14 +317,13 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
               <Loader2 className="h-10 w-10 animate-spin" style={{ color: "var(--clay)" }} />
             </div>
           )}
-          {filteredProducts.map((product, index) => (
+          {filteredProducts.map((product) => (
             <div
               key={product._id}
               className="group relative overflow-hidden transition-all duration-500 ease-in-out
             shadow-lg hover:shadow-xl rounded-lg cursor-pointer flex flex-col hover:scale-[1.03]" /* This div has cursor-pointer */
               style={{
                 backgroundColor: "var(--pure-white)",
-                animationDelay: `${index * 0.1}s`,
               }}
               onClick={() => navigate(`/product/${product._id}`)} // Makes the entire card clickable
             >
