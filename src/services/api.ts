@@ -1,7 +1,65 @@
-// Este archivo se comporta como un manager de la API, de tal manera que únicamente los subsistemas del front se comunican con él.
 import axios from "axios"
 
+// Este archivo se comporta como un manager de la API, de tal manera que únicamente los subsistemas del front se comunican con él.
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://joly-lingerie-backend.onrender.com"
+
+console.log("🔧 API Base URL:", API_BASE_URL)
+
+// Crear instancia de axios con configuración específica para Render
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 60000, // 60 segundos para Render (puede ser lento)
+  headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+  },
+  withCredentials: true, // Importante para CORS
+})
+
+// Interceptor para requests
+axiosInstance.interceptors.request.use(
+  (config) => {
+    console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`)
+    
+    // Agregar token si existe
+    const token = localStorage.getItem("token")
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    
+    return config
+  },
+  (error) => {
+    console.error("❌ Request Error:", error)
+    return Promise.reject(error)
+  },
+)
+
+// Interceptor para responses
+axiosInstance.interceptors.response.use(
+  (response) => {
+    console.log(`✅ API Response: ${response.status} ${response.config.url}`)
+    return response
+  },
+  (error) => {
+    console.error("❌ Response Error:", error)
+    
+    if (error.code === "ERR_NETWORK") {
+      console.error("🌐 Error de red - verificar conexión al backend")
+      console.error("🔗 URL intentada:", error.config?.url)
+    }
+    
+    if (error.response?.status === 404) {
+      console.error("🔍 Endpoint no encontrado:", error.config?.url)
+    }
+    
+    if (error.response?.status === 403) {
+      console.error("🚫 CORS Error:", error.response.data)
+    }
+    
+    return Promise.reject(error)
+  },
+)
 
 // Cache para las respuestas de la API
 const apiCache = new Map<string, { data: any; timestamp: number }>()
@@ -35,7 +93,7 @@ const processRequestQueue = async () => {
     } catch (error) {
       reject(error)
     }
-    await new Promise((res) => setTimeout(res, REQUEST_INTERVAL)) // Esperar antes de la siguiente petición
+    await new Promise((res) => setTimeout(res, REQUEST_INTERVAL))
   }
 
   isProcessingQueue = false
@@ -45,24 +103,20 @@ const processRequestQueue = async () => {
 const makeRequestWithDelay = async (url: string, method: string, data?: any, params?: any) => {
   const config = {
     method,
-    url: `${API_BASE_URL}${url}`,
+    url: url.startsWith("/api") ? url : `/api${url}`,
     data,
     params,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
   }
 
   try {
-    const response = await axios(config)
+    const response = await axiosInstance(config)
     return response.data
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      console.error(`Error en la petición ${method} ${url}:`, error.response.status, error.response.data)
+      console.error(`❌ Error en la petición ${method} ${url}:`, error.response.status, error.response.data)
       throw new Error(error.response.data.message || `Error en la petición: ${error.response.status}`)
     } else {
-      console.error(`Error desconocido en la petición ${method} ${url}:`, error)
+      console.error(`❌ Error desconocido en la petición ${method} ${url}:`, error)
       throw new Error("Error de red o desconocido")
     }
   }
@@ -72,11 +126,32 @@ const makeRequestWithDelay = async (url: string, method: string, data?: any, par
 const queueRequest = (url: string, method: string, data?: any, params?: any) => {
   return new Promise((resolve, reject) => {
     requestQueue.push({ url, method, data, params, resolve, reject })
-    processRequestQueue() // Iniciar procesamiento si no está activo
+    processRequestQueue()
   })
 }
 
 export const apiService = {
+  // Test functions
+  healthCheck: async () => {
+    try {
+      const response = await axiosInstance.get("/health")
+      return response.data
+    } catch (error) {
+      console.error("❌ Health check failed:", error)
+      return null
+    }
+  },
+
+  testCors: async () => {
+    try {
+      const response = await axiosInstance.get("/api/test-cors")
+      return response.data
+    } catch (error) {
+      console.error("❌ CORS test failed:", error)
+      return null
+    }
+  },
+
   // Limpiar todo el caché
   clearCache: () => {
     apiCache.clear()
@@ -128,7 +203,7 @@ export const apiService = {
       apiCache.set(cacheKey, { data: response, timestamp: Date.now() })
       return response
     } catch (error) {
-      console.error(`Error en GET ${url}:`, error)
+      console.error(`❌ Error en GET ${url}:`, error)
       throw error
     }
   },
@@ -143,7 +218,7 @@ export const apiService = {
       if (url.startsWith("/site-content")) apiService.clearSiteContentCache()
       return response
     } catch (error) {
-      console.error(`Error en POST ${url}:`, error)
+      console.error(`❌ Error en POST ${url}:`, error)
       throw error
     }
   },
@@ -158,7 +233,7 @@ export const apiService = {
       if (url.startsWith("/site-content")) apiService.clearSiteContentCache()
       return response
     } catch (error) {
-      console.error(`Error en PUT ${url}:`, error)
+      console.error(`❌ Error en PUT ${url}:`, error)
       throw error
     }
   },
@@ -173,7 +248,7 @@ export const apiService = {
       if (url.startsWith("/site-content")) apiService.clearSiteContentCache()
       return response
     } catch (error) {
-      console.error(`Error en DELETE ${url}:`, error)
+      console.error(`❌ Error en DELETE ${url}:`, error)
       throw error
     }
   },
@@ -198,7 +273,6 @@ export const apiService = {
 
   logout: () => {
     localStorage.removeItem("token")
-    // No hay endpoint de logout en el backend, solo se limpia el token local
     return { success: true }
   },
 
@@ -208,12 +282,10 @@ export const apiService = {
       return { success: false, user: null }
     }
     try {
-      const response = (await apiService.get("/auth/check", {
-        headers: { Authorization: `Bearer ${token}` },
-      })) as any
+      const response = (await apiService.get("/auth/check")) as any
       return { success: true, user: response.user }
     } catch (error: unknown) {
-      console.error("Error checking auth:", error)
+      console.error("❌ Error checking auth:", error)
       localStorage.removeItem("token")
       return { success: false, user: null }
     }
@@ -421,7 +493,7 @@ export const apiService = {
     }
   },
 
-  // Site Content Endpoints
+  // Site Content Endpoints - CORREGIDO
   getSiteContent: async () => {
     try {
       const response = (await apiService.get("/site-content")) as any
@@ -515,21 +587,19 @@ export const apiService = {
       const formData = new FormData()
       formData.append("file", file)
 
-      const response = await axios.post(`${API_BASE_URL}/upload/transfer-proof`, formData, {
+      const response = await axiosInstance.post("/api/upload/transfer-proof", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       })
       return { success: true, url: response.data.url, filename: response.data.filename }
     } catch (error: unknown) {
-      // Type 'error' as unknown
       return {
         success: false,
         error: axios.isAxiosError(error)
           ? error.response?.data?.message || "Error al subir archivo"
           : "Error desconocido",
-      } // Narrow type
+      }
     }
   },
 
@@ -560,17 +630,6 @@ export const apiService = {
           ? error.response?.data?.message || "Error al obtener orden por número"
           : "Error desconocido",
       }
-    }
-  },
-
-  // Health Check
-  healthCheck: async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/health`)
-      return response.data
-    } catch (error) {
-      console.error("Health check failed:", error)
-      return null
     }
   },
 }
