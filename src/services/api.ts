@@ -181,7 +181,7 @@ export const apiService = {
   // Auth Endpoints
   login: async (credentials: any) => {
     try {
-      const response: any = await apiService.post("/auth/login", credentials)
+      const response = (await apiService.post("/auth/login", credentials)) as any
       if (response.token) {
         localStorage.setItem("token", response.token)
       }
@@ -208,9 +208,9 @@ export const apiService = {
       return { success: false, user: null }
     }
     try {
-      const response: any = await apiService.get("/auth/check", {
+      const response = (await apiService.get("/auth/check", {
         headers: { Authorization: `Bearer ${token}` },
-      })
+      })) as any
       return { success: true, user: response.user }
     } catch (error: unknown) {
       console.error("Error checking auth:", error)
@@ -222,7 +222,7 @@ export const apiService = {
   // User Profile Endpoints
   updateProfile: async (profileData: any) => {
     try {
-      const response: any = await apiService.put("/users/profile", profileData)
+      const response = (await apiService.put("/users/profile", profileData)) as any
       return { success: true, user: response.user }
     } catch (error: unknown) {
       return {
@@ -236,7 +236,7 @@ export const apiService = {
 
   updatePassword: async (passwordData: any) => {
     try {
-      const response: any = await apiService.put("/users/password", passwordData)
+      const response = (await apiService.put("/users/password", passwordData)) as any
       return { success: true, message: response.message }
     } catch (error: unknown) {
       return {
@@ -251,7 +251,7 @@ export const apiService = {
   // Product Endpoints
   getProducts: async (params?: any) => {
     try {
-      const response: any = await apiService.get("/products", params)
+      const response = (await apiService.get("/products", params)) as any
       return {
         success: true,
         payload: response.products,
@@ -273,7 +273,7 @@ export const apiService = {
 
   getProduct: async (id: string) => {
     try {
-      const response: any = await apiService.get(`/products/${id}`)
+      const response = (await apiService.get(`/products/${id}`)) as any
       return { success: true, product: response.product }
     } catch (error: unknown) {
       return {
@@ -287,7 +287,7 @@ export const apiService = {
 
   createProduct: async (productData: any) => {
     try {
-      const response: any = await apiService.post("/products", productData)
+      const response = (await apiService.post("/products", productData)) as any
       return { success: true, product: response.product }
     } catch (error: unknown) {
       return {
@@ -301,7 +301,7 @@ export const apiService = {
 
   updateProduct: async (id: string, productData: any) => {
     try {
-      const response: any = await apiService.put(`/products/${id}`, productData)
+      const response = (await apiService.put(`/products/${id}`, productData)) as any
       return { success: true, product: response.product }
     } catch (error: unknown) {
       return {
@@ -315,7 +315,7 @@ export const apiService = {
 
   deleteProduct: async (id: string) => {
     try {
-      const response: any = await apiService.del(`/products/${id}`)
+      const response = (await apiService.del(`/products/${id}`)) as any
       return { success: true, message: response.message }
     } catch (error: unknown) {
       return {
@@ -330,7 +330,7 @@ export const apiService = {
   // Order Endpoints
   createOrder: async (orderData: any) => {
     try {
-      const response: any = await apiService.post("/orders", orderData)
+      const response = (await apiService.post("/orders", orderData)) as any
       return { success: true, order: response.order }
     } catch (error: unknown) {
       return {
@@ -344,7 +344,7 @@ export const apiService = {
 
   getOrder: async (id: string) => {
     try {
-      const response: any = await apiService.get(`/orders/${id}`)
+      const response = (await apiService.get(`/orders/${id}`)) as any
       return { success: true, order: response.order }
     } catch (error: unknown) {
       return {
@@ -359,7 +359,7 @@ export const apiService = {
   getAllOrders: async (page = 1, limit = 10, status?: string) => {
     try {
       const params = { page, limit, ...(status && { status }) }
-      const response: any = await apiService.get("/orders", params)
+      const response = (await apiService.get("/orders", params)) as any
       return {
         success: true,
         orders: response.orders,
@@ -381,7 +381,7 @@ export const apiService = {
 
   updateOrderStatus: async (id: string, status: string, adminNotes: string) => {
     try {
-      const response: any = await apiService.put(`/orders/${id}/status`, { status, adminNotes })
+      const response = (await apiService.put(`/orders/${id}/status`, { status, adminNotes })) as any
       return { success: true, order: response.order }
     } catch (error: unknown) {
       return {
@@ -395,7 +395,7 @@ export const apiService = {
 
   deleteOrder: async (id: string) => {
     try {
-      const response: any = await apiService.del(`/orders/${id}`)
+      const response = (await apiService.del(`/orders/${id}`)) as any
       return { success: true, message: response.message }
     } catch (error: unknown) {
       return {
@@ -409,7 +409,7 @@ export const apiService = {
 
   getOrdersSummary: async () => {
     try {
-      const response: any = await apiService.get("/orders/summary")
+      const response = (await apiService.get("/orders/summary")) as any
       return { success: true, summary: response.summary }
     } catch (error: unknown) {
       return {
@@ -424,7 +424,7 @@ export const apiService = {
   // Site Content Endpoints
   getSiteContent: async () => {
     try {
-      const response: any = await apiService.get("/site-content")
+      const response = (await apiService.get("/site-content")) as any
       return { success: true, content: response.content }
     } catch (error: unknown) {
       return {
@@ -438,7 +438,7 @@ export const apiService = {
 
   updateSiteContent: async (contentData: any) => {
     try {
-      const response: any = await apiService.put("/site-content", contentData)
+      const response = (await apiService.put("/site-content", contentData)) as any
       return { success: true, content: response.content }
     } catch (error: unknown) {
       return {
@@ -453,7 +453,7 @@ export const apiService = {
   // Interaction Endpoints
   createInteraction: async (type: string, data: any) => {
     try {
-      const response: any = await apiService.post("/interactions", { type, data })
+      const response = (await apiService.post("/interactions", { type, data })) as any
       return { success: true, interaction: response.interaction }
     } catch (error: unknown) {
       return {
@@ -467,7 +467,7 @@ export const apiService = {
 
   getInteractionsSummary: async () => {
     try {
-      const response: any = await apiService.get("/interactions/summary")
+      const response = (await apiService.get("/interactions/summary")) as any
       return { success: true, summary: response.summary }
     } catch (error: unknown) {
       return {
@@ -481,7 +481,7 @@ export const apiService = {
 
   getMostViewedProducts: async (limit: number) => {
     try {
-      const response: any = await apiService.get("/interactions/most-viewed-products", { limit })
+      const response = (await apiService.get("/interactions/most-viewed-products", { limit })) as any
       return { success: true, products: response.products }
     } catch (error: unknown) {
       return {
@@ -496,7 +496,7 @@ export const apiService = {
 
   getMostViewedCategories: async (limit: number) => {
     try {
-      const response: any = await apiService.get("/interactions/most-viewed-categories", { limit })
+      const response = (await apiService.get("/interactions/most-viewed-categories", { limit })) as any
       return { success: true, categories: response.categories }
     } catch (error: unknown) {
       return {
@@ -536,7 +536,7 @@ export const apiService = {
   // Contact Form Endpoint
   sendContactForm: async (formData: any) => {
     try {
-      const response = await apiService.post("/contact", formData)
+      const response = (await apiService.post("/contact", formData)) as any
       return { success: true, message: response.message }
     } catch (error: unknown) {
       return {
@@ -551,7 +551,7 @@ export const apiService = {
   // Order by Order Number Endpoint
   getOrderByOrderNumber: async (orderNumber: string) => {
     try {
-      const response = await apiService.get(`/orders/number/${orderNumber}`)
+      const response = (await apiService.get(`/orders/number/${orderNumber}`)) as any
       return { success: true, order: response.order }
     } catch (error: unknown) {
       return {

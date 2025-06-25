@@ -21,7 +21,24 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [showAllProducts, setShowAllProducts] = useState(false)
   const [showAllCategories, setShowAllCategories] = useState(false)
-  const [dashboardData, setDashboardData] = useState({
+  const [dashboardData, setDashboardData] = useState<{
+    stats: {
+      totalProducts: number
+      totalOrders: number
+      totalRevenue: number
+      totalInteractions: number
+    }
+    recentOrders: Order[]
+    mostViewedProducts: any[]
+    mostVisitedCategories: any[]
+    recentInteractions: any[]
+    ordersByStatus: {
+      pending_manual: number
+      paid: number
+      cancelled: number
+      refunded: number
+    }
+  }>({
     stats: {
       totalProducts: 0,
       totalOrders: 0,
@@ -388,9 +405,9 @@ export default function AdminDashboard() {
           ) : dashboardData.mostVisitedCategories.length > 0 ? (
             <>
               <div className="space-y-3">
-                {categoriesToShow.map((category: any, index: number) => (
+                {categoriesToShow.map((category: any) => (
                   <div
-                    key={category.category || index}
+                    key={category.category || category._id || Math.random()}
                     className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-800/20 via-purple-700/10 to-transparent border border-purple-700/20 rounded-lg hover:from-purple-800/30 hover:via-purple-700/20 transition-all duration-300"
                   >
                     <div className="min-w-0 flex-1">

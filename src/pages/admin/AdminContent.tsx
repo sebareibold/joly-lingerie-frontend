@@ -1133,7 +1133,7 @@ export default function AdminContent() {
         checkout: {
           ...prevContent.checkout,
           [section]: {
-            ...prevContent.checkout[section],
+            ...(prevContent.checkout[section] as any),
             [subsection]: {
               ...prevContent.checkout[section][subsection as keyof (typeof prevContent.checkout)[typeof section]],
               [field]: value,
@@ -1196,7 +1196,7 @@ export default function AdminContent() {
           <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <p className="text-red-400 text-lg mb-4">{error}</p>
           <button
-            onClick={loadContent}
+            onClick={() => loadContent()}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
           >
             Reintentar

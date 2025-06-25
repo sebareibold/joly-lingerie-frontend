@@ -139,7 +139,7 @@ const AdminAdvertising: React.FC = () => {
         setBackendStatus("offline")
         return false
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("❌ Error conectando con backend:", error)
       setBackendStatus("offline")
       return false
@@ -177,7 +177,7 @@ const AdminAdvertising: React.FC = () => {
       }
 
       console.log("✅ Datos cargados exitosamente")
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Error cargando datos:", error)
       setError(error instanceof Error ? error.message : "Error desconocido al cargar datos")
     } finally {
@@ -218,7 +218,7 @@ const AdminAdvertising: React.FC = () => {
         resolve(img)
       }
 
-      img.onerror = (_error) => {
+      img.onerror = () => {
         console.warn(`⚠️ Error cargando imagen para ${product.title}, usando placeholder`)
 
         // Crear imagen placeholder directamente
@@ -663,7 +663,7 @@ const AdminAdvertising: React.FC = () => {
           }
 
           return new Promise<{ product: Product; image: HTMLImageElement }>((resolve) => {
-            canvas.toBlob((blob) => {
+            canvas.toBlob((blob: Blob | null) => {
               if (blob) {
                 const url = URL.createObjectURL(blob)
                 const img = new Image()
@@ -828,7 +828,7 @@ const AdminAdvertising: React.FC = () => {
       setGenerationMessage("Finalizando video...")
 
       mediaRecorder.stop()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Error generando video:", error)
       setGenerationStatus("error")
       setGenerationMessage(error instanceof Error ? error.message : "Error desconocido al generar el video")
@@ -1157,7 +1157,7 @@ const AdminAdvertising: React.FC = () => {
                 <div
                   key={option.id}
                   onClick={() =>
-                    setConfig({ ...config, selectionType: option.id as any })
+                    setConfig({ ...config, selectionType: option.id as VideoConfig["selectionType"] })
                   }
                   className={`p-3 lg:p-4 rounded-xl border-2 cursor-pointer transition-all ${
                     config.selectionType === option.id
@@ -1196,7 +1196,7 @@ const AdminAdvertising: React.FC = () => {
                 <select
                   value={config.categoryId || ""}
                   onChange={(e) =>
-                    setConfig({ ...config, categoryId: e.target.value })
+                    setConfig({ ...config, categoryId: e.target.value as string })
                   }
                   className="w-full p-2 lg:p-3 bg-slate-800 border border-slate-600 rounded-lg text-white focus:border-green-500 focus:outline-none text-sm lg:text-base"
                 >
@@ -1248,7 +1248,7 @@ const AdminAdvertising: React.FC = () => {
                     onClick={() =>
                       setConfig({
                         ...config,
-                        animationType: animation.id as any,
+                        animationType: animation.id as VideoConfig["animationType"],
                       })
                     }
                     className={`p-2 lg:p-3 rounded-lg border cursor-pointer transition-all ${

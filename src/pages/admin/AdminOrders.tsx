@@ -1,7 +1,26 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ShoppingBag, Eye, Calendar, DollarSign, ArrowLeft, Search, Filter, RefreshCw, Clock, CheckCircle, XCircle, Package, Trash2, ImageIcon, CreditCard, Banknote, Building2, TrendingUp } from 'lucide-react'
+import {
+  ShoppingBag,
+  Eye,
+  Calendar,
+  DollarSign,
+  ArrowLeft,
+  Search,
+  Filter,
+  RefreshCw,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Package,
+  Trash2,
+  ImageIcon,
+  CreditCard,
+  Banknote,
+  Building2,
+  TrendingUp,
+} from "lucide-react"
 import { Link } from "react-router-dom"
 import { apiService } from "../../services/api"
 
@@ -166,11 +185,13 @@ export default function AdminOrders() {
       }
 
       console.log(`✅ Órdenes cargadas exitosamente: ${ordersData.length} órdenes`)
-    } catch (error) {
+    } catch (error: unknown) {
+      // Type 'error' as unknown
       console.error("❌ Error loading orders:", error)
 
       // Show user-friendly error
-      alert(`Error al cargar las órdenes: ${error.message || "Error desconocido"}`)
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+      alert(`Error al cargar las órdenes: ${errorMessage}`)
 
       // Reset to safe state
       setOrders([])
@@ -210,7 +231,18 @@ export default function AdminOrders() {
     }
   }
 
-  const updateOrderStatus = async (orderId: string, newStatus: string, adminNotes = "") => {
+  const updateOrderStatus = async (
+    orderId: string,
+    newStatus:
+      | "pending_manual"
+      | "pending_transfer_proof"
+      | "pending_transfer_confirmation"
+      | "paid"
+      | "cancelled"
+      | "refunded",
+    adminNotes = "",
+  ) => {
+    // Explicitly type newStatus
     try {
       setUpdating(true)
       console.log(`🔄 Actualizando estado de orden ${orderId} a ${newStatus}`)
@@ -226,9 +258,11 @@ export default function AdminOrders() {
       }
 
       console.log(`✅ Estado de orden actualizado exitosamente`)
-    } catch (error) {
+    } catch (error: unknown) {
+      // Type 'error' as unknown
       console.error("❌ Error updating order status:", error)
-      alert("Error al actualizar el estado de la orden")
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+      alert(`Error al actualizar el estado de la orden: ${errorMessage}`) // Narrow type
     } finally {
       setUpdating(false)
     }
@@ -259,11 +293,12 @@ export default function AdminOrders() {
         }
 
         alert(`Orden #${orderNumber} eliminada exitosamente.`)
-      } catch (error) {
+      } catch (error: unknown) {
+        // Type 'error' as unknown
         console.error("❌ Error deleting order:", error)
 
         // Show specific error message
-        const errorMessage = error.response?.data?.message || error.message || "Error desconocido"
+        const errorMessage = error instanceof Error ? error.message : "Error desconocido" // Narrow type
         alert(`Error al eliminar la orden: ${errorMessage}`)
       } finally {
         setDeletingOrderId(null)
@@ -755,7 +790,7 @@ export default function AdminOrders() {
                           <Eye className="h-4 w-4 mr-1" />
                           Ver Detalles
                         </Link>
-                        {(
+                        {
                           <button
                             onClick={() => deleteOrder(order._id)}
                             disabled={deletingOrderId === order._id}
@@ -773,7 +808,7 @@ export default function AdminOrders() {
                               </>
                             )}
                           </button>
-                        )}
+                        }
                       </div>
                     </td>
                   </tr>
@@ -929,7 +964,7 @@ export default function AdminOrders() {
                 <div className="flex items-center space-x-3">
                   <select
                     value={selectedOrder.status}
-                    onChange={(e) => updateOrderStatus(selectedOrder._id, e.target.value)}
+                    onChange={(e) => updateOrderStatus(selectedOrder._id, e.target.value as Order["status"])}
                     disabled={updating}
                     className="admin-input disabled:opacity-50"
                   >
