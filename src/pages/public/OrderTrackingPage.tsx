@@ -54,7 +54,6 @@ export default function OrderTrackingPage() {
   // En una aplicación real, estos valores deberían provenir de variables de entorno
   // (ej. VITE_APP_ADMIN_EMAIL_RECIPIENT, VITE_APP_ADMIN_PHONE_WHATSAPP si usas Vite)
   // o ser obtenidos de un endpoint de API público para mayor seguridad y flexibilidad.
-  const ADMIN_EMAIL_RECIPIENT = "joly.lingerie.nqn@gmail.com" // Still needed for email subject/body generation, even if button is removed
   const ADMIN_PHONE_WHATSAPP = "2994513377" // Reemplaza con tu número de WhatsApp de administrador real
   // --- Fin Placeholder ---
 
@@ -117,10 +116,6 @@ export default function OrderTrackingPage() {
   const orderRef = order?.orderNumber || "tu pedido"
 
   // Email subject and body are still generated, but the button is removed
-  const emailSubject = encodeURIComponent(`Consulta sobre tu orden #${orderRef} - Joly Lingerie`)
-  const emailBody = encodeURIComponent(
-    `Hola ${clientName},\n\nTe escribo desde Joly Lingerie en referencia a tu orden #${orderRef}.`,
-  )
   const whatsappText = encodeURIComponent(
     `Hola ${clientName}, te escribo desde Joly Lingerie en referencia a tu orden #${orderRef}.`,
   )
@@ -152,7 +147,6 @@ export default function OrderTrackingPage() {
                 style={{
                   borderColor: "var(--bone)",
                   color: "var(--deep-clay)",
-                  focusRingColor: "var(--clay)",
                 }}
               />
             </div>

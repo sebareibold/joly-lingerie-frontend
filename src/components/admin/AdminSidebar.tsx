@@ -16,7 +16,6 @@ import {
   Menu,
 } from "lucide-react"
 import { useAuth } from "../../contexts/AuthContext"
-import { useState, useEffect } from "react"
 
 export default function AdminSidebar({
   isSidebarOpen,
@@ -30,7 +29,6 @@ export default function AdminSidebar({
   setIsSidebarCollapsed: (isCollapsed: boolean) => void
 }) {
   const { logout, user } = useAuth()
-  const [isMobile, setIsMobile] = useState(false)
 
   const navItems = [
     { name: "Dashboard", href: "/admin", icon: Home, exact: true },
@@ -40,16 +38,6 @@ export default function AdminSidebar({
     { name: "Contenido", href: "/admin/content", icon: FileText },
     { name: "Config", href: "/admin/settings", icon: Settings },
   ]
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024)
-    }
-
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [])
 
   // Mobile Navbar Component
   const MobileNavbar = () => (

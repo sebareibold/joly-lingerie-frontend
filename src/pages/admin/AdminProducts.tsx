@@ -20,6 +20,11 @@ interface Product {
   updatedAt: string
 }
 
+interface Category {
+  name: string;
+  display_name: string;
+}
+
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,32 +35,8 @@ export default function AdminProducts() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalProductsCount, setTotalProductsCount] = useState(0)
   const [updating, setUpdating] = useState(false)
-  const [debugInfo, setDebugInfo] = useState<any>(null)
-  const [availableCategories, setAvailableCategories] = useState<any[]>([])
+  const [availableCategories, setAvailableCategories] = useState<Category[]>([])
   const [categoriesLoading, setCategoriesLoading] = useState(true)
-
-  const handleDebug = () => {
-    const info = {
-      currentState: {
-        products: products.length,
-        loading,
-        currentPage,
-        totalPages,
-        totalProductsCount,
-        searchTerm,
-        categoryFilter,
-        statusFilter,
-      },
-      cache: apiService.cache ? Object.keys(apiService.cache).length : "No disponible",
-    }
-    setDebugInfo(info)
-    console.log("Debug Info:", info)
-  }
-
-  const handleClearCacheAndReload = () => {
-    apiService.clearProductsCache()
-    loadProducts()
-  }
 
   const loadProducts = async () => {
     try {

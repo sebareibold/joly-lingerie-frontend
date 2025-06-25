@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Trash2,
@@ -17,7 +16,6 @@ export default function CartPage() {
   const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } =
     useCart();
   const navigate = useNavigate();
-  const [couponCode, setCouponCode] = useState("");
 
   const handleVirtualOrder = () => {
     if (items.length === 0) return;
@@ -138,7 +136,7 @@ export default function CartPage() {
                   </h2>
                 </div>
 
-                <ul className="divide-y" style={{ divideColor: "var(--bone)" }}>
+                <ul className="divide-y">
                   {items.map((item) => (
                     <li
                       key={`${item.id}-${item.size}-${item.color || ""}`}

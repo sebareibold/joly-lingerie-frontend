@@ -560,7 +560,6 @@ export default function CheckoutPage() {
                         style={{
                           borderColor: errors.fullName ? "#ef4444" : "var(--bone)",
                           color: "var(--deep-clay)",
-                          focusRingColor: "var(--clay)",
                         }}
                         placeholder="Tu nombre completo"
                       />
@@ -581,7 +580,6 @@ export default function CheckoutPage() {
                         style={{
                           borderColor: errors.email ? "#ef4444" : "var(--bone)",
                           color: "var(--deep-clay)",
-                          focusRingColor: "var(--clay)",
                         }}
                         placeholder="tu@email.com"
                       />
@@ -605,7 +603,6 @@ export default function CheckoutPage() {
                         style={{
                           borderColor: errors.phone ? "#ef4444" : "var(--bone)",
                           color: "var(--deep-clay)",
-                          focusRingColor: "var(--clay)",
                         }}
                         placeholder="+54 299 123 4567"
                       />
@@ -627,7 +624,6 @@ export default function CheckoutPage() {
                           style={{
                             borderColor: errors.city ? "#ef4444" : "var(--bone)",
                             color: "var(--deep-clay)",
-                            focusRingColor: "var(--clay)",
                           }}
                           placeholder="Neuquén"
                         />
@@ -652,7 +648,6 @@ export default function CheckoutPage() {
                           style={{
                             borderColor: errors.address ? "#ef4444" : "var(--bone)",
                             color: "var(--deep-clay)",
-                            focusRingColor: "var(--clay)",
                           }}
                           placeholder="Calle, número, barrio, referencias"
                         />
@@ -672,7 +667,6 @@ export default function CheckoutPage() {
                             style={{
                               borderColor: "var(--bone)",
                               color: "var(--deep-clay)",
-                              focusRingColor: "var(--clay)",
                             }}
                             placeholder="8300"
                           />
@@ -693,7 +687,6 @@ export default function CheckoutPage() {
                       style={{
                         borderColor: "var(--bone)",
                         color: "var(--deep-clay)",
-                        focusRingColor: "var(--clay)",
                       }}
                       placeholder={
                         wantsShipping

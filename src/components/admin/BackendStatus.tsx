@@ -10,7 +10,6 @@ interface BackendStatusProps {
 }
 
 const BackendStatus: React.FC<BackendStatusProps> = ({ className = "" }) => {
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api"
   const CHECK_INTERVAL = 30000 // 30 segundos
   const [isConnected, setIsConnected] = useState<boolean | null>(null)
   const [lastChecked, setLastChecked] = useState<Date | null>(null)
