@@ -106,7 +106,7 @@ export const apiService = {
   // Limpiar caché de contenido del sitio
   clearSiteContentCache: () => {
     for (const key of apiCache.keys()) {
-      if (key.startsWith("/site-content")) {
+      if (key.startsWith("/content")) {
         apiCache.delete(key)
       }
     }
