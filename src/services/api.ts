@@ -140,7 +140,7 @@ export const apiService = {
       // Invalidar caché relevante después de un POST
       if (url.startsWith("/products")) apiService.clearProductsCache()
       if (url.startsWith("/orders")) apiService.clearOrdersCache()
-      if (url.startsWith("/site-content")) apiService.clearSiteContentCache()
+      if (url.startsWith("/content")) apiService.clearSiteContentCache()
       return response
     } catch (error) {
       console.error(`Error en POST ${url}:`, error)
@@ -155,7 +155,7 @@ export const apiService = {
       // Invalidar caché relevante después de un PUT
       if (url.startsWith("/products")) apiService.clearProductsCache()
       if (url.startsWith("/orders")) apiService.clearOrdersCache()
-      if (url.startsWith("/site-content")) apiService.clearSiteContentCache()
+      if (url.startsWith("/content")) apiService.clearSiteContentCache()
       return response
     } catch (error) {
       console.error(`Error en PUT ${url}:`, error)
@@ -170,7 +170,7 @@ export const apiService = {
       // Invalidar caché relevante después de un DELETE
       if (url.startsWith("/products")) apiService.clearProductsCache()
       if (url.startsWith("/orders")) apiService.clearOrdersCache()
-      if (url.startsWith("/site-content")) apiService.clearSiteContentCache()
+      if (url.startsWith("/content")) apiService.clearSiteContentCache()
       return response
     } catch (error) {
       console.error(`Error en DELETE ${url}:`, error)
@@ -424,7 +424,7 @@ export const apiService = {
   // Site Content Endpoints
   getSiteContent: async () => {
     try {
-      const response = (await apiService.get("/site-content")) as any
+      const response = (await apiService.get("/content")) as any
       return { success: true, content: response.content }
     } catch (error: unknown) {
       return {
