@@ -156,6 +156,7 @@ import {
 import type React from "react"
 import { useState, useEffect } from "react"
 import { apiService } from "../../services/api"
+import { ImageIcon } from "lucide-react"
 
 // Definición de tipos para el contenido
 interface CategoryContent {
@@ -397,7 +398,7 @@ function BrandValues({ content }: { content: SiteContent["whyChooseJoly"] }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {values.map((value, index) => (
+          {values.map((value, _index) => (
             <div
               key={value.title}
               className="text-center p-8 rounded-2xl hover:shadow-warm-lg transition-all duration-500 hover:scale-105"
@@ -407,7 +408,7 @@ function BrandValues({ content }: { content: SiteContent["whyChooseJoly"] }) {
                 className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-warm"
                 style={{ backgroundColor: "var(--clay)" }}
               >
-                <value.icon className="h-8 w-8 text-white" />
+                <ImageIcon className="h-8 w-8 text-white" />
               </div>
               <h3 className="font-serif text-xl font-medium mb-4 tracking-wide" style={{ color: "var(--deep-clay)" }}>
                 {value.title}

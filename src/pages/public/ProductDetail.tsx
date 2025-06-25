@@ -1,5 +1,6 @@
 "use client"
-import React, { useState, useEffect } from "react"
+import type React from "react"
+import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import {
   Heart,
@@ -101,7 +102,7 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedSize, setSelectedSize] = useState("")
   const [quantity, setQuantity] = useState(1)
-  const [isLiked, setIsLiked] = useState(false)
+  // Removed unused isLiked state and setIsLiked
   const [expandedSections, setExpandedSections] = useState(new Set<string>())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -321,18 +322,13 @@ export default function ProductDetail() {
     if (product && sizeGuidesData.length > 0) {
       if (product.category.toLowerCase() === "conjuntos") {
         // Buscar ambas guías: corpiño y bombacha
-        const corpinio = sizeGuidesData.find(
-          (g) => g.enabled && g.category.toLowerCase() === "corpiño"
-        )
-        const bombacha = sizeGuidesData.find(
-          (g) => g.enabled && g.category.toLowerCase() === "bombacha"
-        )
+        const corpinio = sizeGuidesData.find((g) => g.enabled && g.category.toLowerCase() === "corpiño")
+        const bombacha = sizeGuidesData.find((g) => g.enabled && g.category.toLowerCase() === "bombacha")
         setCurrentSizeGuides([corpinio, bombacha].filter(Boolean) as SizeGuideData[])
       } else {
         const guide =
-          sizeGuidesData.find(
-            (g) => g.enabled && g.category.toLowerCase() === product.category.toLowerCase()
-          ) || sizeGuidesData.find((g) => g.enabled)
+          sizeGuidesData.find((g) => g.enabled && g.category.toLowerCase() === product.category.toLowerCase()) ||
+          sizeGuidesData.find((g) => g.enabled)
         setCurrentSizeGuides(guide ? [guide] : [])
       }
     }
@@ -496,24 +492,27 @@ export default function ProductDetail() {
                 Talla: <span style={{ color: "var(--clay)" }}>{selectedSize}</span>
               </h3>
               <div className="grid grid-cols-4 gap-2 lg:gap-3 mb-3">
-                {(product.sizes || []).map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`py-3 lg:py-4 px-1 border-2 rounded-lg text-xs font-medium transition-all ${
-                      selectedSize === size ? "shadow-warm" : "hover:shadow-warm"
-                    }`}
-                    style={{
-                      borderColor: selectedSize === size ? "var(--clay)" : "var(--oak)",
-                      backgroundColor: selectedSize === size ? "var(--bone)" : "var(--pure-white)",
-                      color: selectedSize === size ? "var(--deep-clay)" : "var(--dark-clay)",
-                    }}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {(product.sizes || []).map(
+                  (
+                    _size, // Replace s with _size
+                  ) => (
+                    <button
+                      key={_size}
+                      onClick={() => setSelectedSize(_size)}
+                      className={`py-3 lg:py-4 px-1 border-2 rounded-lg text-xs font-medium transition-all ${
+                        selectedSize === _size ? "shadow-warm" : "hover:shadow-warm"
+                      }`}
+                      style={{
+                        borderColor: selectedSize === _size ? "var(--clay)" : "var(--oak)",
+                        backgroundColor: selectedSize === _size ? "var(--bone)" : "var(--pure-white)",
+                        color: selectedSize === _size ? "var(--deep-clay)" : "var(--dark-clay)",
+                      }}
+                    >
+                      {_size}
+                    </button>
+                  ),
+                )}
               </div>
-             
             </div>
 
             {/* Quantity Selection */}
@@ -650,7 +649,10 @@ export default function ProductDetail() {
                     }}
                   >
                     <div className="text-center mb-4">
-                      <h3 className="font-serif text-lg lg:text-xl font-medium mb-2" style={{ color: "var(--deep-clay)" }}>
+                      <h3
+                        className="font-serif text-lg lg:text-xl font-medium mb-2"
+                        style={{ color: "var(--deep-clay)" }}
+                      >
                         {guide.title}
                       </h3>
                       <p className="text-sm lg:text-base font-light" style={{ color: "var(--dark-clay)" }}>

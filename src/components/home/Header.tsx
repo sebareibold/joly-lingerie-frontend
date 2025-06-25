@@ -80,11 +80,7 @@ export default function Header() {
             {/* Ajustado space-x para móvil */}
             {/* Admin Login Icon */}
             <Link to="/admin/login">
-              <User
-                className="h-5 w-5 cursor-pointer transition-colors"
-                style={{ color: "var(--clay)" }}
-                title="Admin Login"
-              />
+               <User className="h-5 w-5 cursor-pointer transition-colors" style={{ color: "var(--clay)" }} />
             </Link>
             {/* Cart Icon */}
             <Link to="/cart" className="relative">

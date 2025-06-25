@@ -263,7 +263,7 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
               className="flex overflow-x-auto scrollbar-hide gap-3 px-8 py-2"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-              {categories.map((category, index) => (
+              {categories.map((category, _) => (
                 <button
                   key={category.name}
                   onClick={() => setSelectedCategory(category.name)}
@@ -288,7 +288,7 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
 
         {/* Category Filter - Desktop */}
         <div className="hidden md:flex flex-wrap justify-center gap-3 mb-20">
-          {categories.map((category, index) => (
+          {categories.map((category) => (
             <button
               key={category.name}
               onClick={() => setSelectedCategory(category.name)}
@@ -299,7 +299,6 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
                 backgroundColor: selectedCategory === category.name ? "var(--clay)" : "var(--pure-white)",
                 borderColor: selectedCategory === category.name ? "var(--clay)" : "var(--oak)",
                 borderWidth: selectedCategory === category.name ? "0" : "1px",
-                animationDelay: `${index * 0.1}s`,
               }}
               disabled={isCategoryChanging} // Disable button
             >

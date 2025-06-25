@@ -20,7 +20,17 @@ interface BrandValuesSectionProps {
 }
 
 // Mapeo de nombres de string a componentes de Lucide React
-const iconMap: { [key: string]: React.ElementType } = LucideIcons
+const iconMap: { [key: string]: React.ElementType } = Object.keys(LucideIcons).reduce(
+  (acc, key) => {
+    const Component = (LucideIcons as any)[key]
+    if (typeof Component === "function" && Component.displayName) {
+      // Check if it's a React component
+      acc[key] = Component
+    }
+    return acc
+  },
+  {} as { [key: string]: React.ElementType },
+)
 
 export default function BrandValuesSection({ content }: BrandValuesSectionProps) {
   return (

@@ -29,7 +29,7 @@ interface UserSettings {
 
 export default function AdminSettings() {
   const { user } = useAuth()
-  const [loading, setLoading] = useState(false)
+  // Removed unused loading state and setLoading
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)

@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { apiService } from "../../services/api"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { apiService } from "../../services/api";
 import {
   Save,
   Loader2,
@@ -161,155 +161,155 @@ import {
   RotateCcw,
   Eye,
   EyeOff,
-} from "lucide-react"
+} from "lucide-react";
 
 interface Category {
-  name: string
-  display_name: string
+  name: string;
+  display_name: string;
 }
 
 interface Value {
-  icon: string
-  title: string
-  description: string
+  icon: string;
+  title: string;
+  description: string;
 }
 
 interface ContactDetail {
-  icon: string
-  title: string
-  details: string[]
-  description: string
+  icon: string;
+  title: string;
+  details: string[];
+  description: string;
 }
 
 interface SocialMediaLink {
-  icon: string
-  name: string
-  handle: string
-  link: string
+  icon: string;
+  name: string;
+  handle: string;
+  link: string;
 }
 
 interface InfoCard {
-  icon: string
-  title: string
-  description: string
-  enabled: boolean
+  icon: string;
+  title: string;
+  description: string;
+  enabled: boolean;
 }
 
 interface ExpandableSection {
-  id: string
-  title: string
-  content: string
-  enabled: boolean
+  id: string;
+  title: string;
+  content: string;
+  enabled: boolean;
 }
 
 // Agregar las interfaces necesarias después de las interfaces existentes
 // Actualizar las interfaces para manejar múltiples guías
 interface SizeGuideRow {
-  size: string
-  measurements: string[]
+  size: string;
+  measurements: string[];
 }
 
 interface SizeGuide {
-  category: string
-  enabled: boolean
-  title: string
-  subtitle: string
-  tableHeaders: string[]
-  tableRows: SizeGuideRow[]
-  notes: string
+  category: string;
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+  tableHeaders: string[];
+  tableRows: SizeGuideRow[];
+  notes: string;
 }
 
 interface CheckoutInfo {
   deliveryInfo: {
-    title: string
+    title: string;
     meetingPoint: {
-      enabled: boolean
-      title: string
-      description: string
-      address: string
-      schedule: string
-      notes: string
-    }
-  }
+      enabled: boolean;
+      title: string;
+      description: string;
+      address: string;
+      schedule: string;
+      notes: string;
+    };
+  };
   paymentInfo: {
-    title: string
+    title: string;
     bankTransfer: {
-      enabled: boolean
-      title: string
-      bankName: string
-      accountType: string
-      accountNumber: string
-      accountHolder: string
-      cbu: string
-      alias: string
-      instructions: string
-    }
+      enabled: boolean;
+      title: string;
+      bankName: string;
+      accountType: string;
+      accountNumber: string;
+      accountHolder: string;
+      cbu: string;
+      alias: string;
+      instructions: string;
+    };
     cashOnDelivery: {
-      enabled: boolean
-      title: string
-      description: string
-      additionalFee: number
-      notes: string
-    }
-  }
+      enabled: boolean;
+      title: string;
+      description: string;
+      additionalFee: number;
+      notes: string;
+    };
+  };
   shipping: {
-    enabled: boolean
-    title: string
+    enabled: boolean;
+    title: string;
     homeDelivery: {
-      enabled: boolean
-      title: string
-      description: string
-      baseCost: number
-      freeShippingThreshold: number
-      estimatedDays: string
-      coverage: string
-      notes: string
-    }
-  }
+      enabled: boolean;
+      title: string;
+      description: string;
+      baseCost: number;
+      freeShippingThreshold: number;
+      estimatedDays: string;
+      coverage: string;
+      notes: string;
+    };
+  };
 }
 
 // Actualizar la interface ContentData
 interface ContentData {
   hero: {
-    mainDescription: string
-    slogan: string
-    buttonText: string
-    buttonLink: string
+    mainDescription: string;
+    slogan: string;
+    buttonText: string;
+    buttonLink: string;
     heroImage: {
-      url: string
-      alt: string
-      filename: string
-    }
-  }
+      url: string;
+      alt: string;
+      filename: string;
+    };
+  };
   productCatalog: {
-    mainTitle: string
-    subtitle: string
-    categories: Category[]
-  }
+    mainTitle: string;
+    subtitle: string;
+    categories: Category[];
+  };
   whyChooseJoly: {
-    mainTitle: string
-    description: string
-    values: Value[]
-  }
+    mainTitle: string;
+    description: string;
+    values: Value[];
+  };
   productDetail: {
-    infoCards: InfoCard[]
-    expandableSections: ExpandableSection[]
-    showSizeGuideButton: boolean
-    sizeGuideButtonText: string
-  }
-  sizeGuides: SizeGuide[] // Cambiado de sizeGuide a sizeGuides (array)
-  checkout: CheckoutInfo
+    infoCards: InfoCard[];
+    expandableSections: ExpandableSection[];
+    showSizeGuideButton: boolean;
+    sizeGuideButtonText: string;
+  };
+  sizeGuides: SizeGuide[]; // Cambiado de sizeGuide a sizeGuides (array)
+  checkout: CheckoutInfo;
   contact: {
-    mainTitle: string
-    subtitle: string
-    description: string
-    formTitle: string
-    formDescription: string
-    responseMessage: string
-    responseDisclaimer: string
-    contactInfo: ContactDetail[]
-    socialMedia: SocialMediaLink[]
-  }
+    mainTitle: string;
+    subtitle: string;
+    description: string;
+    formTitle: string;
+    formDescription: string;
+    responseMessage: string;
+    responseDisclaimer: string;
+    contactInfo: ContactDetail[];
+    socialMedia: SocialMediaLink[];
+  };
 }
 
 // Mapeo de nombres de iconos a componentes Lucide React
@@ -466,61 +466,61 @@ const iconMap: { [key: string]: React.ElementType } = {
   RotateCcw,
   Eye,
   EyeOff,
-}
+};
 
 // Lista de nombres de iconos disponibles para el selector
-const lucideIconNames = Object.keys(iconMap).sort()
+const lucideIconNames = Object.keys(iconMap).sort();
 
 export default function AdminContent() {
-  const [content, setContent] = useState<ContentData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState("hero")
+  const [content, setContent] = useState<ContentData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("hero");
 
   useEffect(() => {
-    loadContent()
+    loadContent();
 
     // Cleanup function para limpiar el estado cuando el componente se desmonta
     return () => {
-      setContent(null)
-      setError(null)
-      setSuccess(null)
-    }
-  }, [])
+      setContent(null);
+      setError(null);
+      setSuccess(null);
+    };
+  }, []);
 
   // Nuevo useEffect para detectar cuando se vuelve a la página
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden && content === null) {
-        console.log("Página visible y sin contenido, recargando...")
-        loadContent()
+        console.log("Página visible y sin contenido, recargando...");
+        loadContent();
       }
-    }
+    };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange)
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange)
-    }
-  }, [content])
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [content]);
 
   // Agregar después del useEffect existente
   useEffect(() => {
     if (content) {
-      console.log("Contenido actualizado:", content)
+      console.log("Contenido actualizado:", content);
     }
-  }, [content])
+  }, [content]);
 
-  const loadContent = async (forceRefresh = false) => {
+  const loadContent = async (_forceRefresh = false) => {
     try {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
-      const response = await apiService.getSiteContent()
+      const response = await apiService.getSiteContent();
       if (response.success && response.content) {
-        const contentData = response.content
+        const contentData = response.content;
 
         // Asegurar que todas las propiedades existan con valores por defecto
         const defaultContent: ContentData = {
@@ -532,71 +532,131 @@ export default function AdminContent() {
             heroImage: {
               url: contentData.hero?.heroImage?.url || "/presentacion_1.jpeg",
               alt: contentData.hero?.heroImage?.alt || "Imagen principal",
-              filename: contentData.hero?.heroImage?.filename || "presentacion_1.jpeg",
+              filename:
+                contentData.hero?.heroImage?.filename || "presentacion_1.jpeg",
             },
           },
           productCatalog: {
-            mainTitle: contentData.productCatalog?.mainTitle || "Nuestros Productos",
+            mainTitle:
+              contentData.productCatalog?.mainTitle || "Nuestros Productos",
             subtitle: contentData.productCatalog?.subtitle || "",
             categories: contentData.productCatalog?.categories || [],
           },
           whyChooseJoly: {
-            mainTitle: contentData.whyChooseJoly?.mainTitle || "¿Por qué elegirnos?",
+            mainTitle:
+              contentData.whyChooseJoly?.mainTitle || "¿Por qué elegirnos?",
             description: contentData.whyChooseJoly?.description || "",
             values: contentData.whyChooseJoly?.values || [],
           },
           productDetail: {
             infoCards: contentData.productDetail?.infoCards || [],
-            expandableSections: contentData.productDetail?.expandableSections || [],
-            showSizeGuideButton: contentData.productDetail?.showSizeGuideButton ?? true,
-            sizeGuideButtonText: contentData.productDetail?.sizeGuideButtonText || "Guía de tallas",
+            expandableSections:
+              contentData.productDetail?.expandableSections || [],
+            showSizeGuideButton:
+              contentData.productDetail?.showSizeGuideButton ?? true,
+            sizeGuideButtonText:
+              contentData.productDetail?.sizeGuideButtonText ||
+              "Guía de tallas",
           },
-          sizeGuides: Array.isArray(contentData.sizeGuides) ? contentData.sizeGuides : [],
+          sizeGuides: Array.isArray(contentData.sizeGuides)
+            ? contentData.sizeGuides
+            : [],
           checkout: {
             deliveryInfo: {
-              title: contentData.checkout?.deliveryInfo?.title || "Información de Entrega",
+              title:
+                contentData.checkout?.deliveryInfo?.title ||
+                "Información de Entrega",
               meetingPoint: {
-                enabled: contentData.checkout?.deliveryInfo?.meetingPoint?.enabled ?? true,
-                title: contentData.checkout?.deliveryInfo?.meetingPoint?.title || "Punto de Encuentro",
-                description: contentData.checkout?.deliveryInfo?.meetingPoint?.description || "",
-                address: contentData.checkout?.deliveryInfo?.meetingPoint?.address || "",
-                schedule: contentData.checkout?.deliveryInfo?.meetingPoint?.schedule || "",
-                notes: contentData.checkout?.deliveryInfo?.meetingPoint?.notes || "",
+                enabled:
+                  contentData.checkout?.deliveryInfo?.meetingPoint?.enabled ??
+                  true,
+                title:
+                  contentData.checkout?.deliveryInfo?.meetingPoint?.title ||
+                  "Punto de Encuentro",
+                description:
+                  contentData.checkout?.deliveryInfo?.meetingPoint
+                    ?.description || "",
+                address:
+                  contentData.checkout?.deliveryInfo?.meetingPoint?.address ||
+                  "",
+                schedule:
+                  contentData.checkout?.deliveryInfo?.meetingPoint?.schedule ||
+                  "",
+                notes:
+                  contentData.checkout?.deliveryInfo?.meetingPoint?.notes || "",
               },
             },
             paymentInfo: {
-              title: contentData.checkout?.paymentInfo?.title || "Métodos de Pago",
+              title:
+                contentData.checkout?.paymentInfo?.title || "Métodos de Pago",
               bankTransfer: {
-                enabled: contentData.checkout?.paymentInfo?.bankTransfer?.enabled ?? true,
-                title: contentData.checkout?.paymentInfo?.bankTransfer?.title || "Transferencia Bancaria",
-                bankName: contentData.checkout?.paymentInfo?.bankTransfer?.bankName || "",
-                accountType: contentData.checkout?.paymentInfo?.bankTransfer?.accountType || "",
-                accountNumber: contentData.checkout?.paymentInfo?.bankTransfer?.accountNumber || "",
-                accountHolder: contentData.checkout?.paymentInfo?.bankTransfer?.accountHolder || "",
+                enabled:
+                  contentData.checkout?.paymentInfo?.bankTransfer?.enabled ??
+                  true,
+                title:
+                  contentData.checkout?.paymentInfo?.bankTransfer?.title ||
+                  "Transferencia Bancaria",
+                bankName:
+                  contentData.checkout?.paymentInfo?.bankTransfer?.bankName ||
+                  "",
+                accountType:
+                  contentData.checkout?.paymentInfo?.bankTransfer
+                    ?.accountType || "",
+                accountNumber:
+                  contentData.checkout?.paymentInfo?.bankTransfer
+                    ?.accountNumber || "",
+                accountHolder:
+                  contentData.checkout?.paymentInfo?.bankTransfer
+                    ?.accountHolder || "",
                 cbu: contentData.checkout?.paymentInfo?.bankTransfer?.cbu || "",
-                alias: contentData.checkout?.paymentInfo?.bankTransfer?.alias || "",
-                instructions: contentData.checkout?.paymentInfo?.bankTransfer?.instructions || "",
+                alias:
+                  contentData.checkout?.paymentInfo?.bankTransfer?.alias || "",
+                instructions:
+                  contentData.checkout?.paymentInfo?.bankTransfer
+                    ?.instructions || "",
               },
               cashOnDelivery: {
-                enabled: contentData.checkout?.paymentInfo?.cashOnDelivery?.enabled ?? true,
-                title: contentData.checkout?.paymentInfo?.cashOnDelivery?.title || "Pago en Efectivo",
-                description: contentData.checkout?.paymentInfo?.cashOnDelivery?.description || "",
-                additionalFee: contentData.checkout?.paymentInfo?.cashOnDelivery?.additionalFee || 0,
-                notes: contentData.checkout?.paymentInfo?.cashOnDelivery?.notes || "",
+                enabled:
+                  contentData.checkout?.paymentInfo?.cashOnDelivery?.enabled ??
+                  true,
+                title:
+                  contentData.checkout?.paymentInfo?.cashOnDelivery?.title ||
+                  "Pago en Efectivo",
+                description:
+                  contentData.checkout?.paymentInfo?.cashOnDelivery
+                    ?.description || "",
+                additionalFee:
+                  contentData.checkout?.paymentInfo?.cashOnDelivery
+                    ?.additionalFee || 0,
+                notes:
+                  contentData.checkout?.paymentInfo?.cashOnDelivery?.notes ||
+                  "",
               },
             },
             shipping: {
               enabled: contentData.checkout?.shipping?.enabled ?? true,
               title: contentData.checkout?.shipping?.title || "Envíos",
               homeDelivery: {
-                enabled: contentData.checkout?.shipping?.homeDelivery?.enabled ?? true,
-                title: contentData.checkout?.shipping?.homeDelivery?.title || "Envío a Domicilio",
-                description: contentData.checkout?.shipping?.homeDelivery?.description || "",
-                baseCost: contentData.checkout?.shipping?.homeDelivery?.baseCost || 0,
-                freeShippingThreshold: contentData.checkout?.shipping?.homeDelivery?.freeShippingThreshold || 0,
-                estimatedDays: contentData.checkout?.shipping?.homeDelivery?.estimatedDays || "",
-                coverage: contentData.checkout?.shipping?.homeDelivery?.coverage || "",
-                notes: contentData.checkout?.shipping?.homeDelivery?.notes || "",
+                enabled:
+                  contentData.checkout?.shipping?.homeDelivery?.enabled ?? true,
+                title:
+                  contentData.checkout?.shipping?.homeDelivery?.title ||
+                  "Envío a Domicilio",
+                description:
+                  contentData.checkout?.shipping?.homeDelivery?.description ||
+                  "",
+                baseCost:
+                  contentData.checkout?.shipping?.homeDelivery?.baseCost || 0,
+                freeShippingThreshold:
+                  contentData.checkout?.shipping?.homeDelivery
+                    ?.freeShippingThreshold || 0,
+                estimatedDays:
+                  contentData.checkout?.shipping?.homeDelivery?.estimatedDays ||
+                  "",
+                coverage:
+                  contentData.checkout?.shipping?.homeDelivery?.coverage || "",
+                notes:
+                  contentData.checkout?.shipping?.homeDelivery?.notes || "",
               },
             },
           },
@@ -606,151 +666,174 @@ export default function AdminContent() {
             description: contentData.contact?.description || "",
             formTitle: contentData.contact?.formTitle || "Envíanos un mensaje",
             formDescription: contentData.contact?.formDescription || "",
-            responseMessage: contentData.contact?.responseMessage || "Gracias por tu mensaje",
+            responseMessage:
+              contentData.contact?.responseMessage || "Gracias por tu mensaje",
             responseDisclaimer: contentData.contact?.responseDisclaimer || "",
             contactInfo: contentData.contact?.contactInfo || [],
             socialMedia: contentData.contact?.socialMedia || [],
           },
-        }
+        };
 
-        setContent(defaultContent)
-        console.log("Contenido cargado exitosamente:", defaultContent)
+        setContent(defaultContent);
+        console.log("Contenido cargado exitosamente:", defaultContent);
       } else {
-        setError(response.error || "Error al cargar el contenido.")
+        setError(response.error || "Error al cargar el contenido.");
       }
     } catch (err) {
-      console.error("Error loading content:", err)
-      setError("Error al cargar el contenido. Intente nuevamente.")
+      console.error("Error loading content:", err);
+      setError("Error al cargar el contenido. Intente nuevamente.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleRefresh = () => {
-    console.log("Refrescando contenido manualmente...")
-    loadContent(true)
-  }
+    console.log("Refrescando contenido manualmente...");
+    loadContent(true);
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     section: keyof ContentData,
-    field: string,
+    field: string
   ) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
+      if (!prevContent) return null;
       return {
         ...prevContent,
         [section]: {
           ...prevContent[section],
           [field]: e.target.value,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
-  const handleCategoryChange = (index: number, field: keyof Category, value: string) => {
+  const handleCategoryChange = (
+    index: number,
+    field: keyof Category,
+    value: string
+  ) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newCategories = [...prevContent.productCatalog.categories]
-      newCategories[index] = { ...newCategories[index], [field]: value }
+      if (!prevContent) return null;
+      const newCategories = [...prevContent.productCatalog.categories];
+      newCategories[index] = { ...newCategories[index], [field]: value };
       return {
         ...prevContent,
         productCatalog: {
           ...prevContent.productCatalog,
           categories: newCategories,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const addCategory = () => {
     setContent((prevContent) => {
-      if (!prevContent) return null
+      if (!prevContent) return null;
       return {
         ...prevContent,
         productCatalog: {
           ...prevContent.productCatalog,
-          categories: [...prevContent.productCatalog.categories, { name: "", display_name: "" }],
+          categories: [
+            ...prevContent.productCatalog.categories,
+            { name: "", display_name: "" },
+          ],
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const removeCategory = (index: number) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newCategories = prevContent.productCatalog.categories.filter((_, i) => i !== index)
+      if (!prevContent) return null;
+      const newCategories = prevContent.productCatalog.categories.filter(
+        (_, i) => i !== index
+      );
       return {
         ...prevContent,
         productCatalog: {
           ...prevContent.productCatalog,
           categories: newCategories,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
-  const handleValueChange = (index: number, field: keyof Value, value: string) => {
+  const handleValueChange = (
+    index: number,
+    field: keyof Value,
+    value: string
+  ) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newValues = [...prevContent.whyChooseJoly.values]
-      newValues[index] = { ...newValues[index], [field]: value }
+      if (!prevContent) return null;
+      const newValues = [...prevContent.whyChooseJoly.values];
+      newValues[index] = { ...newValues[index], [field]: value };
       return {
         ...prevContent,
         whyChooseJoly: {
           ...prevContent.whyChooseJoly,
           values: newValues,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const addValue = () => {
     setContent((prevContent) => {
-      if (!prevContent) return null
+      if (!prevContent) return null;
       return {
         ...prevContent,
         whyChooseJoly: {
           ...prevContent.whyChooseJoly,
-          values: [...prevContent.whyChooseJoly.values, { icon: "Info", title: "", description: "" }],
+          values: [
+            ...prevContent.whyChooseJoly.values,
+            { icon: "Info", title: "", description: "" },
+          ],
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const removeValue = (index: number) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newValues = prevContent.whyChooseJoly.values.filter((_, i) => i !== index)
+      if (!prevContent) return null;
+      const newValues = prevContent.whyChooseJoly.values.filter(
+        (_, i) => i !== index
+      );
       return {
         ...prevContent,
         whyChooseJoly: {
           ...prevContent.whyChooseJoly,
           values: newValues,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   // Funciones para manejar Info Cards
-  const handleInfoCardChange = (index: number, field: keyof InfoCard, value: string | boolean) => {
+  const handleInfoCardChange = (
+    index: number,
+    field: keyof InfoCard,
+    value: string | boolean
+  ) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newInfoCards = [...prevContent.productDetail.infoCards]
-      newInfoCards[index] = { ...newInfoCards[index], [field]: value }
+      if (!prevContent) return null;
+      const newInfoCards = [...prevContent.productDetail.infoCards];
+      newInfoCards[index] = { ...newInfoCards[index], [field]: value };
       return {
         ...prevContent,
         productDetail: {
           ...prevContent.productDetail,
           infoCards: newInfoCards,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const addInfoCard = () => {
     setContent((prevContent) => {
-      if (!prevContent) return null
+      if (!prevContent) return null;
       return {
         ...prevContent,
         productDetail: {
@@ -760,85 +843,108 @@ export default function AdminContent() {
             { icon: "Info", title: "", description: "", enabled: true },
           ],
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const removeInfoCard = (index: number) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newInfoCards = prevContent.productDetail.infoCards.filter((_, i) => i !== index)
+      if (!prevContent) return null;
+      const newInfoCards = prevContent.productDetail.infoCards.filter(
+        (_, i) => i !== index
+      );
       return {
         ...prevContent,
         productDetail: {
           ...prevContent.productDetail,
           infoCards: newInfoCards,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   // Funciones para manejar Expandable Sections
-  const handleExpandableSectionChange = (index: number, field: keyof ExpandableSection, value: string | boolean) => {
+  const handleExpandableSectionChange = (
+    index: number,
+    field: keyof ExpandableSection,
+    value: string | boolean
+  ) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newSections = [...prevContent.productDetail.expandableSections]
-      newSections[index] = { ...newSections[index], [field]: value }
+      if (!prevContent) return null;
+      const newSections = [...prevContent.productDetail.expandableSections];
+      newSections[index] = { ...newSections[index], [field]: value };
       return {
         ...prevContent,
         productDetail: {
           ...prevContent.productDetail,
           expandableSections: newSections,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const addExpandableSection = () => {
     setContent((prevContent) => {
-      if (!prevContent) return null
+      if (!prevContent) return null;
       return {
         ...prevContent,
         productDetail: {
           ...prevContent.productDetail,
           expandableSections: [
             ...prevContent.productDetail.expandableSections,
-            { id: `section_${Date.now()}`, title: "", content: "", enabled: true },
+            {
+              id: `section_${Date.now()}`,
+              title: "",
+              content: "",
+              enabled: true,
+            },
           ],
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const removeExpandableSection = (index: number) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newSections = prevContent.productDetail.expandableSections.filter((_, i) => i !== index)
+      if (!prevContent) return null;
+      const newSections = prevContent.productDetail.expandableSections.filter(
+        (_, i) => i !== index
+      );
       return {
         ...prevContent,
         productDetail: {
           ...prevContent.productDetail,
           expandableSections: newSections,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const handleContactInfoChange = (
     infoIndex: number,
     field: keyof ContactDetail,
     value: string | string[],
-    detailIndex?: number,
+    detailIndex?: number
   ) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newContactInfo = [...prevContent.contact.contactInfo]
-      if (field === "details" && detailIndex !== undefined && Array.isArray(newContactInfo[infoIndex].details)) {
-        const newDetails = [...newContactInfo[infoIndex].details]
-        newDetails[detailIndex] = value as string
-        newContactInfo[infoIndex] = { ...newContactInfo[infoIndex], details: newDetails }
+      if (!prevContent) return null;
+      const newContactInfo = [...prevContent.contact.contactInfo];
+      if (
+        field === "details" &&
+        detailIndex !== undefined &&
+        Array.isArray(newContactInfo[infoIndex].details)
+      ) {
+        const newDetails = [...newContactInfo[infoIndex].details];
+        newDetails[detailIndex] = value as string;
+        newContactInfo[infoIndex] = {
+          ...newContactInfo[infoIndex],
+          details: newDetails,
+        };
       } else {
-        newContactInfo[infoIndex] = { ...newContactInfo[infoIndex], [field]: value }
+        newContactInfo[infoIndex] = {
+          ...newContactInfo[infoIndex],
+          [field]: value,
+        };
       }
       return {
         ...prevContent,
@@ -846,247 +952,282 @@ export default function AdminContent() {
           ...prevContent.contact,
           contactInfo: newContactInfo,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const addContactInfoDetail = (infoIndex: number) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newContactInfo = [...prevContent.contact.contactInfo]
-      newContactInfo[infoIndex].details.push("")
+      if (!prevContent) return null;
+      const newContactInfo = [...prevContent.contact.contactInfo];
+      newContactInfo[infoIndex].details.push("");
       return {
         ...prevContent,
         contact: {
           ...prevContent.contact,
           contactInfo: newContactInfo,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const removeContactInfoDetail = (infoIndex: number, detailIndex: number) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newContactInfo = [...prevContent.contact.contactInfo]
-      newContactInfo[infoIndex].details = newContactInfo[infoIndex].details.filter((_, i) => i !== detailIndex)
+      if (!prevContent) return null;
+      const newContactInfo = [...prevContent.contact.contactInfo];
+      newContactInfo[infoIndex].details = newContactInfo[
+        infoIndex
+      ].details.filter((_, i) => i !== detailIndex);
       return {
         ...prevContent,
         contact: {
           ...prevContent.contact,
           contactInfo: newContactInfo,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const addContactInfo = () => {
     setContent((prevContent) => {
-      if (!prevContent) return null
+      if (!prevContent) return null;
       return {
         ...prevContent,
         contact: {
           ...prevContent.contact,
-          contactInfo: [...prevContent.contact.contactInfo, { icon: "Info", title: "", details: [""] }],
+          contactInfo: [
+            ...prevContent.contact.contactInfo,
+            { icon: "Info", title: "", details: [""], description: "" },
+          ], // Add description
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const removeContactInfo = (index: number) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newContactInfo = prevContent.contact.contactInfo.filter((_, i) => i !== index)
+      if (!prevContent) return null;
+      const newContactInfo = prevContent.contact.contactInfo.filter(
+        (_, i) => i !== index
+      );
       return {
         ...prevContent,
         contact: {
           ...prevContent.contact,
           contactInfo: newContactInfo,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
-  const handleSocialMediaChange = (index: number, field: keyof SocialMediaLink, value: string) => {
+  const handleSocialMediaChange = (
+    index: number,
+    field: keyof SocialMediaLink,
+    value: string
+  ) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newSocialMedia = [...prevContent.contact.socialMedia]
-      newSocialMedia[index] = { ...newSocialMedia[index], [field]: value }
+      if (!prevContent) return null;
+      const newSocialMedia = [...prevContent.contact.socialMedia];
+      newSocialMedia[index] = { ...newSocialMedia[index], [field]: value };
       return {
         ...prevContent,
         contact: {
           ...prevContent.contact,
           socialMedia: newSocialMedia,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const addSocialMedia = () => {
     setContent((prevContent) => {
-      if (!prevContent) return null
+      if (!prevContent) return null;
       return {
         ...prevContent,
         contact: {
           ...prevContent.contact,
-          socialMedia: [...prevContent.contact.socialMedia, { icon: "Globe", name: "", handle: "", link: "" }],
+          socialMedia: [
+            ...prevContent.contact.socialMedia,
+            { icon: "Globe", name: "", handle: "", link: "" },
+          ],
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const removeSocialMedia = (index: number) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newSocialMedia = prevContent.contact.socialMedia.filter((_, i) => i !== index)
+      if (!prevContent) return null;
+      const newSocialMedia = prevContent.contact.socialMedia.filter(
+        (_, i) => i !== index
+      );
       return {
         ...prevContent,
         contact: {
           ...prevContent.contact,
           socialMedia: newSocialMedia,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   // Agregar las funciones para manejar la guía de tallas después de las funciones existentes
   // Actualizar las funciones para manejar múltiples guías
-  const handleSizeGuideChange = (guideIndex: number, field: keyof SizeGuide, value: string | boolean | string[]) => {
+  const handleSizeGuideChange = (
+    guideIndex: number,
+    field: keyof SizeGuide,
+    value: string | boolean | string[]
+  ) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newSizeGuides = [...prevContent.sizeGuides]
+      if (!prevContent) return null;
+      const newSizeGuides = [...prevContent.sizeGuides];
       newSizeGuides[guideIndex] = {
         ...newSizeGuides[guideIndex],
         [field]: value,
-      }
+      };
       return {
         ...prevContent,
         sizeGuides: newSizeGuides,
-      }
-    })
-  }
+      };
+    });
+  };
 
-  const handleSizeGuideHeaderChange = (guideIndex: number, headerIndex: number, value: string) => {
+  const handleSizeGuideHeaderChange = (
+    guideIndex: number,
+    headerIndex: number,
+    value: string
+  ) => {
     setContent((prevContent) => {
-      if (!prevContent || !prevContent.sizeGuides[guideIndex]) return prevContent
+      if (!prevContent || !prevContent.sizeGuides[guideIndex])
+        return prevContent;
 
-      const newSizeGuides = [...prevContent.sizeGuides]
-      const newHeaders = [...(newSizeGuides[guideIndex].tableHeaders || [])]
-      newHeaders[headerIndex] = value
+      const newSizeGuides = [...prevContent.sizeGuides];
+      const newHeaders = [...(newSizeGuides[guideIndex].tableHeaders || [])];
+      newHeaders[headerIndex] = value;
 
       // Ajustar las filas existentes al nuevo número de headers
-      const measurementsCount = Math.max(0, newHeaders.length - 1)
-      const updatedRows = (newSizeGuides[guideIndex].tableRows || []).map((row) => {
-        const currentMeasurements = row.measurements || []
+      const measurementsCount = Math.max(0, newHeaders.length - 1);
+      const updatedRows = (newSizeGuides[guideIndex].tableRows || []).map(
+        (row) => {
+          const currentMeasurements = row.measurements || [];
 
-        if (currentMeasurements.length < measurementsCount) {
-          return {
-            ...row,
-            measurements: [...currentMeasurements, ...Array(measurementsCount - currentMeasurements.length).fill("")],
+          if (currentMeasurements.length < measurementsCount) {
+            return {
+              ...row,
+              measurements: [
+                ...currentMeasurements,
+                ...Array(measurementsCount - currentMeasurements.length).fill(
+                  ""
+                ),
+              ],
+            };
+          } else if (currentMeasurements.length > measurementsCount) {
+            return {
+              ...row,
+              measurements: currentMeasurements.slice(0, measurementsCount),
+            };
           }
-        } else if (currentMeasurements.length > measurementsCount) {
-          return {
-            ...row,
-            measurements: currentMeasurements.slice(0, measurementsCount),
-          }
+          return row;
         }
-        return row
-      })
+      );
 
       newSizeGuides[guideIndex] = {
         ...newSizeGuides[guideIndex],
         tableHeaders: newHeaders,
         tableRows: updatedRows,
-      }
+      };
 
       return {
         ...prevContent,
         sizeGuides: newSizeGuides,
-      }
-    })
-  }
+      };
+    });
+  };
 
   const handleSizeGuideRowChange = (
     guideIndex: number,
     rowIndex: number,
     field: "size" | "measurements",
     value: string | string[],
-    measurementIndex?: number,
+    measurementIndex?: number
   ) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newSizeGuides = [...prevContent.sizeGuides]
-      const newRows = [...newSizeGuides[guideIndex].tableRows]
+      if (!prevContent) return null;
+      const newSizeGuides = [...prevContent.sizeGuides];
+      const newRows = [...newSizeGuides[guideIndex].tableRows];
 
       if (field === "size") {
-        newRows[rowIndex].size = value as string
+        newRows[rowIndex].size = value as string;
       } else if (field === "measurements" && measurementIndex !== undefined) {
-        const newMeasurements = [...newRows[rowIndex].measurements]
-        newMeasurements[measurementIndex] = value as string
-        newRows[rowIndex].measurements = newMeasurements
+        const newMeasurements = [...newRows[rowIndex].measurements];
+        newMeasurements[measurementIndex] = value as string;
+        newRows[rowIndex].measurements = newMeasurements;
       }
 
       newSizeGuides[guideIndex] = {
         ...newSizeGuides[guideIndex],
         tableRows: newRows,
-      }
+      };
 
       return {
         ...prevContent,
         sizeGuides: newSizeGuides,
-      }
-    })
-  }
+      };
+    });
+  };
 
   const addSizeGuideRow = (guideIndex: number) => {
     setContent((prevContent) => {
-      if (!prevContent || !prevContent.sizeGuides[guideIndex]) return prevContent
+      if (!prevContent || !prevContent.sizeGuides[guideIndex])
+        return prevContent;
 
-      const guide = prevContent.sizeGuides[guideIndex]
-      let headers = guide.tableHeaders || []
+      const guide = prevContent.sizeGuides[guideIndex];
+      let headers = guide.tableHeaders || [];
       if (headers.length === 0) {
-        headers = ["Talla", "Medida 1", "Medida 2"]
+        headers = ["Talla", "Medida 1", "Medida 2"];
       }
 
-      const measurementsCount = Math.max(0, headers.length - 1)
+      const measurementsCount = Math.max(0, headers.length - 1);
       const newRow: SizeGuideRow = {
         size: "",
         measurements: Array(measurementsCount).fill(""),
-      }
+      };
 
-      const newSizeGuides = [...prevContent.sizeGuides]
+      const newSizeGuides = [...prevContent.sizeGuides];
       newSizeGuides[guideIndex] = {
         ...guide,
         tableHeaders: headers,
         tableRows: [...(guide.tableRows || []), newRow],
-      }
+      };
 
       return {
         ...prevContent,
         sizeGuides: newSizeGuides,
-      }
-    })
-  }
+      };
+    });
+  };
 
   const removeSizeGuideRow = (guideIndex: number, rowIndex: number) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newSizeGuides = [...prevContent.sizeGuides]
-      const newRows = newSizeGuides[guideIndex].tableRows.filter((_, i) => i !== rowIndex)
+      if (!prevContent) return null;
+      const newSizeGuides = [...prevContent.sizeGuides];
+      const newRows = newSizeGuides[guideIndex].tableRows.filter(
+        (_, i) => i !== rowIndex
+      );
       newSizeGuides[guideIndex] = {
         ...newSizeGuides[guideIndex],
         tableRows: newRows,
-      }
+      };
       return {
         ...prevContent,
         sizeGuides: newSizeGuides,
-      }
-    })
-  }
+      };
+    });
+  };
 
   const addSizeGuide = () => {
     setContent((prevContent) => {
-      if (!prevContent) return null
+      if (!prevContent) return null;
       const newGuide: SizeGuide = {
         category: "",
         enabled: true,
@@ -1095,34 +1236,36 @@ export default function AdminContent() {
         tableHeaders: ["Talla", "Medida 1", "Medida 2"],
         tableRows: [],
         notes: "",
-      }
+      };
       return {
         ...prevContent,
         sizeGuides: [...prevContent.sizeGuides, newGuide],
-      }
-    })
-  }
+      };
+    });
+  };
 
   const removeSizeGuide = (guideIndex: number) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
-      const newSizeGuides = prevContent.sizeGuides.filter((_, i) => i !== guideIndex)
+      if (!prevContent) return null;
+      const newSizeGuides = prevContent.sizeGuides.filter(
+        (_, i) => i !== guideIndex
+      );
       return {
         ...prevContent,
         sizeGuides: newSizeGuides,
-      }
-    })
-  }
+      };
+    });
+  };
 
   // Funciones para manejar checkout
   const handleCheckoutChange = (
     section: "deliveryInfo" | "paymentInfo" | "shipping",
     subsection: string,
     field: string,
-    value: any,
+    value: any
   ) => {
     setContent((prevContent) => {
-      if (!prevContent) return null
+      if (!prevContent) return null;
       return {
         ...prevContent,
         checkout: {
@@ -1130,48 +1273,50 @@ export default function AdminContent() {
           [section]: {
             ...prevContent.checkout[section],
             [subsection]: {
-              ...prevContent.checkout[section][subsection as keyof (typeof prevContent.checkout)[typeof section]],
+              ...prevContent.checkout[section][
+                subsection as keyof (typeof prevContent.checkout)[typeof section]
+              ],
               [field]: value,
             },
           },
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!content) {
-      setError("No hay contenido para guardar")
-      return
+      setError("No hay contenido para guardar");
+      return;
     }
 
-    setSaving(true)
-    setError(null)
-    setSuccess(null)
+    setSaving(true);
+    setError(null);
+    setSuccess(null);
 
     try {
-      console.log("Enviando contenido:", content)
-      const response = await apiService.updateSiteContent(content)
-      console.log("Respuesta del servidor:", response)
+      console.log("Enviando contenido:", content);
+      const response = await apiService.updateSiteContent(content);
+      console.log("Respuesta del servidor:", response);
 
       if (response.success) {
-        setSuccess("Contenido actualizado exitosamente!")
+        setSuccess("Contenido actualizado exitosamente!");
         // Recargar el contenido para verificar que se guardó correctamente
         setTimeout(() => {
-          loadContent(true)
-        }, 1000)
+          loadContent(true);
+        }, 1000);
       } else {
-        setError(response.error || "Error al actualizar el contenido.")
+        setError(response.error || "Error al actualizar el contenido.");
       }
     } catch (err) {
-      console.error("Error saving content:", err)
-      setError("Error al guardar el contenido. Intente nuevamente.")
+      console.error("Error saving content:", err);
+      setError("Error al guardar el contenido. Intente nuevamente.");
     } finally {
-      setSaving(false)
-      setTimeout(() => setSuccess(null), 5000)
+      setSaving(false);
+      setTimeout(() => setSuccess(null), 5000);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -1181,7 +1326,7 @@ export default function AdminContent() {
           <p className="text-gray-300 text-lg">Cargando contenido...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error && !content) {
@@ -1198,7 +1343,7 @@ export default function AdminContent() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   // Actualizar el array de tabs para incluir las nuevas secciones
@@ -1210,7 +1355,7 @@ export default function AdminContent() {
     { id: "sizeGuide", name: "Guía de Tallas" },
     { id: "checkout", name: "Métodos de Pago" },
     { id: "contact", name: "Informacion Contacto" },
-  ]
+  ];
 
   return (
     <div className="min-h-screen py-8">
@@ -1222,9 +1367,12 @@ export default function AdminContent() {
               <Settings className="h-6 w-6 text-purple-400" />
             </div>
             <div className="flex-1 ml-4">
-              <h1 className="text-3xl font-bold text-white mb-2">Gestión de Contenido del Sitio</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Gestión de Contenido del Sitio
+              </h1>
               <p className="text-gray-400 text-lg">
-                Modifica los textos y elementos clave de las secciones públicas de tu tienda.
+                Modifica los textos y elementos clave de las secciones públicas
+                de tu tienda.
               </p>
             </div>
             <button
@@ -1232,7 +1380,9 @@ export default function AdminContent() {
               disabled={loading}
               className="px-4 py-2 bg-blue-600/20 text-blue-400 border border-blue-600/30 rounded-lg hover:bg-blue-600/30 transition-all duration-200 flex items-center disabled:opacity-50"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+              />
               Actualizar
             </button>
           </div>
@@ -1299,12 +1449,17 @@ export default function AdminContent() {
               <div className="bg-gradient-to-br from-blue-900/20 via-blue-800/10 to-blue-700/5 border border-blue-600/30 rounded-xl p-6 shadow-lg">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-                  <h2 className="text-2xl font-semibold text-white">Sección Inicial (Hero)</h2>
+                  <h2 className="text-2xl font-semibold text-white">
+                    Sección Inicial (Hero)
+                  </h2>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="lg:col-span-2">
-                    <label htmlFor="heroMainDescription" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label
+                      htmlFor="heroMainDescription"
+                      className="block text-sm font-medium text-gray-300 mb-2"
+                    >
                       Texto Descriptivo Principal
                     </label>
                     <textarea
@@ -1312,13 +1467,18 @@ export default function AdminContent() {
                       className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       rows={3}
                       value={content?.hero.mainDescription || ""}
-                      onChange={(e) => handleInputChange(e, "hero", "mainDescription")}
+                      onChange={(e) =>
+                        handleInputChange(e, "hero", "mainDescription")
+                      }
                       placeholder="Describe tu marca y productos..."
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="heroSlogan" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label
+                      htmlFor="heroSlogan"
+                      className="block text-sm font-medium text-gray-300 mb-2"
+                    >
                       Lema / Eslogan de la Marca
                     </label>
                     <input
@@ -1332,7 +1492,10 @@ export default function AdminContent() {
                   </div>
 
                   <div>
-                    <label htmlFor="heroButtonText" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label
+                      htmlFor="heroButtonText"
+                      className="block text-sm font-medium text-gray-300 mb-2"
+                    >
                       Texto del Botón Principal
                     </label>
                     <input
@@ -1340,13 +1503,18 @@ export default function AdminContent() {
                       id="heroButtonText"
                       className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       value={content?.hero.buttonText || ""}
-                      onChange={(e) => handleInputChange(e, "hero", "buttonText")}
+                      onChange={(e) =>
+                        handleInputChange(e, "hero", "buttonText")
+                      }
                       placeholder="Ver Productos"
                     />
                   </div>
 
                   <div className="lg:col-span-2">
-                    <label htmlFor="heroButtonLink" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label
+                      htmlFor="heroButtonLink"
+                      className="block text-sm font-medium text-gray-300 mb-2"
+                    >
                       Enlace del Botón Principal
                     </label>
                     <input
@@ -1354,18 +1522,24 @@ export default function AdminContent() {
                       id="heroButtonLink"
                       className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       value={content?.hero.buttonLink || ""}
-                      onChange={(e) => handleInputChange(e, "hero", "buttonLink")}
+                      onChange={(e) =>
+                        handleInputChange(e, "hero", "buttonLink")
+                      }
                       placeholder="products"
                     />
                   </div>
                   <div className="lg:col-span-2">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Imagen Principal del Hero</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Imagen Principal del Hero
+                    </label>
                     <div className="space-y-4">
                       {/* Vista previa de la imagen actual */}
                       {content?.hero.heroImage?.url && (
                         <div className="relative">
                           <img
-                            src={content.hero.heroImage.url || "/placeholder.svg"}
+                            src={
+                              content.hero.heroImage.url || "/placeholder.svg"
+                            }
                             alt={content.hero.heroImage.alt || "Vista previa"}
                             className="w-full h-48 object-cover rounded-lg border border-gray-600/50"
                           />
@@ -1384,7 +1558,7 @@ export default function AdminContent() {
                                         filename: "presentacion_1.jpeg",
                                       },
                                     },
-                                  })
+                                  });
                                 }
                               }}
                               className="p-2 bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30 transition-all duration-200"
@@ -1404,27 +1578,37 @@ export default function AdminContent() {
                           accept="image/*"
                           className="hidden"
                           onChange={async (e) => {
-                            const file = e.target.files?.[0]
-                            if (!file) return
+                            const file = e.target.files?.[0];
+                            if (!file) return;
 
                             try {
-                              setSaving(true)
-                              setError(null)
+                              setSaving(true);
+                              setError(null);
 
                               // Validar archivo
                               if (file.size > 5 * 1024 * 1024) {
-                                setError("La imagen es demasiado grande. Máximo 5MB.")
-                                return
+                                setError(
+                                  "La imagen es demasiado grande. Máximo 5MB."
+                                );
+                                return;
                               }
 
-                              const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+                              const validTypes = [
+                                "image/jpeg",
+                                "image/jpg",
+                                "image/png",
+                                "image/webp",
+                              ];
                               if (!validTypes.includes(file.type)) {
-                                setError("Tipo de archivo no válido. Solo JPG, PNG y WEBP.")
-                                return
+                                setError(
+                                  "Tipo de archivo no válido. Solo JPG, PNG y WEBP."
+                                );
+                                return;
                               }
 
                               // Subir imagen
-                              const uploadResult = await apiService.uploadTransferProof(file)
+                              const uploadResult =
+                                await apiService.uploadTransferProof(file);
 
                               if (uploadResult.success && uploadResult.url) {
                                 // Actualizar el contenido con la nueva imagen
@@ -1435,22 +1619,33 @@ export default function AdminContent() {
                                       ...content.hero,
                                       heroImage: {
                                         url: uploadResult.url,
-                                        alt: content.hero.heroImage?.alt || "Imagen principal",
-                                        filename: uploadResult.filename || file.name,
+                                        alt:
+                                          content.hero.heroImage?.alt ||
+                                          "Imagen principal",
+                                        filename:
+                                          uploadResult.filename || file.name,
                                       },
                                     },
-                                  })
+                                  });
                                 }
-                                setSuccess("Imagen subida exitosamente!")
-                                setTimeout(() => setSuccess(null), 3000)
+                                setSuccess("Imagen subida exitosamente!");
+                                setTimeout(() => setSuccess(null), 3000);
                               } else {
-                                setError(uploadResult.error || "Error al subir la imagen")
+                                setError(
+                                  uploadResult.error ||
+                                    "Error al subir la imagen"
+                                );
                               }
                             } catch (error) {
-                              console.error("Error uploading hero image:", error)
-                              setError("Error al subir la imagen. Intenta nuevamente.")
+                              console.error(
+                                "Error uploading hero image:",
+                                error
+                              );
+                              setError(
+                                "Error al subir la imagen. Intenta nuevamente."
+                              );
                             } finally {
-                              setSaving(false)
+                              setSaving(false);
                             }
                           }}
                         />
@@ -1458,7 +1653,11 @@ export default function AdminContent() {
                         <div className="flex gap-4">
                           <button
                             type="button"
-                            onClick={() => document.getElementById("heroImageUpload")?.click()}
+                            onClick={() =>
+                              document
+                                .getElementById("heroImageUpload")
+                                ?.click()
+                            }
                             disabled={saving}
                             className="flex-1 px-4 py-3 bg-blue-600/20 text-blue-400 border border-blue-600/30 rounded-lg hover:bg-blue-600/30 transition-all duration-200 flex items-center justify-center disabled:opacity-50"
                           >
@@ -1479,7 +1678,10 @@ export default function AdminContent() {
 
                       {/* Campo para texto alternativo */}
                       <div>
-                        <label htmlFor="heroImageAlt" className="block text-sm font-medium text-gray-300 mb-2">
+                        <label
+                          htmlFor="heroImageAlt"
+                          className="block text-sm font-medium text-gray-300 mb-2"
+                        >
                           Texto Alternativo (Alt)
                         </label>
                         <input
@@ -1498,7 +1700,7 @@ export default function AdminContent() {
                                     alt: e.target.value,
                                   },
                                 },
-                              })
+                              });
                             }
                           }}
                           placeholder="Descripción de la imagen para accesibilidad..."
@@ -1514,12 +1716,17 @@ export default function AdminContent() {
               <div className="bg-gradient-to-br from-purple-900/20 via-purple-800/10 to-purple-700/5 border border-purple-600/30 rounded-xl p-6 shadow-lg">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="w-1 h-8 bg-purple-500 rounded-full"></div>
-                  <h2 className="text-2xl font-semibold text-white">Sección Catálogo</h2>
+                  <h2 className="text-2xl font-semibold text-white">
+                    Sección Catálogo
+                  </h2>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                   <div>
-                    <label htmlFor="catalogMainTitle" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label
+                      htmlFor="catalogMainTitle"
+                      className="block text-sm font-medium text-gray-300 mb-2"
+                    >
                       Título Principal de la Sección
                     </label>
                     <input
@@ -1527,13 +1734,18 @@ export default function AdminContent() {
                       id="catalogMainTitle"
                       className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       value={content?.productCatalog.mainTitle || ""}
-                      onChange={(e) => handleInputChange(e, "productCatalog", "mainTitle")}
+                      onChange={(e) =>
+                        handleInputChange(e, "productCatalog", "mainTitle")
+                      }
                       placeholder="Nuestros Productos"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="catalogSubtitle" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label
+                      htmlFor="catalogSubtitle"
+                      className="block text-sm font-medium text-gray-300 mb-2"
+                    >
                       Subtítulo de la Sección
                     </label>
                     <textarea
@@ -1541,14 +1753,18 @@ export default function AdminContent() {
                       className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       rows={2}
                       value={content?.productCatalog.subtitle || ""}
-                      onChange={(e) => handleInputChange(e, "productCatalog", "subtitle")}
+                      onChange={(e) =>
+                        handleInputChange(e, "productCatalog", "subtitle")
+                      }
                       placeholder="Descripción de tus productos..."
                     />
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-medium text-gray-300 mb-4">Categorías de Productos</h3>
+                  <h3 className="text-lg font-medium text-gray-300 mb-4">
+                    Categorías de Productos
+                  </h3>
                   <div className="space-y-4">
                     {content?.productCatalog.categories.map((cat, index) => (
                       <div
@@ -1568,7 +1784,13 @@ export default function AdminContent() {
                               id={`categoryName-${index}`}
                               className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                               value={cat.name}
-                              onChange={(e) => handleCategoryChange(index, "name", e.target.value)}
+                              onChange={(e) =>
+                                handleCategoryChange(
+                                  index,
+                                  "name",
+                                  e.target.value
+                                )
+                              }
                               placeholder="conjuntos"
                             />
                           </div>
@@ -1584,7 +1806,13 @@ export default function AdminContent() {
                               id={`categoryDisplayName-${index}`}
                               className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                               value={cat.display_name}
-                              onChange={(e) => handleCategoryChange(index, "display_name", e.target.value)}
+                              onChange={(e) =>
+                                handleCategoryChange(
+                                  index,
+                                  "display_name",
+                                  e.target.value
+                                )
+                              }
                               placeholder="Conjuntos de Lencería"
                             />
                           </div>
@@ -1618,12 +1846,17 @@ export default function AdminContent() {
               <div className="bg-gradient-to-br from-green-900/20 via-green-800/10 to-green-700/5 border border-green-600/30 rounded-xl p-6 shadow-lg">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="w-1 h-8 bg-green-500 rounded-full"></div>
-                  <h2 className="text-2xl font-semibold text-white">Sección "¿Por qué elegir a Joly?"</h2>
+                  <h2 className="text-2xl font-semibold text-white">
+                    Sección "¿Por qué elegir a Joly?"
+                  </h2>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                   <div>
-                    <label htmlFor="whyJolyMainTitle" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label
+                      htmlFor="whyJolyMainTitle"
+                      className="block text-sm font-medium text-gray-300 mb-2"
+                    >
                       Título Principal de la Sección
                     </label>
                     <input
@@ -1631,13 +1864,18 @@ export default function AdminContent() {
                       id="whyJolyMainTitle"
                       className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       value={content?.whyChooseJoly.mainTitle || ""}
-                      onChange={(e) => handleInputChange(e, "whyChooseJoly", "mainTitle")}
+                      onChange={(e) =>
+                        handleInputChange(e, "whyChooseJoly", "mainTitle")
+                      }
                       placeholder="¿Por qué elegirnos?"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="whyJolyDescription" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label
+                      htmlFor="whyJolyDescription"
+                      className="block text-sm font-medium text-gray-300 mb-2"
+                    >
                       Descripción de la Sección
                     </label>
                     <textarea
@@ -1645,17 +1883,21 @@ export default function AdminContent() {
                       className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       rows={2}
                       value={content?.whyChooseJoly.description || ""}
-                      onChange={(e) => handleInputChange(e, "whyChooseJoly", "description")}
+                      onChange={(e) =>
+                        handleInputChange(e, "whyChooseJoly", "description")
+                      }
                       placeholder="Razones para elegir tu marca..."
                     />
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-medium text-gray-300 mb-4">Valores / Razones</h3>
+                  <h3 className="text-lg font-medium text-gray-300 mb-4">
+                    Valores / Razones
+                  </h3>
                   <div className="space-y-4">
                     {content?.whyChooseJoly.values.map((val, index) => {
-                      const CurrentIcon = iconMap[val.icon] || Info
+                      const CurrentIcon = iconMap[val.icon] || Info;
                       return (
                         <div
                           key={index}
@@ -1674,7 +1916,13 @@ export default function AdminContent() {
                                   id={`valueIcon-${index}`}
                                   className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                   value={val.icon}
-                                  onChange={(e) => handleValueChange(index, "icon", e.target.value)}
+                                  onChange={(e) =>
+                                    handleValueChange(
+                                      index,
+                                      "icon",
+                                      e.target.value
+                                    )
+                                  }
                                 >
                                   {lucideIconNames.map((iconName) => (
                                     <option key={iconName} value={iconName}>
@@ -1699,7 +1947,13 @@ export default function AdminContent() {
                                 id={`valueTitle-${index}`}
                                 className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                 value={val.title}
-                                onChange={(e) => handleValueChange(index, "title", e.target.value)}
+                                onChange={(e) =>
+                                  handleValueChange(
+                                    index,
+                                    "title",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="Título del valor"
                               />
                             </div>
@@ -1715,7 +1969,13 @@ export default function AdminContent() {
                                 className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                 rows={2}
                                 value={val.description}
-                                onChange={(e) => handleValueChange(index, "description", e.target.value)}
+                                onChange={(e) =>
+                                  handleValueChange(
+                                    index,
+                                    "description",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="Descripción del valor"
                               />
                             </div>
@@ -1731,7 +1991,7 @@ export default function AdminContent() {
                             </button>
                           </div>
                         </div>
-                      )
+                      );
                     })}
                   </div>
                   <button
@@ -1750,15 +2010,19 @@ export default function AdminContent() {
               <div className="bg-gradient-to-br from-indigo-900/20 via-indigo-800/10 to-indigo-700/5 border border-indigo-600/30 rounded-xl p-6 shadow-lg">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="w-1 h-8 bg-indigo-500 rounded-full"></div>
-                  <h2 className="text-2xl font-semibold text-white">Detalle de Producto</h2>
+                  <h2 className="text-2xl font-semibold text-white">
+                    Detalle de Producto
+                  </h2>
                 </div>
 
                 {/* Cards Informativas */}
                 <div className="mb-8">
-                  <h3 className="text-lg font-medium text-gray-300 mb-4">Cards Informativas</h3>
+                  <h3 className="text-lg font-medium text-gray-300 mb-4">
+                    Cards Informativas
+                  </h3>
                   <div className="space-y-4">
                     {content?.productDetail.infoCards.map((card, index) => {
-                      const CurrentIcon = iconMap[card.icon] || Info
+                      const CurrentIcon = iconMap[card.icon] || Info;
                       return (
                         <div
                           key={index}
@@ -1766,12 +2030,20 @@ export default function AdminContent() {
                         >
                           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">Icono</label>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Icono
+                              </label>
                               <div className="flex items-center gap-3">
                                 <select
                                   className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                   value={card.icon}
-                                  onChange={(e) => handleInfoCardChange(index, "icon", e.target.value)}
+                                  onChange={(e) =>
+                                    handleInfoCardChange(
+                                      index,
+                                      "icon",
+                                      e.target.value
+                                    )
+                                  }
                                 >
                                   {lucideIconNames.map((iconName) => (
                                     <option key={iconName} value={iconName}>
@@ -1785,38 +2057,66 @@ export default function AdminContent() {
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">Título</label>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Título
+                              </label>
                               <input
                                 type="text"
                                 className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                 value={card.title}
-                                onChange={(e) => handleInfoCardChange(index, "title", e.target.value)}
+                                onChange={(e) =>
+                                  handleInfoCardChange(
+                                    index,
+                                    "title",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="Título de la card"
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">Descripción</label>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Descripción
+                              </label>
                               <input
                                 type="text"
                                 className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                 value={card.description}
-                                onChange={(e) => handleInfoCardChange(index, "description", e.target.value)}
+                                onChange={(e) =>
+                                  handleInfoCardChange(
+                                    index,
+                                    "description",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="Descripción de la card"
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">Estado</label>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Estado
+                              </label>
                               <div className="flex items-center gap-3">
                                 <button
                                   type="button"
-                                  onClick={() => handleInfoCardChange(index, "enabled", !card.enabled)}
+                                  onClick={() =>
+                                    handleInfoCardChange(
+                                      index,
+                                      "enabled",
+                                      !card.enabled
+                                    )
+                                  }
                                   className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-200 ${
                                     card.enabled
                                       ? "bg-green-600/20 border-green-600/30 text-green-400"
                                       : "bg-gray-800/50 border-gray-600/50 text-gray-400"
                                   }`}
                                 >
-                                  {card.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                  {card.enabled ? (
+                                    <Eye className="h-4 w-4" />
+                                  ) : (
+                                    <EyeOff className="h-4 w-4" />
+                                  )}
                                   {card.enabled ? "Visible" : "Oculto"}
                                 </button>
                               </div>
@@ -1833,7 +2133,7 @@ export default function AdminContent() {
                             </button>
                           </div>
                         </div>
-                      )
+                      );
                     })}
                   </div>
                   <button
@@ -1848,72 +2148,112 @@ export default function AdminContent() {
 
                 {/* Secciones Expandibles */}
                 <div className="mb-8">
-                  <h3 className="text-lg font-medium text-gray-300 mb-4">Secciones Expandibles</h3>
+                  <h3 className="text-lg font-medium text-gray-300 mb-4">
+                    Secciones Expandibles
+                  </h3>
                   <div className="space-y-4">
-                    {content?.productDetail.expandableSections.map((section, index) => (
-                      <div
-                        key={index}
-                        className="bg-gradient-to-r from-indigo-800/20 via-indigo-700/10 to-transparent border border-indigo-700/30 rounded-lg p-6 hover:from-indigo-800/30 hover:via-indigo-700/20 transition-all duration-300"
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">ID de Sección</label>
-                            <input
-                              type="text"
+                    {content?.productDetail.expandableSections.map(
+                      (section, index) => (
+                        <div
+                          key={index}
+                          className="bg-gradient-to-r from-indigo-800/20 via-indigo-700/10 to-transparent border border-indigo-700/30 rounded-lg p-6 hover:from-indigo-800/30 hover:via-indigo-700/20 transition-all duration-300"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                ID de Sección
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                value={section.id}
+                                onChange={(e) =>
+                                  handleExpandableSectionChange(
+                                    index,
+                                    "id",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="section_id"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Título
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                value={section.title}
+                                onChange={(e) =>
+                                  handleExpandableSectionChange(
+                                    index,
+                                    "title",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Título de la sección"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Estado
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleExpandableSectionChange(
+                                    index,
+                                    "enabled",
+                                    !section.enabled
+                                  )
+                                }
+                                className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-200 ${
+                                  section.enabled
+                                    ? "bg-green-600/20 border-green-600/30 text-green-400"
+                                    : "bg-gray-800/50 border-gray-600/50 text-gray-400"
+                                }`}
+                              >
+                                {section.enabled ? (
+                                  <Eye className="h-4 w-4" />
+                                ) : (
+                                  <EyeOff className="h-4 w-4" />
+                                )}
+                                {section.enabled ? "Visible" : "Oculto"}
+                              </button>
+                            </div>
+                          </div>
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Contenido
+                            </label>
+                            <textarea
                               className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                              value={section.id}
-                              onChange={(e) => handleExpandableSectionChange(index, "id", e.target.value)}
-                              placeholder="section_id"
+                              rows={4}
+                              value={section.content}
+                              onChange={(e) =>
+                                handleExpandableSectionChange(
+                                  index,
+                                  "content",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Contenido de la sección expandible..."
                             />
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Título</label>
-                            <input
-                              type="text"
-                              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                              value={section.title}
-                              onChange={(e) => handleExpandableSectionChange(index, "title", e.target.value)}
-                              placeholder="Título de la sección"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Estado</label>
+                          <div className="flex justify-end">
                             <button
                               type="button"
-                              onClick={() => handleExpandableSectionChange(index, "enabled", !section.enabled)}
-                              className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-200 ${
-                                section.enabled
-                                  ? "bg-green-600/20 border-green-600/30 text-green-400"
-                                  : "bg-gray-800/50 border-gray-600/50 text-gray-400"
-                              }`}
+                              onClick={() => removeExpandableSection(index)}
+                              className="px-4 py-2 bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30 transition-all duration-200 flex items-center"
                             >
-                              {section.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                              {section.enabled ? "Visible" : "Oculto"}
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Eliminar
                             </button>
                           </div>
                         </div>
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-300 mb-2">Contenido</label>
-                          <textarea
-                            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            rows={4}
-                            value={section.content}
-                            onChange={(e) => handleExpandableSectionChange(index, "content", e.target.value)}
-                            placeholder="Contenido de la sección expandible..."
-                          />
-                        </div>
-                        <div className="flex justify-end">
-                          <button
-                            type="button"
-                            onClick={() => removeExpandableSection(index)}
-                            className="px-4 py-2 bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30 transition-all duration-200 flex items-center"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Eliminar
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                   <button
                     type="button"
@@ -1924,8 +2264,6 @@ export default function AdminContent() {
                     Añadir Sección Expandible
                   </button>
                 </div>
-
-               
               </div>
             )}
 
@@ -1933,12 +2271,17 @@ export default function AdminContent() {
               <div className="bg-gradient-to-br from-orange-900/20 via-orange-800/10 to-orange-700/5 border border-orange-600/30 rounded-xl p-6 shadow-lg">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="w-1 h-8 bg-orange-500 rounded-full"></div>
-                  <h2 className="text-2xl font-semibold text-white">Sección Contacto</h2>
+                  <h2 className="text-2xl font-semibold text-white">
+                    Sección Contacto
+                  </h2>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                   <div>
-                    <label htmlFor="contactMainTitle" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label
+                      htmlFor="contactMainTitle"
+                      className="block text-sm font-medium text-gray-300 mb-2"
+                    >
                       Título Principal
                     </label>
                     <input
@@ -1946,13 +2289,18 @@ export default function AdminContent() {
                       id="contactMainTitle"
                       className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       value={content?.contact.mainTitle || ""}
-                      onChange={(e) => handleInputChange(e, "contact", "mainTitle")}
+                      onChange={(e) =>
+                        handleInputChange(e, "contact", "mainTitle")
+                      }
                       placeholder="Contáctanos"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="contactSubtitle" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label
+                      htmlFor="contactSubtitle"
+                      className="block text-sm font-medium text-gray-300 mb-2"
+                    >
                       Subtítulo
                     </label>
                     <input
@@ -1960,13 +2308,18 @@ export default function AdminContent() {
                       id="contactSubtitle"
                       className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       value={content?.contact.subtitle || ""}
-                      onChange={(e) => handleInputChange(e, "contact", "subtitle")}
+                      onChange={(e) =>
+                        handleInputChange(e, "contact", "subtitle")
+                      }
                       placeholder="Estamos aquí para ti"
                     />
                   </div>
 
                   <div className="lg:col-span-2">
-                    <label htmlFor="contactDescription" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label
+                      htmlFor="contactDescription"
+                      className="block text-sm font-medium text-gray-300 mb-2"
+                    >
                       Descripción
                     </label>
                     <textarea
@@ -1974,7 +2327,9 @@ export default function AdminContent() {
                       className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       rows={3}
                       value={content?.contact.description || ""}
-                      onChange={(e) => handleInputChange(e, "contact", "description")}
+                      onChange={(e) =>
+                        handleInputChange(e, "contact", "description")
+                      }
                       placeholder="Descripción de la sección de contacto..."
                     />
                   </div>
@@ -1982,10 +2337,12 @@ export default function AdminContent() {
 
                 {/* Información de Contacto */}
                 <div>
-                  <h3 className="text-lg font-medium text-gray-300 mb-4">Información de Contacto</h3>
+                  <h3 className="text-lg font-medium text-gray-300 mb-4">
+                    Información de Contacto
+                  </h3>
                   <div className="space-y-4">
                     {content?.contact.contactInfo.map((info, infoIndex) => {
-                      const CurrentIcon = iconMap[info.icon] || Info
+                      const CurrentIcon = iconMap[info.icon] || Info;
                       return (
                         <div
                           key={infoIndex}
@@ -1993,12 +2350,20 @@ export default function AdminContent() {
                         >
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">Icono</label>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Icono
+                              </label>
                               <div className="flex items-center gap-3">
                                 <select
                                   className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                   value={info.icon}
-                                  onChange={(e) => handleContactInfoChange(infoIndex, "icon", e.target.value)}
+                                  onChange={(e) =>
+                                    handleContactInfoChange(
+                                      infoIndex,
+                                      "icon",
+                                      e.target.value
+                                    )
+                                  }
                                 >
                                   {lucideIconNames.map((iconName) => (
                                     <option key={iconName} value={iconName}>
@@ -2012,33 +2377,56 @@ export default function AdminContent() {
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">Título</label>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Título
+                              </label>
                               <input
                                 type="text"
                                 className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                 value={info.title}
-                                onChange={(e) => handleContactInfoChange(infoIndex, "title", e.target.value)}
+                                onChange={(e) =>
+                                  handleContactInfoChange(
+                                    infoIndex,
+                                    "title",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="Título"
                               />
                             </div>
                           </div>
 
                           <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Detalles</label>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Detalles
+                            </label>
                             {info.details.map((detail, detailIndex) => (
-                              <div key={detailIndex} className="flex items-center gap-2 mb-2">
+                              <div
+                                key={detailIndex}
+                                className="flex items-center gap-2 mb-2"
+                              >
                                 <input
                                   type="text"
                                   className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                   value={detail}
                                   onChange={(e) =>
-                                    handleContactInfoChange(infoIndex, "details", e.target.value, detailIndex)
+                                    handleContactInfoChange(
+                                      infoIndex,
+                                      "details",
+                                      e.target.value,
+                                      detailIndex
+                                    )
                                   }
                                   placeholder="Detalle de contacto"
                                 />
                                 <button
                                   type="button"
-                                  onClick={() => removeContactInfoDetail(infoIndex, detailIndex)}
+                                  onClick={() =>
+                                    removeContactInfoDetail(
+                                      infoIndex,
+                                      detailIndex
+                                    )
+                                  }
                                   className="p-2 bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30 transition-all duration-200"
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -2066,7 +2454,7 @@ export default function AdminContent() {
                             </button>
                           </div>
                         </div>
-                      )
+                      );
                     })}
                   </div>
                   <button
@@ -2081,10 +2469,12 @@ export default function AdminContent() {
 
                 {/* Redes Sociales */}
                 <div>
-                  <h3 className="text-lg font-medium text-gray-300 mb-4">Redes Sociales</h3>
+                  <h3 className="text-lg font-medium text-gray-300 mb-4">
+                    Redes Sociales
+                  </h3>
                   <div className="space-y-4">
                     {content?.contact.socialMedia.map((social, socialIndex) => {
-                      const SocialIcon = iconMap[social.icon] || Globe
+                      const SocialIcon = iconMap[social.icon] || Globe;
                       return (
                         <div
                           key={socialIndex}
@@ -2092,12 +2482,20 @@ export default function AdminContent() {
                         >
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">Icono</label>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Icono
+                              </label>
                               <div className="flex items-center gap-3">
                                 <select
                                   className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                   value={social.icon}
-                                  onChange={(e) => handleSocialMediaChange(socialIndex, "icon", e.target.value)}
+                                  onChange={(e) =>
+                                    handleSocialMediaChange(
+                                      socialIndex,
+                                      "icon",
+                                      e.target.value
+                                    )
+                                  }
                                 >
                                   {lucideIconNames.map((iconName) => (
                                     <option key={iconName} value={iconName}>
@@ -2111,32 +2509,56 @@ export default function AdminContent() {
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">Red Social</label>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Red Social
+                              </label>
                               <input
                                 type="text"
                                 className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                 value={social.name}
-                                onChange={(e) => handleSocialMediaChange(socialIndex, "name", e.target.value)}
+                                onChange={(e) =>
+                                  handleSocialMediaChange(
+                                    socialIndex,
+                                    "name",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="Instagram"
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">Usuario</label>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Usuario
+                              </label>
                               <input
                                 type="text"
                                 className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                 value={social.handle}
-                                onChange={(e) => handleSocialMediaChange(socialIndex, "handle", e.target.value)}
+                                onChange={(e) =>
+                                  handleSocialMediaChange(
+                                    socialIndex,
+                                    "handle",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="@usuario"
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">Enlace</label>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Enlace
+                              </label>
                               <input
                                 type="url"
                                 className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                 value={social.link}
-                                onChange={(e) => handleSocialMediaChange(socialIndex, "link", e.target.value)}
+                                onChange={(e) =>
+                                  handleSocialMediaChange(
+                                    socialIndex,
+                                    "link",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="https://instagram.com/usuario"
                               />
                             </div>
@@ -2152,7 +2574,7 @@ export default function AdminContent() {
                             </button>
                           </div>
                         </div>
-                      )
+                      );
                     })}
                   </div>
                   <button
@@ -2172,7 +2594,9 @@ export default function AdminContent() {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-3">
                     <div className="w-1 h-8 bg-pink-500 rounded-full"></div>
-                    <h2 className="text-2xl font-semibold text-white">Guías de Tallas por Categoría</h2>
+                    <h2 className="text-2xl font-semibold text-white">
+                      Guías de Tallas por Categoría
+                    </h2>
                   </div>
                   <button
                     type="button"
@@ -2185,7 +2609,9 @@ export default function AdminContent() {
                 </div>
 
                 <div className="space-y-8">
-                  {content?.sizeGuides && Array.isArray(content.sizeGuides) && content.sizeGuides.length > 0 ? (
+                  {content?.sizeGuides &&
+                  Array.isArray(content.sizeGuides) &&
+                  content.sizeGuides.length > 0 ? (
                     content.sizeGuides.map((guide, guideIndex) => (
                       <div
                         key={guideIndex}
@@ -2193,7 +2619,8 @@ export default function AdminContent() {
                       >
                         <div className="flex items-center justify-between mb-6">
                           <h3 className="text-lg font-medium text-white">
-                            Guía #{guideIndex + 1}: {guide.category || "Sin categoría"}
+                            Guía #{guideIndex + 1}:{" "}
+                            {guide.category || "Sin categoría"}
                           </h3>
                           <button
                             type="button"
@@ -2215,45 +2642,79 @@ export default function AdminContent() {
                               type="text"
                               className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                               value={guide.category}
-                              onChange={(e) => handleSizeGuideChange(guideIndex, "category", e.target.value)}
+                              onChange={(e) =>
+                                handleSizeGuideChange(
+                                  guideIndex,
+                                  "category",
+                                  e.target.value
+                                )
+                              }
                               placeholder="Ej: Corpiño, Bombacha, Tanga"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Estado</label>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Estado
+                            </label>
                             <button
                               type="button"
-                              onClick={() => handleSizeGuideChange(guideIndex, "enabled", !guide.enabled)}
+                              onClick={() =>
+                                handleSizeGuideChange(
+                                  guideIndex,
+                                  "enabled",
+                                  !guide.enabled
+                                )
+                              }
                               className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-200 ${
                                 guide.enabled
                                   ? "bg-green-600/20 border-green-600/30 text-green-400"
                                   : "bg-gray-800/50 border-gray-600/50 text-gray-400"
                               }`}
                             >
-                              {guide.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                              {guide.enabled ? (
+                                <Eye className="h-4 w-4" />
+                              ) : (
+                                <EyeOff className="h-4 w-4" />
+                              )}
                               {guide.enabled ? "Visible" : "Oculto"}
                             </button>
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Título</label>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Título
+                            </label>
                             <input
                               type="text"
                               className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                               value={guide.title}
-                              onChange={(e) => handleSizeGuideChange(guideIndex, "title", e.target.value)}
+                              onChange={(e) =>
+                                handleSizeGuideChange(
+                                  guideIndex,
+                                  "title",
+                                  e.target.value
+                                )
+                              }
                               placeholder="Guía de Tallas - Corpiños"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Subtítulo</label>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Subtítulo
+                            </label>
                             <input
                               type="text"
                               className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                               value={guide.subtitle}
-                              onChange={(e) => handleSizeGuideChange(guideIndex, "subtitle", e.target.value)}
+                              onChange={(e) =>
+                                handleSizeGuideChange(
+                                  guideIndex,
+                                  "subtitle",
+                                  e.target.value
+                                )
+                              }
                               placeholder="Encuentra tu talla perfecta"
                             />
                           </div>
@@ -2261,9 +2722,12 @@ export default function AdminContent() {
 
                         {/* Headers de la Tabla */}
                         <div className="mb-6">
-                          <h4 className="text-md font-medium text-gray-300 mb-3">Encabezados de la Tabla</h4>
+                          <h4 className="text-md font-medium text-gray-300 mb-3">
+                            Encabezados de la Tabla
+                          </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                            {(guide.tableHeaders && guide.tableHeaders.length > 0
+                            {(guide.tableHeaders &&
+                            guide.tableHeaders.length > 0
                               ? guide.tableHeaders
                               : ["Talla", "Medida 1", "Medida 2"]
                             ).map((header, headerIndex) => (
@@ -2275,7 +2739,13 @@ export default function AdminContent() {
                                   type="text"
                                   className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                                   value={header}
-                                  onChange={(e) => handleSizeGuideHeaderChange(guideIndex, headerIndex, e.target.value)}
+                                  onChange={(e) =>
+                                    handleSizeGuideHeaderChange(
+                                      guideIndex,
+                                      headerIndex,
+                                      e.target.value
+                                    )
+                                  }
                                   placeholder={`Header ${headerIndex + 1}`}
                                 />
                               </div>
@@ -2286,7 +2756,9 @@ export default function AdminContent() {
                         {/* Filas de Datos */}
                         <div className="mb-6">
                           <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-md font-medium text-gray-300">Datos de Tallas</h4>
+                            <h4 className="text-md font-medium text-gray-300">
+                              Datos de Tallas
+                            </h4>
                             <button
                               type="button"
                               onClick={() => addSizeGuideRow(guideIndex)}
@@ -2300,50 +2772,67 @@ export default function AdminContent() {
                           <div className="space-y-3">
                             {guide.tableRows && guide.tableRows.length > 0 ? (
                               guide.tableRows.map((row, rowIndex) => (
-                                <div key={rowIndex} className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-4">
+                                <div
+                                  key={rowIndex}
+                                  className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-4"
+                                >
                                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                                     <div>
                                       <label className="block text-xs font-medium text-gray-400 mb-1">
-                                        {(guide.tableHeaders && guide.tableHeaders[0]) || "Talla"}
+                                        {(guide.tableHeaders &&
+                                          guide.tableHeaders[0]) ||
+                                          "Talla"}
                                       </label>
                                       <input
                                         type="text"
                                         className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
                                         value={row.size}
                                         onChange={(e) =>
-                                          handleSizeGuideRowChange(guideIndex, rowIndex, "size", e.target.value)
+                                          handleSizeGuideRowChange(
+                                            guideIndex,
+                                            rowIndex,
+                                            "size",
+                                            e.target.value
+                                          )
                                         }
                                         placeholder="Ej: XS, 85A"
                                       />
                                     </div>
-                                    {row.measurements.map((measurement, measurementIndex) => (
-                                      <div key={measurementIndex}>
-                                        <label className="block text-xs font-medium text-gray-400 mb-1">
-                                          {(guide.tableHeaders && guide.tableHeaders[measurementIndex + 1]) ||
-                                            `Medida ${measurementIndex + 1}`}
-                                        </label>
-                                        <input
-                                          type="text"
-                                          className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-                                          value={measurement}
-                                          onChange={(e) =>
-                                            handleSizeGuideRowChange(
-                                              guideIndex,
-                                              rowIndex,
-                                              "measurements",
-                                              e.target.value,
-                                              measurementIndex,
-                                            )
-                                          }
-                                          placeholder="Ej: 80-84, A"
-                                        />
-                                      </div>
-                                    ))}
+                                    {row.measurements.map(
+                                      (measurement, measurementIndex) => (
+                                        <div key={measurementIndex}>
+                                          <label className="block text-xs font-medium text-gray-400 mb-1">
+                                            {(guide.tableHeaders &&
+                                              guide.tableHeaders[
+                                                measurementIndex + 1
+                                              ]) ||
+                                              `Medida ${measurementIndex + 1}`}
+                                          </label>
+                                          <input
+                                            type="text"
+                                            className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                                            value={measurement}
+                                            onChange={(e) =>
+                                              handleSizeGuideRowChange(
+                                                guideIndex,
+                                                rowIndex,
+                                                "measurements",
+                                                e.target.value,
+                                                measurementIndex
+                                              )
+                                            }
+                                            placeholder="Ej: 80-84, A"
+                                          />
+                                        </div>
+                                      )
+                                    )}
                                   </div>
                                   <div className="flex justify-end">
                                     <button
                                       type="button"
-                                      onClick={() => removeSizeGuideRow(guideIndex, rowIndex)}
+                                      onClick={() =>
+                                        removeSizeGuideRow(guideIndex, rowIndex)
+                                      }
                                       className="px-3 py-1 bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30 transition-all duration-200 flex items-center text-sm"
                                     >
                                       <Trash2 className="h-3 w-3 mr-1" />
@@ -2354,7 +2843,9 @@ export default function AdminContent() {
                               ))
                             ) : (
                               <div className="text-center py-6 text-gray-400">
-                                <p className="text-sm">No hay tallas configuradas para esta guía.</p>
+                                <p className="text-sm">
+                                  No hay tallas configuradas para esta guía.
+                                </p>
                               </div>
                             )}
                           </div>
@@ -2362,12 +2853,20 @@ export default function AdminContent() {
 
                         {/* Notas */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-2">Notas Adicionales</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Notas Adicionales
+                          </label>
                           <textarea
                             className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                             rows={2}
                             value={guide.notes}
-                            onChange={(e) => handleSizeGuideChange(guideIndex, "notes", e.target.value)}
+                            onChange={(e) =>
+                              handleSizeGuideChange(
+                                guideIndex,
+                                "notes",
+                                e.target.value
+                              )
+                            }
                             placeholder="Información adicional sobre las tallas de esta categoría..."
                           />
                         </div>
@@ -2377,8 +2876,13 @@ export default function AdminContent() {
                     <div className="text-center py-12 text-gray-400">
                       <div className="mb-6">
                         <Ruler className="h-16 w-16 mx-auto text-gray-500 mb-4" />
-                        <p className="text-lg mb-2">No hay guías de tallas configuradas</p>
-                        <p className="text-sm">Haz clic en "Nueva Guía" para crear la primera guía de tallas.</p>
+                        <p className="text-lg mb-2">
+                          No hay guías de tallas configuradas
+                        </p>
+                        <p className="text-sm">
+                          Haz clic en "Nueva Guía" para crear la primera guía de
+                          tallas.
+                        </p>
                       </div>
                       <button
                         type="button"
@@ -2398,17 +2902,23 @@ export default function AdminContent() {
               <div className="bg-gradient-to-br from-teal-900/20 via-teal-800/10 to-teal-700/5 border border-teal-600/30 rounded-xl p-6 shadow-lg">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="w-1 h-8 bg-teal-500 rounded-full"></div>
-                  <h2 className="text-2xl font-semibold text-white">Métodos de Pago y Envíos</h2>
+                  <h2 className="text-2xl font-semibold text-white">
+                    Métodos de Pago y Envíos
+                  </h2>
                 </div>
 
                 {/* Información de Entrega - Punto de Encuentro */}
                 <div className="mb-8">
-                  <h3 className="text-lg font-medium text-gray-300 mb-4">Pago en Efectivo - Punto de Encuentro</h3>
+                  <h3 className="text-lg font-medium text-gray-300 mb-4">
+                    Pago en Efectivo - Punto de Encuentro
+                  </h3>
 
                   <div className="bg-gradient-to-r from-teal-800/20 via-teal-700/10 to-transparent border border-teal-700/30 rounded-lg p-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Estado</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Estado
+                        </label>
                         <button
                           type="button"
                           onClick={() =>
@@ -2416,7 +2926,8 @@ export default function AdminContent() {
                               "deliveryInfo",
                               "meetingPoint",
                               "enabled",
-                              !content?.checkout.deliveryInfo.meetingPoint.enabled,
+                              !content?.checkout.deliveryInfo.meetingPoint
+                                .enabled
                             )
                           }
                           className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-200 ${
@@ -2425,23 +2936,36 @@ export default function AdminContent() {
                               : "bg-gray-800/50 border-gray-600/50 text-gray-400"
                           }`}
                         >
-                          {content?.checkout.deliveryInfo.meetingPoint.enabled ? (
+                          {content?.checkout.deliveryInfo.meetingPoint
+                            .enabled ? (
                             <Eye className="h-4 w-4" />
                           ) : (
                             <EyeOff className="h-4 w-4" />
                           )}
-                          {content?.checkout.deliveryInfo.meetingPoint.enabled ? "Activo" : "Inactivo"}
+                          {content?.checkout.deliveryInfo.meetingPoint.enabled
+                            ? "Activo"
+                            : "Inactivo"}
                         </button>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Título</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Título
+                        </label>
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.deliveryInfo.meetingPoint.title || ""}
+                          value={
+                            content?.checkout.deliveryInfo.meetingPoint.title ||
+                            ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("deliveryInfo", "meetingPoint", "title", e.target.value)
+                            handleCheckoutChange(
+                              "deliveryInfo",
+                              "meetingPoint",
+                              "title",
+                              e.target.value
+                            )
                           }
                           placeholder="Punto de Encuentro"
                         />
@@ -2450,13 +2974,23 @@ export default function AdminContent() {
 
                     <div className="grid grid-cols-1 gap-4 mb-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Descripción</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Descripción
+                        </label>
                         <textarea
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           rows={3}
-                          value={content?.checkout.deliveryInfo.meetingPoint.description || ""}
+                          value={
+                            content?.checkout.deliveryInfo.meetingPoint
+                              .description || ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("deliveryInfo", "meetingPoint", "description", e.target.value)
+                            handleCheckoutChange(
+                              "deliveryInfo",
+                              "meetingPoint",
+                              "description",
+                              e.target.value
+                            )
                           }
                           placeholder="Nos encontramos en nuestro local para que puedas pagar en efectivo y retirar tu pedido..."
                         />
@@ -2469,35 +3003,63 @@ export default function AdminContent() {
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.deliveryInfo.meetingPoint.address || ""}
+                          value={
+                            content?.checkout.deliveryInfo.meetingPoint
+                              .address || ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("deliveryInfo", "meetingPoint", "address", e.target.value)
+                            handleCheckoutChange(
+                              "deliveryInfo",
+                              "meetingPoint",
+                              "address",
+                              e.target.value
+                            )
                           }
                           placeholder="Av. Argentina 123, Neuquén Capital"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Horarios de Atención</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Horarios de Atención
+                        </label>
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.deliveryInfo.meetingPoint.schedule || ""}
+                          value={
+                            content?.checkout.deliveryInfo.meetingPoint
+                              .schedule || ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("deliveryInfo", "meetingPoint", "schedule", e.target.value)
+                            handleCheckoutChange(
+                              "deliveryInfo",
+                              "meetingPoint",
+                              "schedule",
+                              e.target.value
+                            )
                           }
                           placeholder="Lunes a Viernes de 10:00 a 18:00, Sábados de 10:00 a 14:00"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Notas Adicionales</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Notas Adicionales
+                        </label>
                         <textarea
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           rows={2}
-                          value={content?.checkout.deliveryInfo.meetingPoint.notes || ""}
+                          value={
+                            content?.checkout.deliveryInfo.meetingPoint.notes ||
+                            ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("deliveryInfo", "meetingPoint", "notes", e.target.value)
+                            handleCheckoutChange(
+                              "deliveryInfo",
+                              "meetingPoint",
+                              "notes",
+                              e.target.value
+                            )
                           }
                           placeholder="También ofrecemos entrega a domicilio en Neuquén Capital y alrededores."
                         />
@@ -2508,12 +3070,16 @@ export default function AdminContent() {
 
                 {/* Configuración de Envíos a Domicilio */}
                 <div className="mb-8">
-                  <h3 className="text-lg font-medium text-gray-300 mb-4">Configuración de Envíos a Domicilio</h3>
+                  <h3 className="text-lg font-medium text-gray-300 mb-4">
+                    Configuración de Envíos a Domicilio
+                  </h3>
 
                   <div className="bg-gradient-to-r from-teal-800/20 via-teal-700/10 to-transparent border border-teal-700/30 rounded-lg p-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Estado del Servicio</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Estado del Servicio
+                        </label>
                         <button
                           type="button"
                           onClick={() =>
@@ -2521,7 +3087,7 @@ export default function AdminContent() {
                               "shipping",
                               "homeDelivery",
                               "enabled",
-                              !content?.checkout.shipping?.homeDelivery.enabled,
+                              !content?.checkout.shipping?.homeDelivery.enabled
                             )
                           }
                           className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-200 ${
@@ -2535,33 +3101,51 @@ export default function AdminContent() {
                           ) : (
                             <EyeOff className="h-4 w-4" />
                           )}
-                          {content?.checkout.shipping?.homeDelivery.enabled ? "Activo" : "Inactivo"}
+                          {content?.checkout.shipping?.homeDelivery.enabled
+                            ? "Activo"
+                            : "Inactivo"}
                         </button>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Título del Servicio</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Título del Servicio
+                        </label>
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.shipping?.homeDelivery.title || ""}
-                          onChange={(e) => handleCheckoutChange("shipping", "homeDelivery", "title", e.target.value)}
+                          value={
+                            content?.checkout.shipping?.homeDelivery.title || ""
+                          }
+                          onChange={(e) =>
+                            handleCheckoutChange(
+                              "shipping",
+                              "homeDelivery",
+                              "title",
+                              e.target.value
+                            )
+                          }
                           placeholder="Envío a Domicilio"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Costo Base de Envío ($)</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Costo Base de Envío ($)
+                        </label>
                         <input
                           type="number"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.shipping?.homeDelivery.baseCost || 0}
+                          value={
+                            content?.checkout.shipping?.homeDelivery.baseCost ||
+                            0
+                          }
                           onChange={(e) =>
                             handleCheckoutChange(
                               "shipping",
                               "homeDelivery",
                               "baseCost",
-                              Number.parseFloat(e.target.value) || 0,
+                              Number.parseFloat(e.target.value) || 0
                             )
                           }
                           placeholder="2500"
@@ -2570,17 +3154,22 @@ export default function AdminContent() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Envío Gratis desde ($)</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Envío Gratis desde ($)
+                        </label>
                         <input
                           type="number"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.shipping?.homeDelivery.freeShippingThreshold || 0}
+                          value={
+                            content?.checkout.shipping?.homeDelivery
+                              .freeShippingThreshold || 0
+                          }
                           onChange={(e) =>
                             handleCheckoutChange(
                               "shipping",
                               "homeDelivery",
                               "freeShippingThreshold",
-                              Number.parseFloat(e.target.value) || 0,
+                              Number.parseFloat(e.target.value) || 0
                             )
                           }
                           placeholder="30000"
@@ -2595,21 +3184,41 @@ export default function AdminContent() {
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.shipping?.homeDelivery.estimatedDays || ""}
+                          value={
+                            content?.checkout.shipping?.homeDelivery
+                              .estimatedDays || ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("shipping", "homeDelivery", "estimatedDays", e.target.value)
+                            handleCheckoutChange(
+                              "shipping",
+                              "homeDelivery",
+                              "estimatedDays",
+                              e.target.value
+                            )
                           }
                           placeholder="2-3 días hábiles"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Área de Cobertura</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Área de Cobertura
+                        </label>
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.shipping?.homeDelivery.coverage || ""}
-                          onChange={(e) => handleCheckoutChange("shipping", "homeDelivery", "coverage", e.target.value)}
+                          value={
+                            content?.checkout.shipping?.homeDelivery.coverage ||
+                            ""
+                          }
+                          onChange={(e) =>
+                            handleCheckoutChange(
+                              "shipping",
+                              "homeDelivery",
+                              "coverage",
+                              e.target.value
+                            )
+                          }
                           placeholder="Neuquén Capital y alrededores (hasta 15km del centro)"
                         />
                       </div>
@@ -2617,13 +3226,23 @@ export default function AdminContent() {
 
                     <div className="grid grid-cols-1 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Descripción del Servicio</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Descripción del Servicio
+                        </label>
                         <textarea
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           rows={2}
-                          value={content?.checkout.shipping?.homeDelivery.description || ""}
+                          value={
+                            content?.checkout.shipping?.homeDelivery
+                              .description || ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("shipping", "homeDelivery", "description", e.target.value)
+                            handleCheckoutChange(
+                              "shipping",
+                              "homeDelivery",
+                              "description",
+                              e.target.value
+                            )
                           }
                           placeholder="Entregamos en Neuquén Capital y alrededores. El costo varía según la ubicación."
                         />
@@ -2636,8 +3255,17 @@ export default function AdminContent() {
                         <textarea
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           rows={2}
-                          value={content?.checkout.shipping?.homeDelivery.notes || ""}
-                          onChange={(e) => handleCheckoutChange("shipping", "homeDelivery", "notes", e.target.value)}
+                          value={
+                            content?.checkout.shipping?.homeDelivery.notes || ""
+                          }
+                          onChange={(e) =>
+                            handleCheckoutChange(
+                              "shipping",
+                              "homeDelivery",
+                              "notes",
+                              e.target.value
+                            )
+                          }
                           placeholder="Los envíos se realizan de lunes a viernes en horario comercial."
                         />
                       </div>
@@ -2647,12 +3275,16 @@ export default function AdminContent() {
 
                 {/* Información de Pago - Pago en Efectivo */}
                 <div className="mb-8">
-                  <h3 className="text-lg font-medium text-gray-300 mb-4">Configuración de Pago en Efectivo</h3>
+                  <h3 className="text-lg font-medium text-gray-300 mb-4">
+                    Configuración de Pago en Efectivo
+                  </h3>
 
                   <div className="bg-gradient-to-r from-teal-800/20 via-teal-700/10 to-transparent border border-teal-700/30 rounded-lg p-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Estado</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Estado
+                        </label>
                         <button
                           type="button"
                           onClick={() =>
@@ -2660,7 +3292,8 @@ export default function AdminContent() {
                               "paymentInfo",
                               "cashOnDelivery",
                               "enabled",
-                              !content?.checkout.paymentInfo.cashOnDelivery.enabled,
+                              !content?.checkout.paymentInfo.cashOnDelivery
+                                .enabled
                             )
                           }
                           className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-200 ${
@@ -2669,40 +3302,58 @@ export default function AdminContent() {
                               : "bg-gray-800/50 border-gray-600/50 text-gray-400"
                           }`}
                         >
-                          {content?.checkout.paymentInfo.cashOnDelivery.enabled ? (
+                          {content?.checkout.paymentInfo.cashOnDelivery
+                            .enabled ? (
                             <Eye className="h-4 w-4" />
                           ) : (
                             <EyeOff className="h-4 w-4" />
                           )}
-                          {content?.checkout.paymentInfo.cashOnDelivery.enabled ? "Activo" : "Inactivo"}
+                          {content?.checkout.paymentInfo.cashOnDelivery.enabled
+                            ? "Activo"
+                            : "Inactivo"}
                         </button>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Título del Método</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Título del Método
+                        </label>
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.paymentInfo.cashOnDelivery.title || ""}
+                          value={
+                            content?.checkout.paymentInfo.cashOnDelivery
+                              .title || ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("paymentInfo", "cashOnDelivery", "title", e.target.value)
+                            handleCheckoutChange(
+                              "paymentInfo",
+                              "cashOnDelivery",
+                              "title",
+                              e.target.value
+                            )
                           }
                           placeholder="Pago en Efectivo"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Cargo Adicional ($)</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Cargo Adicional ($)
+                        </label>
                         <input
                           type="number"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.paymentInfo.cashOnDelivery.additionalFee || 0}
+                          value={
+                            content?.checkout.paymentInfo.cashOnDelivery
+                              .additionalFee || 0
+                          }
                           onChange={(e) =>
                             handleCheckoutChange(
                               "paymentInfo",
                               "cashOnDelivery",
                               "additionalFee",
-                              Number.parseFloat(e.target.value) || 0,
+                              Number.parseFloat(e.target.value) || 0
                             )
                           }
                           placeholder="0"
@@ -2713,26 +3364,46 @@ export default function AdminContent() {
 
                     <div className="grid grid-cols-1 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Descripción</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Descripción
+                        </label>
                         <textarea
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           rows={2}
-                          value={content?.checkout.paymentInfo.cashOnDelivery.description || ""}
+                          value={
+                            content?.checkout.paymentInfo.cashOnDelivery
+                              .description || ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("paymentInfo", "cashOnDelivery", "description", e.target.value)
+                            handleCheckoutChange(
+                              "paymentInfo",
+                              "cashOnDelivery",
+                              "description",
+                              e.target.value
+                            )
                           }
                           placeholder="Paga en efectivo al momento de recibir tu pedido. Solo disponible para entregas en Neuquén Capital."
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Notas Importantes</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Notas Importantes
+                        </label>
                         <textarea
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           rows={2}
-                          value={content?.checkout.paymentInfo.cashOnDelivery.notes || ""}
+                          value={
+                            content?.checkout.paymentInfo.cashOnDelivery
+                              .notes || ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("paymentInfo", "cashOnDelivery", "notes", e.target.value)
+                            handleCheckoutChange(
+                              "paymentInfo",
+                              "cashOnDelivery",
+                              "notes",
+                              e.target.value
+                            )
                           }
                           placeholder="Por favor, ten el monto exacto disponible al momento de la entrega."
                         />
@@ -2743,12 +3414,16 @@ export default function AdminContent() {
 
                 {/* Información de Pago - Transferencia Bancaria */}
                 <div>
-                  <h3 className="text-lg font-medium text-gray-300 mb-4">Configuración de Transferencia Bancaria</h3>
+                  <h3 className="text-lg font-medium text-gray-300 mb-4">
+                    Configuración de Transferencia Bancaria
+                  </h3>
 
                   <div className="bg-gradient-to-r from-teal-800/20 via-teal-700/10 to-transparent border border-teal-700/30 rounded-lg p-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Estado</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Estado
+                        </label>
                         <button
                           type="button"
                           onClick={() =>
@@ -2756,7 +3431,8 @@ export default function AdminContent() {
                               "paymentInfo",
                               "bankTransfer",
                               "enabled",
-                              !content?.checkout.paymentInfo.bankTransfer.enabled,
+                              !content?.checkout.paymentInfo.bankTransfer
+                                .enabled
                             )
                           }
                           className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all duration-200 ${
@@ -2765,96 +3441,174 @@ export default function AdminContent() {
                               : "bg-gray-800/50 border-gray-600/50 text-gray-400"
                           }`}
                         >
-                          {content?.checkout.paymentInfo.bankTransfer.enabled ? (
+                          {content?.checkout.paymentInfo.bankTransfer
+                            .enabled ? (
                             <Eye className="h-4 w-4" />
                           ) : (
                             <EyeOff className="h-4 w-4" />
                           )}
-                          {content?.checkout.paymentInfo.bankTransfer.enabled ? "Activo" : "Inactivo"}
+                          {content?.checkout.paymentInfo.bankTransfer.enabled
+                            ? "Activo"
+                            : "Inactivo"}
                         </button>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Título del Método</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Título del Método
+                        </label>
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.paymentInfo.bankTransfer.title || ""}
-                          onChange={(e) => handleCheckoutChange("paymentInfo", "bankTransfer", "title", e.target.value)}
+                          value={
+                            content?.checkout.paymentInfo.bankTransfer.title ||
+                            ""
+                          }
+                          onChange={(e) =>
+                            handleCheckoutChange(
+                              "paymentInfo",
+                              "bankTransfer",
+                              "title",
+                              e.target.value
+                            )
+                          }
                           placeholder="Transferencia Bancaria"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Nombre del Banco</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Nombre del Banco
+                        </label>
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.paymentInfo.bankTransfer.bankName || ""}
+                          value={
+                            content?.checkout.paymentInfo.bankTransfer
+                              .bankName || ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("paymentInfo", "bankTransfer", "bankName", e.target.value)
+                            handleCheckoutChange(
+                              "paymentInfo",
+                              "bankTransfer",
+                              "bankName",
+                              e.target.value
+                            )
                           }
                           placeholder="Banco Nación"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Tipo de Cuenta</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Tipo de Cuenta
+                        </label>
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.paymentInfo.bankTransfer.accountType || ""}
+                          value={
+                            content?.checkout.paymentInfo.bankTransfer
+                              .accountType || ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("paymentInfo", "bankTransfer", "accountType", e.target.value)
+                            handleCheckoutChange(
+                              "paymentInfo",
+                              "bankTransfer",
+                              "accountType",
+                              e.target.value
+                            )
                           }
                           placeholder="Cuenta Corriente"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Número de Cuenta</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Número de Cuenta
+                        </label>
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.paymentInfo.bankTransfer.accountNumber || ""}
+                          value={
+                            content?.checkout.paymentInfo.bankTransfer
+                              .accountNumber || ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("paymentInfo", "bankTransfer", "accountNumber", e.target.value)
+                            handleCheckoutChange(
+                              "paymentInfo",
+                              "bankTransfer",
+                              "accountNumber",
+                              e.target.value
+                            )
                           }
                           placeholder="1234567890"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Titular de la Cuenta</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Titular de la Cuenta
+                        </label>
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.paymentInfo.bankTransfer.accountHolder || ""}
+                          value={
+                            content?.checkout.paymentInfo.bankTransfer
+                              .accountHolder || ""
+                          }
                           onChange={(e) =>
-                            handleCheckoutChange("paymentInfo", "bankTransfer", "accountHolder", e.target.value)
+                            handleCheckoutChange(
+                              "paymentInfo",
+                              "bankTransfer",
+                              "accountHolder",
+                              e.target.value
+                            )
                           }
                           placeholder="Joly Lingerie"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">CBU</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          CBU
+                        </label>
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.paymentInfo.bankTransfer.cbu || ""}
-                          onChange={(e) => handleCheckoutChange("paymentInfo", "bankTransfer", "cbu", e.target.value)}
+                          value={
+                            content?.checkout.paymentInfo.bankTransfer.cbu || ""
+                          }
+                          onChange={(e) =>
+                            handleCheckoutChange(
+                              "paymentInfo",
+                              "bankTransfer",
+                              "cbu",
+                              e.target.value
+                            )
+                          }
                           placeholder="0110123456789012345678"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Alias</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Alias
+                        </label>
                         <input
                           type="text"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          value={content?.checkout.paymentInfo.bankTransfer.alias || ""}
-                          onChange={(e) => handleCheckoutChange("paymentInfo", "bankTransfer", "alias", e.target.value)}
+                          value={
+                            content?.checkout.paymentInfo.bankTransfer.alias ||
+                            ""
+                          }
+                          onChange={(e) =>
+                            handleCheckoutChange(
+                              "paymentInfo",
+                              "bankTransfer",
+                              "alias",
+                              e.target.value
+                            )
+                          }
                           placeholder="JOLY.LINGERIE"
                         />
                       </div>
@@ -2867,9 +3621,17 @@ export default function AdminContent() {
                       <textarea
                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                         rows={3}
-                        value={content?.checkout.paymentInfo.bankTransfer.instructions || ""}
+                        value={
+                          content?.checkout.paymentInfo.bankTransfer
+                            .instructions || ""
+                        }
                         onChange={(e) =>
-                          handleCheckoutChange("paymentInfo", "bankTransfer", "instructions", e.target.value)
+                          handleCheckoutChange(
+                            "paymentInfo",
+                            "bankTransfer",
+                            "instructions",
+                            e.target.value
+                          )
                         }
                         placeholder="Realiza la transferencia por el monto total y sube el comprobante. Procesaremos tu pedido una vez confirmado el pago."
                       />
@@ -2903,5 +3665,5 @@ export default function AdminContent() {
         </form>
       </div>
     </div>
-  )
+  );
 }

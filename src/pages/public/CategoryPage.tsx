@@ -70,7 +70,8 @@ export default function CategoryPage() {
         setLoadingMore(true)
       }
 
-      const params: { limit: number; page: number; category?: string; sortBy?: string; sortOrder?: string } = {
+      const params: { limit: number; page: number; category?: string; sortBy?: string; sortOrder?: "asc" | "desc" } = {
+        // Explicitly type sortOrder
         limit: PRODUCTS_PER_PAGE_CATEGORY,
         page: pageToLoad,
         category: categoryName,
@@ -228,7 +229,7 @@ export default function CategoryPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 relative">
         {isCategoryChanging && (
-          <div className="absolute inset-0flex items-center justify-center z-20 rounded-lg"  >
+          <div className="absolute inset-0flex items-center justify-center z-20 rounded-lg">
             <Loader2 className="h-10 w-10 animate-spin" style={{ color: "var(--clay)" }} />
           </div>
         )}

@@ -95,7 +95,7 @@ export default function CheckoutPage() {
   // Usar el costo de envío dinámico del contenido y verificar envío gratis
   const shouldHaveFreeShipping =
     checkoutContent?.shipping?.homeDelivery?.freeShippingThreshold &&
-    subtotal >= checkoutContent.shipping.homeDelivery.freeShippingThreshold
+    subtotal >= (checkoutContent.shipping.homeDelivery.freeShippingThreshold ?? 0)
 
   const shippingCost =
     wantsShipping && !shouldHaveFreeShipping ? (checkoutContent?.shipping?.homeDelivery?.baseCost ?? 2500) : 0
@@ -454,17 +454,17 @@ export default function CheckoutPage() {
                           </p>
                           {checkoutContent?.deliveryInfo.meetingPoint.address && (
                             <p className="text-xs sm:text-sm mt-1 font-medium" style={{ color: "var(--clay)" }}>
-                               {checkoutContent.deliveryInfo.meetingPoint.address}
+                              {checkoutContent.deliveryInfo.meetingPoint.address}
                             </p>
                           )}
                           {checkoutContent?.deliveryInfo.meetingPoint.schedule && (
                             <p className="text-xs sm:text-sm mt-1" style={{ color: "var(--oak)" }}>
-                               {checkoutContent.deliveryInfo.meetingPoint.schedule}
+                              {checkoutContent.deliveryInfo.meetingPoint.schedule}
                             </p>
                           )}
                           {checkoutContent?.deliveryInfo.meetingPoint.notes && (
                             <p className="text-xs sm:text-sm mt-1" style={{ color: "var(--oak)" }}>
-                               {checkoutContent.deliveryInfo.meetingPoint.notes}
+                              {checkoutContent.deliveryInfo.meetingPoint.notes}
                             </p>
                           )}
                         </div>
@@ -507,24 +507,24 @@ export default function CheckoutPage() {
                           </p>
                           {checkoutContent?.shipping.homeDelivery.coverage && (
                             <p className="text-xs sm:text-sm mt-1" style={{ color: "var(--oak)" }}>
-                               Cobertura: {checkoutContent.shipping.homeDelivery.coverage}
+                              Cobertura: {checkoutContent.shipping.homeDelivery.coverage}
                             </p>
                           )}
                           {checkoutContent?.shipping.homeDelivery.estimatedDays && (
                             <p className="text-xs sm:text-sm mt-1" style={{ color: "var(--oak)" }}>
-                               Tiempo estimado: {checkoutContent.shipping.homeDelivery.estimatedDays}
+                              Tiempo estimado: {checkoutContent.shipping.homeDelivery.estimatedDays}
                             </p>
                           )}
                           {checkoutContent?.shipping.homeDelivery.freeShippingThreshold &&
                             subtotal >= checkoutContent.shipping.homeDelivery.freeShippingThreshold && (
                               <p className="text-xs sm:text-sm mt-1 font-medium" style={{ color: "var(--clay)" }}>
-                                 ¡Envío gratis! Tu compra supera los $
+                                ¡Envío gratis! Tu compra supera los $
                                 {checkoutContent.shipping.homeDelivery.freeShippingThreshold.toLocaleString()}
                               </p>
                             )}
                           {checkoutContent?.shipping.homeDelivery.notes && (
                             <p className="text-xs sm:text-sm mt-1" style={{ color: "var(--oak)" }}>
-                               {checkoutContent.shipping.homeDelivery.notes}
+                              {checkoutContent.shipping.homeDelivery.notes}
                             </p>
                           )}
                         </div>
@@ -745,19 +745,18 @@ export default function CheckoutPage() {
                             </p>
                             {checkoutContent?.paymentInfo.cashOnDelivery.additionalFee > 0 && (
                               <p className="text-xs sm:text-sm mt-1 font-medium" style={{ color: "var(--clay)" }}>
-                                 Cargo adicional: $
+                                Cargo adicional: $
                                 {checkoutContent.paymentInfo.cashOnDelivery.additionalFee.toLocaleString()}
                               </p>
                             )}
                             {checkoutContent?.deliveryInfo.meetingPoint.address && (
                               <p className="text-xs sm:text-sm mt-1" style={{ color: "var(--oak)" }}>
-                               <strong>Punto de encuentro:</strong>{" "}
-                                {checkoutContent.deliveryInfo.meetingPoint.address}
+                                <strong>Punto de encuentro:</strong> {checkoutContent.deliveryInfo.meetingPoint.address}
                               </p>
                             )}
                             {checkoutContent?.paymentInfo.cashOnDelivery.notes && (
                               <p className="text-xs sm:text-sm mt-1" style={{ color: "var(--oak)" }}>
-                                 {checkoutContent.paymentInfo.cashOnDelivery.notes}
+                                {checkoutContent.paymentInfo.cashOnDelivery.notes}
                               </p>
                             )}
                           </div>

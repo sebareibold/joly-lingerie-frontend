@@ -1,7 +1,6 @@
-"use client";
-
-import type React from "react";
-import { useState, useEffect, useRef } from "react";
+"use client"
+import type React from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Video,
   Loader2,
@@ -21,64 +20,64 @@ import {
   DollarSign,
   Download,
   Share2,
-} from "lucide-react";
-import { apiService } from "../../services/api";
+} from "lucide-react"
+import { apiService } from "../../services/api"
 
 interface VideoConfig {
-  selectionType: "all" | "category" | "discount";
-  categoryId?: string;
-  maxProducts: number;
-  showProductName: boolean;
-  showProductPrice: boolean;
-  productDuration: number; // segundos por producto
-  animationType: "fade" | "zoom" | "slide" | "rotate"; // Nueva opción de animación
+  selectionType: "all" | "category" | "discount"
+  categoryId?: string
+  maxProducts: number
+  showProductName: boolean
+  showProductPrice: boolean
+  productDuration: number // segundos por producto
+  animationType: "fade" | "zoom" | "slide" | "rotate" // Nueva opción de animación
 }
 
 interface Product {
-  _id: string;
-  title: string;
-  description: string;
-  price: number;
-  category: string;
-  size: string[];
-  stock: number;
-  status: boolean;
-  thumbnails: string[];
-  discount?: number;
-  featured?: boolean;
+  _id: string
+  title: string
+  description: string
+  price: number
+  category: string
+  size: string[]
+  stock: number
+  status: boolean
+  thumbnails: string[]
+  discount?: number
+  featured?: boolean
 }
 
 interface GeneratedVideo {
-  videoBlob: Blob;
-  videoUrl: string;
-  videoId: string;
-  products: Product[];
-  config: VideoConfig;
-  duration: number;
-  size: number;
+  videoBlob: Blob
+  videoUrl: string
+  videoId: string
+  products: Product[]
+  config: VideoConfig
+  duration: number
+  size: number
 }
 
 const AdminAdvertising: React.FC = () => {
   // Estados principales
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generationProgress, setGenerationProgress] = useState(0);
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [generationProgress, setGenerationProgress] = useState(0)
   const [generationStatus, setGenerationStatus] = useState<
     "idle" | "generating" | "success" | "error"
-  >("idle");
-  const [generationMessage, setGenerationMessage] = useState("");
+  >("idle")
+  const [generationMessage, setGenerationMessage] = useState("")
   const [generatedVideo, setGeneratedVideo] = useState<GeneratedVideo | null>(
     null
-  );
+  )
 
   // Estados de datos
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [backendStatus, setBackendStatus] = useState<
     "checking" | "online" | "offline"
-  >("checking");
+  >("checking")
 
   // Estados de textos personalizables
   const [customTexts, setCustomTexts] = useState({
@@ -87,7 +86,7 @@ const AdminAdvertising: React.FC = () => {
     introDescription: "productos exclusivos y elegantes",
     outroMessage: "Gracias por tu preferencia",
     outroCallToAction: "Visítanos en nuestra tienda",
-  });
+  })
 
   // Configuración
   const [config, setConfig] = useState<VideoConfig>({
@@ -97,87 +96,87 @@ const AdminAdvertising: React.FC = () => {
     showProductPrice: true,
     productDuration: 6,
     animationType: "zoom", // Animación por defecto
-  });
+  })
 
   // Referencias para Canvas y Video
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const videoPreviewRef = useRef<HTMLVideoElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const recordedChunksRef = useRef<Blob[]>([]);
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const videoPreviewRef = useRef<HTMLVideoElement>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const recordedChunksRef = useRef<Blob[]>([])
 
   // Configuración del backend
   const BACKEND_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+    import.meta.env.VITE_API_URL || "http://localhost:8080/api"
 
   // Detectar estado de conexión
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
 
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline)
+    window.addEventListener("offline", handleOffline)
 
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("offline", handleOffline)
+    }
+  }, [])
 
   // Cargar datos iniciales
   useEffect(() => {
-    loadInitialData();
-  }, []);
+    loadInitialData()
+  }, [])
 
   // Limpiar URLs de video al desmontar
   useEffect(() => {
     return () => {
       if (generatedVideo?.videoUrl) {
-        URL.revokeObjectURL(generatedVideo.videoUrl);
+        URL.revokeObjectURL(generatedVideo.videoUrl)
       }
-    };
-  }, [generatedVideo]);
+    }
+  }, [generatedVideo])
 
   // Función para verificar el estado del backend
   const checkBackendStatus = async () => {
     try {
-      setBackendStatus("checking");
-      const response = await apiService.healthCheck();
+      setBackendStatus("checking")
+      const response = await apiService.healthCheck()
       if (response) {
-        setBackendStatus("online");
-        return true;
+        setBackendStatus("online")
+        return true
       } else {
-        setBackendStatus("offline");
-        return false;
+        setBackendStatus("offline")
+        return false
       }
     } catch (error) {
-      console.error("❌ Error conectando con backend:", error);
-      setBackendStatus("offline");
-      return false;
+      console.error("❌ Error conectando con backend:", error)
+      setBackendStatus("offline")
+      return false
     }
-  };
+  }
 
   const loadInitialData = async () => {
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true)
+    setError(null)
 
     try {
-      console.log("🔄 Cargando datos del backend...");
+      console.log("🔄 Cargando datos del backend...")
 
-      const backendOnline = await checkBackendStatus();
+      const backendOnline = await checkBackendStatus()
       if (!backendOnline) {
         throw new Error(
           "Backend no disponible. Verifica que el servidor esté corriendo."
-        );
+        )
       }
 
       const productsResponse = await apiService.getProducts({
         limit: 100,
         status: true,
-      });
-      console.log("📦 Respuesta de productos:", productsResponse);
+      })
+      console.log("📦 Respuesta de productos:", productsResponse)
 
       if (productsResponse.status === "success" && productsResponse.payload) {
-        setProducts(productsResponse.payload);
+        setProducts(productsResponse.payload)
 
         const uniqueCategories = [
           ...new Set(
@@ -185,47 +184,47 @@ const AdminAdvertising: React.FC = () => {
               .map((product: Product) => product.category)
               .filter(Boolean)
           ),
-        ];
-        setCategories(uniqueCategories);
-        console.log("📂 Categorías encontradas:", uniqueCategories);
+        ]
+        setCategories(uniqueCategories)
+        console.log("📂 Categorías encontradas:", uniqueCategories)
       } else {
-        throw new Error("No se pudieron cargar los productos");
+        throw new Error("No se pudieron cargar los productos")
       }
 
-      console.log("✅ Datos cargados exitosamente");
+      console.log("✅ Datos cargados exitosamente")
     } catch (error) {
-      console.error("❌ Error cargando datos:", error);
+      console.error("❌ Error cargando datos:", error)
       setError(
         error instanceof Error
           ? error.message
           : "Error desconocido al cargar datos"
-      );
+      )
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   // Función para obtener productos filtrados
   const getFilteredProducts = (): Product[] => {
-    let filtered = products;
+    let filtered = products
 
     switch (config.selectionType) {
       case "category":
         if (config.categoryId) {
-          filtered = products.filter((p) => p.category === config.categoryId);
+          filtered = products.filter((p) => p.category === config.categoryId)
         }
-        break;
+        break
       case "discount":
-        filtered = products.filter((p) => p.discount && p.discount > 0);
-        break;
+        filtered = products.filter((p) => p.discount && p.discount > 0)
+        break
       case "all":
       default:
-        filtered = products.filter((p) => p.status === true);
-        break;
+        filtered = products.filter((p) => p.status === true)
+        break
     }
 
-    return filtered.slice(0, config.maxProducts);
-  };
+    return filtered.slice(0, config.maxProducts)
+  }
 
   // Función para cargar imagen con mejor manejo de CORS
   const loadImage = (
@@ -233,146 +232,146 @@ const AdminAdvertising: React.FC = () => {
     product: Product
   ): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
+      const img = new Image()
+      img.crossOrigin = "anonymous"
 
       img.onload = () => {
-        console.log(`✅ Imagen cargada: ${product.title}`);
-        resolve(img);
-      };
+        console.log(`✅ Imagen cargada: ${product.title}`)
+        resolve(img)
+      }
 
       img.onerror = (error) => {
         console.warn(
           `⚠️ Error cargando imagen para ${product.title}, usando placeholder`
-        );
+        )
 
         // Crear imagen placeholder directamente
-        const placeholderImg = new Image();
-        placeholderImg.onload = () => resolve(placeholderImg);
+        const placeholderImg = new Image()
+        placeholderImg.onload = () => resolve(placeholderImg)
         placeholderImg.onerror = () => {
           // Último recurso: crear canvas con placeholder
-          const canvas = document.createElement("canvas");
-          canvas.width = 400;
-          canvas.height = 400;
-          const ctx = canvas.getContext("2d");
+          const canvas = document.createElement("canvas")
+          canvas.width = 400
+          canvas.height = 400
+          const ctx = canvas.getContext("2d")
           if (ctx) {
             // Fondo degradado
-            const gradient = ctx.createLinearGradient(0, 0, 400, 400);
-            gradient.addColorStop(0, "#6366F1");
-            gradient.addColorStop(1, "#EC4899");
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 400, 400);
+            const gradient = ctx.createLinearGradient(0, 0, 400, 400)
+            gradient.addColorStop(0, "#6366F1")
+            gradient.addColorStop(1, "#EC4899")
+            ctx.fillStyle = gradient
+            ctx.fillRect(0, 0, 400, 400)
 
             // Texto
-            ctx.fillStyle = "#FFFFFF";
-            ctx.font = "bold 24px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(product.title.substring(0, 20), 200, 180);
-            ctx.font = "40px Arial";
-            ctx.fillText("📷", 200, 240);
+            ctx.fillStyle = "#FFFFFF"
+            ctx.font = "bold 24px Arial"
+            ctx.textAlign = "center"
+            ctx.fillText(product.title.substring(0, 20), 200, 180)
+            ctx.font = "40px Arial"
+            ctx.fillText("📷", 200, 240)
 
             canvas.toBlob((blob) => {
               if (blob) {
-                const url = URL.createObjectURL(blob);
-                const finalImg = new Image();
+                const url = URL.createObjectURL(blob)
+                const finalImg = new Image()
                 finalImg.onload = () => {
-                  URL.revokeObjectURL(url);
-                  resolve(finalImg);
-                };
-                finalImg.src = url;
+                  URL.revokeObjectURL(url)
+                  resolve(finalImg)
+                }
+                finalImg.src = url
               } else {
-                reject(new Error("No se pudo crear placeholder"));
+                reject(new Error("No se pudo crear placeholder"))
               }
-            });
+            })
           } else {
-            reject(new Error("No se pudo crear contexto de canvas"));
+            reject(new Error("No se pudo crear contexto de canvas"))
           }
-        };
+        }
 
         // Intentar con placeholder del servidor
         placeholderImg.src = `${BACKEND_URL}/images/placeholder?width=400&height=400&text=${encodeURIComponent(
           product.title.substring(0, 15)
-        )}`;
-      };
+        )}`
+      }
 
-      img.src = src;
-    });
-  };
+      img.src = src
+    })
+  }
 
   // Función para obtener URL de imagen usando proxy
   const getProxiedImageUrl = (originalUrl: string) => {
     if (!originalUrl)
-      return `${BACKEND_URL}/images/placeholder?width=400&height=400&text=Sin%20imagen`;
+      return `${BACKEND_URL}/images/placeholder?width=400&height=400&text=Sin%20imagen`
 
     if (
       originalUrl.startsWith("/") ||
       originalUrl.startsWith(window.location.origin)
     ) {
-      return originalUrl;
+      return originalUrl
     }
 
-    return `${BACKEND_URL}/images/proxy?url=${encodeURIComponent(originalUrl)}`;
-  };
+    return `${BACKEND_URL}/images/proxy?url=${encodeURIComponent(originalUrl)}`
+  }
 
   // Función para obtener el codec de video soportado por el navegador
   const getSupportedVideoCodec = (): string => {
     const mp4Codecs = [
-      "video/mp4;codecs=h264",
-      "video/mp4;codecs=avc1.42E01E",
+      "video/mp4codecs=h264",
+      "video/mp4codecs=avc1.42E01E",
       "video/mp4",
-    ];
+    ]
     for (const codec of mp4Codecs) {
       if (MediaRecorder.isTypeSupported(codec)) {
-        console.log(`✅ Codec MP4 soportado para grabación: ${codec}`);
-        return codec;
+        console.log(`✅ Codec MP4 soportado para grabación: ${codec}`)
+        return codec
       }
     }
 
     const webmCodecs = [
-      "video/webm;codecs=vp9",
-      "video/webm;codecs=vp8",
+      "video/webmcodecs=vp9",
+      "video/webmcodecs=vp8",
       "video/webm",
-    ];
+    ]
     for (const codec of webmCodecs) {
       if (MediaRecorder.isTypeSupported(codec)) {
         console.warn(
           `⚠️ No se encontró codec MP4. Usando fallback WebM: ${codec}`
-        );
-        return codec;
+        )
+        return codec
       }
     }
 
-    console.error("❌ Ningún codec de video soportado por MediaRecorder.");
-    return "video/mp4"; // Fallback a MP4, pero podría fallar
-  };
+    console.error("❌ Ningún codec de video soportado por MediaRecorder.")
+    return "video/mp4" // Fallback a MP4, pero podría fallar
+  }
 
   // Función de easing para animaciones más suaves
   const easeInOutCubic = (t: number): number => {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  };
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+  }
 
   const easeOutElastic = (t: number): number => {
-    const c4 = (2 * Math.PI) / 3;
+    const c4 = (2 * Math.PI) / 3
     return t === 0
       ? 0
       : t === 1
       ? 1
-      : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
-  };
+      : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1
+  }
 
   const easeOutBounce = (t: number): number => {
-    const n1 = 7.5625;
-    const d1 = 2.75;
+    const n1 = 7.5625
+    const d1 = 2.75
     if (t < 1 / d1) {
-      return n1 * t * t;
+      return n1 * t * t
     } else if (t < 2 / d1) {
-      return n1 * (t -= 1.5 / d1) * t + 0.75;
+      return n1 * (t -= 1.5 / d1) * t + 0.75
     } else if (t < 2.5 / d1) {
-      return n1 * (t -= 2.25 / d1) * t + 0.9375;
+      return n1 * (t -= 2.25 / d1) * t + 0.9375
     } else {
-      return n1 * (t -= 2.625 / d1) * t + 0.984375;
+      return n1 * (t -= 2.625 / d1) * t + 0.984375
     }
-  };
+  }
 
   const renderProductOnCanvas = (
     canvas: HTMLCanvasElement,
@@ -382,49 +381,49 @@ const AdminAdvertising: React.FC = () => {
     animationProgress = 1,
     animationType = "zoom"
   ) => {
-    const { width, height } = canvas;
+    const { width, height } = canvas
 
     // Aplicar diferentes tipos de animación con easing
-    let imageScale = 1;
-    let imageOpacity = 1;
-    let imageRotation = 0;
-    const imageOffsetX = 0;
-    let imageOffsetY = 0;
-    let textOffsetY = 0;
-    let textOpacity = 1;
+    let imageScale = 1
+    let imageOpacity = 1
+    let imageRotation = 0
+    const imageOffsetX = 0
+    let imageOffsetY = 0
+    let textOffsetY = 0
+    let textOpacity = 1
 
-    const easedProgress = easeInOutCubic(animationProgress);
+    const easedProgress = easeInOutCubic(animationProgress)
 
     switch (animationType) {
       case "fade":
-        imageOpacity = easedProgress;
-        textOpacity = easedProgress;
-        break;
+        imageOpacity = easedProgress
+        textOpacity = easedProgress
+        break
 
       case "zoom":
-        imageScale = 0.3 + easedProgress * 0.7; // De 30% a 100%
-        imageOpacity = easedProgress;
-        textOpacity = Math.max(0, easedProgress - 0.3) / 0.7; // Texto aparece después
-        break;
+        imageScale = 0.3 + easedProgress * 0.7 // De 30% a 100%
+        imageOpacity = easedProgress
+        textOpacity = Math.max(0, easedProgress - 0.3) / 0.7 // Texto aparece después
+        break
 
       case "slide":
-        imageOffsetY = (1 - easedProgress) * height * 0.5; // Desliza desde abajo
-        textOffsetY = (1 - easedProgress) * 100;
-        imageOpacity = easedProgress;
-        textOpacity = easedProgress;
-        break;
+        imageOffsetY = (1 - easedProgress) * height * 0.5 // Desliza desde abajo
+        textOffsetY = (1 - easedProgress) * 100
+        imageOpacity = easedProgress
+        textOpacity = easedProgress
+        break
 
       case "rotate":
-        imageRotation = (1 - easeOutElastic(animationProgress)) * Math.PI * 2; // Rotación con elastic
-        imageScale = 0.5 + easedProgress * 0.5;
-        imageOpacity = easedProgress;
-        textOpacity = Math.max(0, easedProgress - 0.4) / 0.6;
-        break;
+        imageRotation = (1 - easeOutElastic(animationProgress)) * Math.PI * 2 // Rotación con elastic
+        imageScale = 0.5 + easedProgress * 0.5
+        imageOpacity = easedProgress
+        textOpacity = Math.max(0, easedProgress - 0.4) / 0.6
+        break
     }
 
     // Fondo beige claro / blanco hueso
-    ctx.fillStyle = "#F5F2ED";
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = "#F5F2ED"
+    ctx.fillRect(0, 0, width, height)
 
     // Función para dibujar siluetas florales grandes y sutiles
     const drawFloralSilhouette = (
@@ -434,187 +433,187 @@ const AdminAdvertising: React.FC = () => {
       opacity: number,
       rotation = 0
     ) => {
-      ctx.save();
-      ctx.globalAlpha = opacity * imageOpacity * 0.25;
-      ctx.translate(x, y);
-      ctx.rotate(rotation);
+      ctx.save()
+      ctx.globalAlpha = opacity * imageOpacity * 0.25
+      ctx.translate(x, y)
+      ctx.rotate(rotation)
 
       // Color gris claro para las siluetas
-      ctx.fillStyle = "#D1C7BD";
+      ctx.fillStyle = "#D1C7BD"
 
       // Dibujar flor estilizada grande
-      for (let i = 0; i < 8; i++) {
-        ctx.save();
-        ctx.rotate((i * Math.PI * 2) / 8);
+      for (let i = 0 i < 8 i++) {
+        ctx.save()
+        ctx.rotate((i * Math.PI * 2) / 8)
 
         // Pétalo elegante
-        ctx.beginPath();
-        ctx.moveTo(0, -size * 1.4);
-        ctx.quadraticCurveTo(size * 0.6, -size * 1.1, size * 0.8, -size * 0.4);
-        ctx.quadraticCurveTo(size * 0.9, size * 0.1, size * 0.5, size * 0.7);
-        ctx.quadraticCurveTo(size * 0.2, size * 0.9, 0, size * 0.5);
-        ctx.quadraticCurveTo(-size * 0.2, size * 0.9, -size * 0.5, size * 0.7);
-        ctx.quadraticCurveTo(-size * 0.9, size * 0.1, -size * 0.8, -size * 0.4);
-        ctx.quadraticCurveTo(-size * 0.6, -size * 1.1, 0, -size * 1.4);
-        ctx.fill();
+        ctx.beginPath()
+        ctx.moveTo(0, -size * 1.4)
+        ctx.quadraticCurveTo(size * 0.6, -size * 1.1, size * 0.8, -size * 0.4)
+        ctx.quadraticCurveTo(size * 0.9, size * 0.1, size * 0.5, size * 0.7)
+        ctx.quadraticCurveTo(size * 0.2, size * 0.9, 0, size * 0.5)
+        ctx.quadraticCurveTo(-size * 0.2, size * 0.9, -size * 0.5, size * 0.7)
+        ctx.quadraticCurveTo(-size * 0.9, size * 0.1, -size * 0.8, -size * 0.4)
+        ctx.quadraticCurveTo(-size * 0.6, -size * 1.1, 0, -size * 1.4)
+        ctx.fill()
 
-        ctx.restore();
+        ctx.restore()
       }
 
       // Centro de la flor
-      ctx.fillStyle = "#C4B8A9";
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = "#C4B8A9"
+      ctx.beginPath()
+      ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2)
+      ctx.fill()
 
-      ctx.restore();
-    };
+      ctx.restore()
+    }
 
     // Siluetas florales en las esquinas
-    drawFloralSilhouette(120, 180, 45, 1, 0);
-    drawFloralSilhouette(width - 120, height - 200, 50, 1, Math.PI / 4);
-    drawFloralSilhouette(80, height - 300, 40, 1, -Math.PI / 6);
-    drawFloralSilhouette(width - 80, 250, 35, 1, Math.PI / 3);
+    drawFloralSilhouette(120, 180, 45, 1, 0)
+    drawFloralSilhouette(width - 120, height - 200, 50, 1, Math.PI / 4)
+    drawFloralSilhouette(80, height - 300, 40, 1, -Math.PI / 6)
+    drawFloralSilhouette(width - 80, 250, 35, 1, Math.PI / 3)
 
     // IMAGEN DEL PRODUCTO con animaciones
-    const imageAreaHeight = height * 0.65;
-    const imageAreaWidth = width * 0.8;
-    const imageAreaY = height * 0.15 + imageOffsetY;
-    const imageAreaX = (width - imageAreaWidth) / 2 + imageOffsetX;
+    const imageAreaHeight = height * 0.65
+    const imageAreaWidth = width * 0.8
+    const imageAreaY = height * 0.15 + imageOffsetY
+    const imageAreaX = (width - imageAreaWidth) / 2 + imageOffsetX
 
     // Calcular dimensiones de imagen
-    const imageAspect = image.width / image.height;
-    const areaAspect = imageAreaWidth / imageAreaHeight;
+    const imageAspect = image.width / image.height
+    const areaAspect = imageAreaWidth / imageAreaHeight
 
-    let drawWidth, drawHeight, drawX, drawY;
+    let drawWidth, drawHeight, drawX, drawY
 
     if (imageAspect > areaAspect) {
-      drawWidth = imageAreaWidth * imageScale;
-      drawHeight = drawWidth / imageAspect;
-      drawX = imageAreaX + (imageAreaWidth - drawWidth) / 2;
-      drawY = imageAreaY + (imageAreaHeight - drawHeight) / 2;
+      drawWidth = imageAreaWidth * imageScale
+      drawHeight = drawWidth / imageAspect
+      drawX = imageAreaX + (imageAreaWidth - drawWidth) / 2
+      drawY = imageAreaY + (imageAreaHeight - drawHeight) / 2
     } else {
-      drawHeight = imageAreaHeight * imageScale;
-      drawWidth = drawHeight * imageAspect;
-      drawX = imageAreaX + (imageAreaWidth - drawWidth) / 2;
-      drawY = imageAreaY + (imageAreaHeight - drawHeight) / 2;
+      drawHeight = imageAreaHeight * imageScale
+      drawWidth = drawHeight * imageAspect
+      drawX = imageAreaX + (imageAreaWidth - drawWidth) / 2
+      drawY = imageAreaY + (imageAreaHeight - drawHeight) / 2
     }
 
     // Sombra con opacidad animada
-    ctx.shadowColor = `rgba(0, 0, 0, ${0.08 * imageOpacity})`;
-    ctx.shadowBlur = 20 * imageOpacity;
-    ctx.shadowOffsetY = 8 * imageOpacity;
+    ctx.shadowColor = `rgba(0, 0, 0, ${0.08 * imageOpacity})`
+    ctx.shadowBlur = 20 * imageOpacity
+    ctx.shadowOffsetY = 8 * imageOpacity
 
     // Dibujar imagen con transformaciones
-    ctx.save();
-    ctx.globalAlpha = imageOpacity;
-    ctx.translate(drawX + drawWidth / 2, drawY + drawHeight / 2);
-    ctx.rotate(imageRotation);
-    ctx.translate(-drawWidth / 2, -drawHeight / 2);
+    ctx.save()
+    ctx.globalAlpha = imageOpacity
+    ctx.translate(drawX + drawWidth / 2, drawY + drawHeight / 2)
+    ctx.rotate(imageRotation)
+    ctx.translate(-drawWidth / 2, -drawHeight / 2)
 
-    ctx.beginPath();
-    ctx.roundRect(0, 0, drawWidth, drawHeight, 12);
-    ctx.clip();
-    ctx.drawImage(image, 0, 0, drawWidth, drawHeight);
-    ctx.restore();
+    ctx.beginPath()
+    ctx.roundRect(0, 0, drawWidth, drawHeight, 12)
+    ctx.clip()
+    ctx.drawImage(image, 0, 0, drawWidth, drawHeight)
+    ctx.restore()
 
     // Resetear sombra
-    ctx.shadowColor = "transparent";
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
+    ctx.shadowColor = "transparent"
+    ctx.shadowBlur = 0
+    ctx.shadowOffsetY = 0
 
     // ÁREA DE TEXTO con animaciones
-    let textY = imageAreaY + imageAreaHeight + 60 + textOffsetY;
+    let textY = imageAreaY + imageAreaHeight + 60 + textOffsetY
 
     if (config.showProductName) {
-      ctx.save();
-      ctx.globalAlpha = textOpacity;
-      ctx.fillStyle = "#2C2C2C";
-      ctx.font = "400 64px 'Playfair Display', serif";
-      ctx.textAlign = "center";
+      ctx.save()
+      ctx.globalAlpha = textOpacity
+      ctx.fillStyle = "#2C2C2C"
+      ctx.font = "400 64px 'Playfair Display', serif"
+      ctx.textAlign = "center"
 
       // Dividir texto en líneas
-      const maxWidth = width * 0.8;
-      const words = product.title.split(" ");
-      let line = "";
-      const lines: string[] = [];
+      const maxWidth = width * 0.8
+      const words = product.title.split(" ")
+      let line = ""
+      const lines: string[] = []
 
       for (const word of words) {
-        const testLine = line + word + " ";
-        const metrics = ctx.measureText(testLine);
+        const testLine = line + word + " "
+        const metrics = ctx.measureText(testLine)
         if (metrics.width > maxWidth && line !== "") {
-          lines.push(line.trim());
-          line = word + " ";
+          lines.push(line.trim())
+          line = word + " "
         } else {
-          line = testLine;
+          line = testLine
         }
       }
-      lines.push(line.trim());
+      lines.push(line.trim())
 
-      const displayLines = lines.slice(0, 2);
+      const displayLines = lines.slice(0, 2)
       displayLines.forEach((textLine, index) => {
-        ctx.fillText(textLine, width / 2, textY + index * 70);
-      });
+        ctx.fillText(textLine, width / 2, textY + index * 70)
+      })
 
-      ctx.restore();
-      textY += displayLines.length * 70 + 30;
+      ctx.restore()
+      textY += displayLines.length * 70 + 30
     }
 
     if (config.showProductPrice) {
-      ctx.save();
-      ctx.globalAlpha = textOpacity;
+      ctx.save()
+      ctx.globalAlpha = textOpacity
 
       if (product.discount && product.discount > 0 && product.discount !== 0) {
-        const originalPrice = product.price;
-        const discountedPrice = originalPrice * (1 - product.discount / 100);
+        const originalPrice = product.price
+        const discountedPrice = originalPrice * (1 - product.discount / 100)
 
         // Precio con descuento
-        ctx.fillStyle = "#7A5C4A";
-        ctx.font = "600 48px 'Lato', sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(`$${discountedPrice.toFixed(2)}`, width / 2, textY);
+        ctx.fillStyle = "#7A5C4A"
+        ctx.font = "600 48px 'Lato', sans-serif"
+        ctx.textAlign = "center"
+        ctx.fillText(`$${discountedPrice.toFixed(2)}`, width / 2, textY)
 
         // Precio original tachado
-        ctx.fillStyle = "#999999";
-        ctx.font = "400 36px 'Lato', sans-serif";
-        const priceText = `$${originalPrice.toFixed(2)}`;
-        const priceWidth = ctx.measureText(priceText).width;
-        ctx.fillText(priceText, width / 2, textY + 45);
+        ctx.fillStyle = "#999999"
+        ctx.font = "400 36px 'Lato', sans-serif"
+        const priceText = `$${originalPrice.toFixed(2)}`
+        const priceWidth = ctx.measureText(priceText).width
+        ctx.fillText(priceText, width / 2, textY + 45)
 
         // Línea tachada
-        ctx.strokeStyle = "#999999";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(width / 2 - priceWidth / 2, textY + 40);
-        ctx.lineTo(width / 2 + priceWidth / 2, textY + 40);
-        ctx.stroke();
+        ctx.strokeStyle = "#999999"
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(width / 2 - priceWidth / 2, textY + 40)
+        ctx.lineTo(width / 2 + priceWidth / 2, textY + 40)
+        ctx.stroke()
 
         // Badge de descuento
-        const badgeSize = 35;
-        const badgeMargin = 50;
-        const badgeX = width - badgeMargin;
-        const badgeY = height - badgeMargin;
+        const badgeSize = 35
+        const badgeMargin = 50
+        const badgeX = width - badgeMargin
+        const badgeY = height - badgeMargin
 
-        ctx.fillStyle = "#7A5C4A";
-        ctx.beginPath();
-        ctx.arc(badgeX, badgeY, badgeSize, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = "#7A5C4A"
+        ctx.beginPath()
+        ctx.arc(badgeX, badgeY, badgeSize, 0, Math.PI * 2)
+        ctx.fill()
 
-        ctx.fillStyle = "#FFFFFF";
-        ctx.font = "600 22px 'Lato', sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(`-${product.discount}%`, badgeX, badgeY + 8);
+        ctx.fillStyle = "#FFFFFF"
+        ctx.font = "600 22px 'Lato', sans-serif"
+        ctx.textAlign = "center"
+        ctx.fillText(`-${product.discount}%`, badgeX, badgeY + 8)
       } else {
         // Precio sin descuento
-        ctx.fillStyle = "#7A5C4A";
-        ctx.font = "600 48px 'Lato', sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(`$${product.price.toFixed(2)}`, width / 2, textY);
+        ctx.fillStyle = "#7A5C4A"
+        ctx.font = "600 48px 'Lato', sans-serif"
+        ctx.textAlign = "center"
+        ctx.fillText(`$${product.price.toFixed(2)}`, width / 2, textY)
       }
 
-      ctx.restore();
+      ctx.restore()
     }
-  };
+  }
 
   // Función para renderizar texto con wrapping automático
   const renderWrappedText = (
@@ -627,157 +626,157 @@ const AdminAdvertising: React.FC = () => {
     font: string,
     color: string
   ) => {
-    ctx.save();
-    ctx.font = font;
-    ctx.fillStyle = color;
-    ctx.textAlign = "center";
+    ctx.save()
+    ctx.font = font
+    ctx.fillStyle = color
+    ctx.textAlign = "center"
 
     // Dividir texto en palabras
-    const words = text.split(" ");
-    const lines: string[] = [];
-    let currentLine = "";
+    const words = text.split(" ")
+    const lines: string[] = []
+    let currentLine = ""
 
     for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const metrics = ctx.measureText(testLine);
+      const testLine = currentLine ? `${currentLine} ${word}` : word
+      const metrics = ctx.measureText(testLine)
 
       if (metrics.width > maxWidth && currentLine !== "") {
-        lines.push(currentLine);
-        currentLine = word;
+        lines.push(currentLine)
+        currentLine = word
       } else {
-        currentLine = testLine;
+        currentLine = testLine
       }
     }
 
     if (currentLine) {
-      lines.push(currentLine);
+      lines.push(currentLine)
     }
 
     // Renderizar cada línea
     lines.forEach((line, index) => {
-      ctx.fillText(line, x, y + index * lineHeight);
-    });
+      ctx.fillText(line, x, y + index * lineHeight)
+    })
 
-    ctx.restore();
-    return lines.length;
-  };
+    ctx.restore()
+    return lines.length
+  }
 
   // Función principal para generar video
   const handleGenerateVideo = async () => {
     if (!isOnline) {
       setError(
         "No hay conexión a internet. Verifica tu conexión e intenta nuevamente."
-      );
-      return;
+      )
+      return
     }
 
     if (backendStatus !== "online") {
       setError(
         "Backend no disponible. Verifica que el servidor esté corriendo."
-      );
-      return;
+      )
+      return
     }
 
-    const productsToUse = getFilteredProducts();
+    const productsToUse = getFilteredProducts()
     if (productsToUse.length === 0) {
-      setError("No hay productos disponibles con los filtros seleccionados.");
-      return;
+      setError("No hay productos disponibles con los filtros seleccionados.")
+      return
     }
 
-    setIsGenerating(true);
-    setGenerationStatus("generating");
-    setGenerationProgress(0);
-    setGenerationMessage("Preparando canvas para video...");
-    setError(null);
+    setIsGenerating(true)
+    setGenerationStatus("generating")
+    setGenerationProgress(0)
+    setGenerationMessage("Preparando canvas para video...")
+    setError(null)
 
     try {
-      const canvas = canvasRef.current;
+      const canvas = canvasRef.current
       if (!canvas) {
-        throw new Error("Canvas no disponible");
+        throw new Error("Canvas no disponible")
       }
 
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d")
       if (!ctx) {
-        throw new Error("Contexto 2D no disponible");
+        throw new Error("Contexto 2D no disponible")
       }
 
       // Configurar canvas para formato de historia (9:16)
-      canvas.width = 1080;
-      canvas.height = 1920;
+      canvas.width = 1080
+      canvas.height = 1920
 
-      setGenerationMessage("Cargando imágenes de productos...");
+      setGenerationMessage("Cargando imágenes de productos...")
 
       // Cargar todas las imágenes primero
       const imagePromises = productsToUse.map(async (product, index) => {
         try {
-          const imageUrl = getProxiedImageUrl(product.thumbnails[0]);
-          const image = await loadImage(imageUrl, product);
-          setGenerationProgress(((index + 1) / productsToUse.length) * 30);
-          return { product, image };
+          const imageUrl = getProxiedImageUrl(product.thumbnails[0])
+          const image = await loadImage(imageUrl, product)
+          setGenerationProgress(((index + 1) / productsToUse.length) * 30)
+          return { product, image }
         } catch (error) {
           console.warn(
             `⚠️ Error cargando imagen para ${product.title}:`,
             error
-          );
-          const canvas = document.createElement("canvas");
-          canvas.width = 400;
-          canvas.height = 400;
-          const ctx = canvas.getContext("2d");
+          )
+          const canvas = document.createElement("canvas")
+          canvas.width = 400
+          canvas.height = 400
+          const ctx = canvas.getContext("2d")
           if (ctx) {
-            ctx.fillStyle = "#6366F1";
-            ctx.fillRect(0, 0, 400, 400);
-            ctx.fillStyle = "#FFFFFF";
-            ctx.font = "20px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(product.title.substring(0, 15), 200, 200);
+            ctx.fillStyle = "#6366F1"
+            ctx.fillRect(0, 0, 400, 400)
+            ctx.fillStyle = "#FFFFFF"
+            ctx.font = "20px Arial"
+            ctx.textAlign = "center"
+            ctx.fillText(product.title.substring(0, 15), 200, 200)
           }
 
-          return new Promise<{ product: Product; image: HTMLImageElement }>(
+          return new Promise<{ product: Product image: HTMLImageElement }>(
             (resolve) => {
               canvas.toBlob((blob) => {
                 if (blob) {
-                  const url = URL.createObjectURL(blob);
-                  const img = new Image();
+                  const url = URL.createObjectURL(blob)
+                  const img = new Image()
                   img.onload = () => {
-                    URL.revokeObjectURL(url);
-                    resolve({ product, image: img });
-                  };
-                  img.src = url;
+                    URL.revokeObjectURL(url)
+                    resolve({ product, image: img })
+                  }
+                  img.src = url
                 }
-              });
+              })
             }
-          );
+          )
         }
-      });
+      })
 
-      const productImages = await Promise.all(imagePromises);
-      setGenerationMessage("Iniciando grabación de video...");
+      const productImages = await Promise.all(imagePromises)
+      setGenerationMessage("Iniciando grabación de video...")
 
       // Detectar codec soportado
-      const supportedCodec = getSupportedVideoCodec();
+      const supportedCodec = getSupportedVideoCodec()
 
       // Configurar MediaRecorder
-      const stream = canvas.captureStream(60); // 60 FPS para animaciones más fluidas
-      recordedChunksRef.current = [];
+      const stream = canvas.captureStream(60) // 60 FPS para animaciones más fluidas
+      recordedChunksRef.current = []
 
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: supportedCodec,
-      });
+      })
 
-      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorderRef.current = mediaRecorder
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          recordedChunksRef.current.push(event.data);
+          recordedChunksRef.current.push(event.data)
         }
-      };
+      }
 
       mediaRecorder.onstop = () => {
-        const actualMimeType = mediaRecorder.mimeType;
+        const actualMimeType = mediaRecorder.mimeType
         const blob = new Blob(recordedChunksRef.current, {
           type: actualMimeType,
-        });
-        const videoUrl = URL.createObjectURL(blob);
+        })
+        const videoUrl = URL.createObjectURL(blob)
 
         const result: GeneratedVideo = {
           videoBlob: blob,
@@ -787,68 +786,68 @@ const AdminAdvertising: React.FC = () => {
           config: config,
           duration: productsToUse.length * config.productDuration + 2,
           size: blob.size,
-        };
+        }
 
-        setGeneratedVideo(result);
-        setGenerationStatus("success");
-        setGenerationMessage("¡Video generado exitosamente!");
-        setGenerationProgress(100);
-        setIsGenerating(false);
+        setGeneratedVideo(result)
+        setGenerationStatus("success")
+        setGenerationMessage("¡Video generado exitosamente!")
+        setGenerationProgress(100)
+        setIsGenerating(false)
 
-        console.log("✅ Video generado:", result);
-      };
+        console.log("✅ Video generado:", result)
+      }
 
       // Iniciar grabación
-      mediaRecorder.start();
+      mediaRecorder.start()
 
       // Renderizar intro
-      setGenerationMessage("Renderizando introducción...");
+      setGenerationMessage("Renderizando introducción...")
 
-      ctx.fillStyle = "#F5F2ED";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#F5F2ED"
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-      ctx.fillStyle = "#2C2C2C";
-      ctx.font = "300 88px 'Playfair Display', serif";
-      ctx.textAlign = "center";
+      ctx.fillStyle = "#2C2C2C"
+      ctx.font = "300 88px 'Playfair Display', serif"
+      ctx.textAlign = "center"
       ctx.fillText(
         customTexts.brandName,
         canvas.width / 2,
         canvas.height / 2 - 40
-      );
+      )
 
-      ctx.font = "400 52px 'Playfair Display', serif";
-      ctx.fillStyle = "#7A5C4A";
+      ctx.font = "400 52px 'Playfair Display', serif"
+      ctx.fillStyle = "#7A5C4A"
       ctx.fillText(
         customTexts.introSubtitle,
         canvas.width / 2,
         canvas.height / 2 + 20
-      );
+      )
 
-      ctx.font = "300 36px 'Playfair Display', serif";
-      ctx.fillStyle = "#999999";
+      ctx.font = "300 36px 'Playfair Display', serif"
+      ctx.fillStyle = "#999999"
       ctx.fillText(
         customTexts.introDescription,
         canvas.width / 2,
         canvas.height / 2 + 70
-      );
+      )
 
-      await new Promise((resolve) => setTimeout(resolve, 2500));
+      await new Promise((resolve) => setTimeout(resolve, 2500))
 
       // Renderizar cada producto con animación fluida
-      for (let i = 0; i < productImages.length; i++) {
-        const { product, image } = productImages[i];
+      for (let i = 0 i < productImages.length i++) {
+        const { product, image } = productImages[i]
 
         setGenerationMessage(
           `Renderizando producto ${i + 1} de ${productImages.length}: ${
             product.title
           }`
-        );
-        setGenerationProgress(30 + (i / productImages.length) * 60);
+        )
+        setGenerationProgress(30 + (i / productImages.length) * 60)
 
         // Animación de entrada más fluida (90 frames = 1.5 segundos a 60fps)
-        const animationFrames = 90;
-        for (let frame = 0; frame <= animationFrames; frame++) {
-          const progress = frame / animationFrames;
+        const animationFrames = 90
+        for (let frame = 0 frame <= animationFrames frame++) {
+          const progress = frame / animationFrames
           renderProductOnCanvas(
             canvas,
             ctx,
@@ -856,13 +855,13 @@ const AdminAdvertising: React.FC = () => {
             image,
             progress,
             config.animationType
-          );
-          await new Promise((resolve) => setTimeout(resolve, 16.67)); // ~60fps
+          )
+          await new Promise((resolve) => setTimeout(resolve, 16.67)) // ~60fps
         }
 
         // Mostrar producto estático
-        const staticDuration = (config.productDuration - 1.5) * 1000;
-        const startTime = Date.now();
+        const staticDuration = (config.productDuration - 1.5) * 1000
+        const startTime = Date.now()
         while (Date.now() - startTime < staticDuration) {
           renderProductOnCanvas(
             canvas,
@@ -871,22 +870,22 @@ const AdminAdvertising: React.FC = () => {
             image,
             1,
             config.animationType
-          );
-          await new Promise((resolve) => setTimeout(resolve, 16.67));
+          )
+          await new Promise((resolve) => setTimeout(resolve, 16.67))
         }
       }
 
       // Renderizar outro
-      setGenerationMessage("Renderizando cierre...");
+      setGenerationMessage("Renderizando cierre...")
 
-      ctx.fillStyle = "#F5F2ED";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#F5F2ED"
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
 
       // Configuración para el texto del outro
-      const outroPadding = 100; // Padding de 100px desde los bordes
-      const maxTextWidth = canvas.width - outroPadding * 2;
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
+      const outroPadding = 100 // Padding de 100px desde los bordes
+      const maxTextWidth = canvas.width - outroPadding * 2
+      const centerX = canvas.width / 2
+      const centerY = canvas.height / 2
 
       // Renderizar mensaje principal con wrapping
       const mainMessageLines = renderWrappedText(
@@ -898,10 +897,10 @@ const AdminAdvertising: React.FC = () => {
         80,
         "400 72px 'Playfair Display', serif",
         "#2C2C2C"
-      );
+      )
 
       // Calcular posición para el submensaje basado en cuántas líneas ocupó el mensaje principal
-      const subMessageY = centerY - 60 + mainMessageLines * 80 + 40;
+      const subMessageY = centerY - 60 + mainMessageLines * 80 + 40
 
       // Renderizar submensaje con wrapping
       const subMessageLines = renderWrappedText(
@@ -913,52 +912,52 @@ const AdminAdvertising: React.FC = () => {
         60,
         "300 48px 'Playfair Display', serif",
         "#7A5C4A"
-      );
+      )
 
       // Calcular posición para el nombre de la marca
-      const brandNameY = subMessageY + subMessageLines * 60 + 40;
+      const brandNameY = subMessageY + subMessageLines * 60 + 40
 
       // Renderizar nombre de la marca
-      ctx.font = "400 36px 'Lato', sans-serif";
-      ctx.fillStyle = "#999999";
-      ctx.textAlign = "center";
-      ctx.fillText(customTexts.brandName, centerX, brandNameY);
+      ctx.font = "400 36px 'Lato', sans-serif"
+      ctx.fillStyle = "#999999"
+      ctx.textAlign = "center"
+      ctx.fillText(customTexts.brandName, centerX, brandNameY)
 
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 3000))
 
-      setGenerationProgress(95);
-      setGenerationMessage("Finalizando video...");
+      setGenerationProgress(95)
+      setGenerationMessage("Finalizando video...")
 
-      mediaRecorder.stop();
+      mediaRecorder.stop()
     } catch (error) {
-      console.error("❌ Error generando video:", error);
-      setGenerationStatus("error");
+      console.error("❌ Error generando video:", error)
+      setGenerationStatus("error")
       setGenerationMessage(
         error instanceof Error
           ? error.message
           : "Error desconocido al generar el video"
-      );
-      setIsGenerating(false);
+      )
+      setIsGenerating(false)
     }
-  };
+  }
 
   // Función para descargar video
   const handleDownloadVideo = (video: GeneratedVideo) => {
-    const link = document.createElement("a");
-    link.href = video.videoUrl;
-    const extension = video.videoBlob.type.includes("mp4") ? "mp4" : "webm";
-    link.download = `desfile_moda_${video.videoId}.${extension}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const link = document.createElement("a")
+    link.href = video.videoUrl
+    const extension = video.videoBlob.type.includes("mp4") ? "mp4" : "webm"
+    link.download = `desfile_moda_${video.videoId}.${extension}`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
 
-    console.log(`📥 Descargando video: ${video.videoId} como .${extension}`);
-  };
+    console.log(`📥 Descargando video: ${video.videoId} como .${extension}`)
+  }
 
   // Función para compartir video
   const handleShareVideo = async (video: GeneratedVideo) => {
-    const extension = video.videoBlob.type.includes("mp4") ? "mp4" : "webm";
-    const fileName = `desfile_moda.${extension}`;
+    const extension = video.videoBlob.type.includes("mp4") ? "mp4" : "webm"
+    const fileName = `desfile_moda.${extension}`
 
     if (
       navigator.share &&
@@ -977,41 +976,41 @@ const AdminAdvertising: React.FC = () => {
               type: video.videoBlob.type,
             }),
           ],
-        });
+        })
       } catch (error) {
-        console.log("Error sharing:", error);
-        navigator.clipboard.writeText(video.videoUrl);
-        alert("URL del video copiada al portapapeles");
+        console.log("Error sharing:", error)
+        navigator.clipboard.writeText(video.videoUrl)
+        alert("URL del video copiada al portapapeles")
       }
     } else {
-      navigator.clipboard.writeText(video.videoUrl);
-      alert("URL del video copiada al portapapeles");
+      navigator.clipboard.writeText(video.videoUrl)
+      alert("URL del video copiada al portapapeles")
     }
-  };
+  }
 
   // Función para formatear tamaño de archivo
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    if (bytes === 0) return "0 Bytes"
+    const k = 1024
+    const sizes = ["Bytes", "KB", "MB", "GB"]
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
     return (
       Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
-    );
-  };
+    )
+  }
 
   // Función para manejar errores de carga de imágenes en la UI
   const handleImageError = (
     e: React.SyntheticEvent<HTMLImageElement>,
     product: Product
   ) => {
-    const target = e.currentTarget;
-    if (target.src.includes("placeholder")) return;
+    const target = e.currentTarget
+    if (target.src.includes("placeholder")) return
 
     target.src = `${BACKEND_URL}/images/placeholder?width=200&height=200&text=${encodeURIComponent(
       product.title.substring(0, 10)
-    )}`;
-  };
+    )}`
+  }
 
   // Mostrar loading
   if (isLoading) {
@@ -1044,7 +1043,7 @@ const AdminAdvertising: React.FC = () => {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   // Mostrar error si no se pudieron cargar los datos
@@ -1065,7 +1064,7 @@ const AdminAdvertising: React.FC = () => {
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -1321,12 +1320,12 @@ const AdminAdvertising: React.FC = () => {
                   {categories.map((category) => {
                     const count = products.filter(
                       (p) => p.category === category
-                    ).length;
+                    ).length
                     return (
                       <option key={category} value={category}>
                         {category} ({count} productos)
                       </option>
-                    );
+                    )
                   })}
                 </select>
               </div>
@@ -1719,7 +1718,7 @@ const AdminAdvertising: React.FC = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AdminAdvertising;
+export default AdminAdvertising

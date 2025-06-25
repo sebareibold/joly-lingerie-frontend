@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import {
@@ -74,7 +76,7 @@ export default function AdminOrderDetail() {
   const [updating, setUpdating] = useState(false)
   const [newStatus, setNewStatus] = useState("")
   const [adminNotes, setAdminNotes] = useState("")
-  const [editingNotes, setEditingNotes] = useState(false)
+  // Removed unused editingNotes state
 
   useEffect(() => {
     if (id) {
@@ -96,9 +98,10 @@ export default function AdminOrderDetail() {
       } else {
         throw new Error(response.error || "Error cargando la orden")
       }
-    } catch (err) {
+    } catch (err: unknown) {
+      // Type 'err' as unknown
       console.error("Error loading order:", err)
-      setError(err.message || "Error cargando la orden")
+      setError(err instanceof Error ? err.message : "Error cargando la orden") // Narrow type
     } finally {
       setLoading(false)
     }
@@ -114,7 +117,7 @@ export default function AdminOrderDetail() {
 
       if (response.success) {
         setOrder(response.order)
-        setEditingNotes(false)
+        // Removed setEditingNotes(false)
         // Show success message
         const successDiv = document.createElement("div")
         successDiv.className = "fixed top-4 right-4 bg-emerald-600 text-white px-6 py-3 rounded-lg shadow-lg z-50"
@@ -124,16 +127,25 @@ export default function AdminOrderDetail() {
       } else {
         throw new Error(response.error || "Error actualizando la orden")
       }
-    } catch (err) {
+    } catch (err: unknown) {
+      // Type 'err' as unknown
       console.error("Error updating order:", err)
-      alert(`Error actualizando la orden: ${err.message}`)
+      alert(`Error actualizando la orden: ${err instanceof Error ? err.message : "Error desconocido"}`) // Narrow type
     } finally {
       setUpdating(false)
     }
   }
 
   const getStatusConfig = (status: string) => {
-    const configs = {
+    const configs: {
+      [key: string]: {
+        label: string
+        className: string
+        icon: React.ElementType
+        bgClass: string
+      }
+    } = {
+      // Add index signature
       pending_manual: {
         label: "Pendiente (Efectivo)",
         className: "bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30",
@@ -594,9 +606,7 @@ export default function AdminOrderDetail() {
                 </select>
               </div>
 
-              <div>
-                
-              </div>
+              <div></div>
 
               <button
                 onClick={handleUpdateStatus}

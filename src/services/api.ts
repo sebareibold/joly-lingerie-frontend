@@ -1,1168 +1,567 @@
 // Este archivo se comporta como un manager de la API, de tal manera que únicamente los subsistemas del front se comunican con él.
 import axios from "axios"
 
-// Asegúrate de que esta URL coincida con el puerto donde tu backend está escuchando
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api"
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api"
 
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true, // Importante para enviar cookies (ej. tokens JWT)
-})
+// Cache para las respuestas de la API
+const apiCache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
 
-// Interceptor para añadir el token de autorización si existe
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("admin_token")
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  },
-)
+// Cola de peticiones para evitar el error 429 (Too Many Requests)
+const requestQueue: {
+  url: string
+  method: string
+  data?: any
+  params?: any
+  resolve: (value: any) => void
+  reject: (reason?: any) => void
+}[] = []
+let isProcessingQueue = false
+const REQUEST_INTERVAL = 100 // 100ms entre peticiones
 
-// Interceptor para manejar errores de respuesta (ej. 401 Unauthorized)
-const MAX_RETRIES = 3
-const RATE_LIMIT_DELAY_MS = 5000 // 5 segundos para rate limit
-
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config
-
-    if (error.response && error.response.status === 401) {
-      // Redirigir al login si el token expira o es inválido
-      localStorage.removeItem("admin_token")
-      window.location.href = "/admin/login"
-      return Promise.reject(error)
-    }
-
-    // Manejar 429 Too Many Requests con delay más largo
-    if (error.response && error.response.status === 429) {
-      originalRequest._retryCount = originalRequest._retryCount || 0
-
-      if (originalRequest._retryCount < MAX_RETRIES) {
-        originalRequest._retryCount++
-        console.warn(
-          `Rate limit exceeded (429). Retrying request ${originalRequest.url} (attempt ${originalRequest._retryCount}/${MAX_RETRIES})...`,
-        )
-
-        // Delay más largo para rate limiting
-        const delay = RATE_LIMIT_DELAY_MS * Math.pow(2, originalRequest._retryCount - 1) // Backoff exponencial
-        await new Promise((resolve) => setTimeout(resolve, delay))
-        return api(originalRequest)
-      } else {
-        console.error(`Max retries reached for request ${originalRequest.url}.`)
-        // Mostrar mensaje al usuario
-        if (typeof window !== "undefined") {
-          console.warn("Demasiadas solicitudes. Por favor, espera un momento antes de continuar.")
-        }
-      }
-    }
-
-    return Promise.reject(error)
-  },
-)
-
-class ApiService {
-  API_BASE_URL = API_URL
-  TOKEN_KEY = "admin_token"
-  MAX_PAGE_SIZE = 100
-  LOW_STOCK_THRESHOLD = 10
-
-  // Cache para almacenar respuestas y reducir solicitudes
-  private cache: Record<string, { data: unknown; timestamp: number }> = {}
-  private CACHE_DURATION = 5 * 60 * 1000 // 5 minutos en milisegundos
-
-  // Cache variables
-  private productsCache: unknown = null
-  private productsCacheTimestamp = 0
-  private siteContentCache: unknown = null
-  private siteContentCacheTimestamp = 0
-  private ordersCache: unknown = null
-  private ordersCacheTimestamp = 0
-
-  // Cache durations
-  private PRODUCTS_CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
-  private SITE_CONTENT_CACHE_DURATION = 60 * 60 * 1000 // 60 minutes
-  private ORDERS_CACHE_DURATION = 60 * 1000 // 1 minute
-
-  // Enhanced cache management with route-based prefetching
-  private routeDataCache: Map<string, { data: unknown; timestamp: number; loading: boolean }> = new Map()
-  private readonly ROUTE_CACHE_DURATION = 2 * 60 * 1000 // 2 minutes
-
-  // Sistema de throttling
-  private requestQueue: Array<() => Promise<any>> = []
-  private isProcessingQueue = false
-  private readonly REQUEST_INTERVAL = 1000 // 1 segundo entre peticiones
-
-  // Método para procesar cola de peticiones
-  private async processRequestQueue() {
-    if (this.isProcessingQueue || this.requestQueue.length === 0) {
-      return
-    }
-
-    this.isProcessingQueue = true
-
-    while (this.requestQueue.length > 0) {
-      const request = this.requestQueue.shift()
-      if (request) {
-        try {
-          await request()
-        } catch (error) {
-          console.error("Error processing queued request:", error)
-        }
-        // Esperar antes de la siguiente petición
-        await new Promise((resolve) => setTimeout(resolve, this.REQUEST_INTERVAL))
-      }
-    }
-
-    this.isProcessingQueue = false
+// Función para procesar la cola de peticiones
+const processRequestQueue = async () => {
+  if (isProcessingQueue || requestQueue.length === 0) {
+    return
   }
 
-  // Método para añadir petición a la cola
-  private queueRequest<T>(requestFn: () => Promise<T>): Promise<T> {
-    return new Promise((resolve, reject) => {
-      this.requestQueue.push(async () => {
-        try {
-          const result = await requestFn()
-          resolve(result)
-        } catch (error) {
-          reject(error)
-        }
-      })
-      this.processRequestQueue()
-    })
-  }
+  isProcessingQueue = true
 
-  // Método para verificar si hay una respuesta en caché
-  private getCachedResponse(cacheKey: string): any | null {
-    const cachedItem = this.cache[cacheKey]
-    if (cachedItem && Date.now() - cachedItem.timestamp < this.CACHE_DURATION) {
-      console.log(`Usando respuesta en caché para: ${cacheKey}`)
-      return cachedItem
-    }
-    return null
-  }
-
-  // Método para guardar una respuesta en caché
-  private setCachedResponse(cacheKey: string, data: any): void {
-    this.cache[cacheKey] = {
-      data,
-      timestamp: Date.now(),
-    }
-    console.log(`Respuesta guardada en caché: ${cacheKey}`)
-  }
-
-  // Método para generar una clave de caché basada en la URL y parámetros
-  private generateCacheKey(url: string, method = "GET", body?: any): string {
-    let key = `${method}:${url}`
-    if (body && method !== "GET") {
-      key += `:${JSON.stringify(body)}`
-    }
-    return key
-  }
-
-  // Method to clear orders cache specifically
-  public clearOrdersCache(): void {
-    this.ordersCache = null
-    this.ordersCacheTimestamp = 0
-    console.log("🗑️ Orders cache cleared")
-  }
-
-  // Enhanced cache clearing that preserves prefetched data briefly
-  clearCache(): void {
-    this.cache = {}
-    this.siteContentCache = null
-    this.productsCache = null
-    this.ordersCache = null
-    this.siteContentCacheTimestamp = 0
-    this.productsCacheTimestamp = 0
-    this.ordersCacheTimestamp = 0
-    // Don't clear route cache immediately - let it expire naturally
-    console.log("🗑️ API cache cleared (route cache preserved)")
-  }
-
-  // Método para limpiar caché específico de productos
-  public clearProductsCache(): void {
-    const keysToDelete = Object.keys(this.cache).filter((key) => key.includes("/products"))
-    keysToDelete.forEach((key) => delete this.cache[key])
-    console.log(`Caché de productos limpiada: ${keysToDelete.length} entradas eliminadas`)
-  }
-
-  // Prefetch data for admin routes
-  async prefetchRouteData(route: string): Promise<void> {
-    const cacheKey = `route_${route}`
-    const cached = this.routeDataCache.get(cacheKey)
-
-    // Don't prefetch if already loading or recently cached
-    if (cached && (cached.loading || Date.now() - cached.timestamp < this.ROUTE_CACHE_DURATION)) {
-      return
-    }
-
-    // Mark as loading
-    this.routeDataCache.set(cacheKey, { data: null, timestamp: Date.now(), loading: true })
-
+  while (requestQueue.length > 0) {
+    const { url, method, data, params, resolve, reject } = requestQueue.shift()!
     try {
-      let data: any = {}
-
-      switch (route) {
-        case "/admin":
-        case "/admin/dashboard":
-          // Prefetch dashboard data
-          const [productsRes, ordersRes, interactionsRes] = await Promise.allSettled([
-            this.getProducts({ limit: 5 }),
-            this.getAllOrders(1, 5),
-            this.getInteractionsSummary(),
-          ])
-
-          data = {
-            products: productsRes.status === "fulfilled" ? productsRes.value : null,
-            orders: ordersRes.status === "fulfilled" ? ordersRes.value : null,
-            interactions: interactionsRes.status === "fulfilled" ? interactionsRes.value : null,
-          }
-          break
-
-        case "/admin/products":
-          // Prefetch products data
-          data = await this.getProducts({ page: 1, limit: 10 })
-          break
-
-        case "/admin/orders":
-          // Prefetch orders data
-          data = await this.getAllOrders(1, 20)
-          break
-
-        case "/admin/content":
-          // Prefetch site content
-          data = await this.getSiteContent()
-          break
-      }
-
-      // Cache the prefetched data
-      this.routeDataCache.set(cacheKey, {
-        data,
-        timestamp: Date.now(),
-        loading: false,
-      })
-
-      console.log(`✅ Prefetched data for route: ${route}`)
+      const response = await makeRequestWithDelay(url, method, data, params)
+      resolve(response)
     } catch (error) {
-      console.error(`❌ Failed to prefetch data for route ${route}:`, error)
-      // Remove loading state on error
-      this.routeDataCache.delete(cacheKey)
+      reject(error)
     }
+    await new Promise((res) => setTimeout(res, REQUEST_INTERVAL)) // Esperar antes de la siguiente petición
   }
 
-  // Método para hacer peticiones con delay para evitar rate limiting
-  private async makeRequestWithDelay(requestFn: () => Promise<any>, delay = 2000): Promise<any> {
-    await new Promise((resolve) => setTimeout(resolve, delay))
-    return requestFn()
-  }
+  isProcessingQueue = false
+}
 
-  // Get prefetched route data
-  getPrefetchedRouteData(route: string): any | null {
-    const cacheKey = `route_${route}`
-    const cached = this.routeDataCache.get(cacheKey)
-
-    if (cached && !cached.loading && Date.now() - cached.timestamp < this.ROUTE_CACHE_DURATION) {
-      console.log(`📦 Using prefetched data for route: ${route}`)
-      return cached.data
-    }
-
-    return null
-  }
-
-  // Clear route cache
-  clearRouteCache(): void {
-    this.routeDataCache.clear()
-    console.log("🗑️ Route cache cleared")
-  }
-
-  /* ============================== PETICIONES AL SERVIDOR BACKEND ==============================*/
-
-  // Auth
-  async login(email: string, password: string) {
-    try {
-      console.log("API Service - Intentando iniciar sesión con email:", email)
-
-      // CAMBIO AQUÍ: Cambiado de "/auth/admin/login" a "/auth/login"
-      const response = await api.post("/auth/login", { email, password })
-      if (response.data.token) {
-        localStorage.setItem("admin_token", response.data.token)
-      }
-      return response.data
-    } catch (error) {
-      console.error("Error de inicio de sesión:", error)
-      throw error
-    }
-  }
-
-  async logout() {
-    try {
-      localStorage.removeItem("admin_token")
-      // Opcional: llamar a un endpoint de logout en el backend si hay invalidación de sesión
-      // await api.post('/auth/admin/logout');
-    } catch (error) {
-      console.error("Error de cierre de sesión:", error)
-      throw error
-    }
-  }
-
-  async checkAuth() {
-    try {
-      const response = await api.get("/auth/admin/check")
-      return response.data.isAuthenticated
-    } catch (error) {
-      return false
-    }
-  }
-
-  // Products
-  async getProducts(params?: {
-    page?: number
-    limit?: number
-    category?: string
-    searchTerm?: string
-    status?: boolean
-    sortBy?: string
-    sortOrder?: "asc" | "desc"
-  }) {
-    try {
-      const searchParams = new URLSearchParams()
-
-      if (params?.page) searchParams.append("page", params.page.toString())
-      if (params?.limit) searchParams.append("limit", params.limit.toString())
-      if (params?.category) searchParams.append("category", params.category)
-      if (params?.searchTerm) searchParams.append("search", params.searchTerm)
-      if (params?.status !== undefined) searchParams.append("status", params.status.toString())
-      if (params?.sortBy) searchParams.append("sortBy", params.sortBy)
-      if (params?.sortOrder) searchParams.append("sortOrder", params.sortOrder)
-
-      const url = `/products?${searchParams.toString()}`
-      const cacheKey = this.generateCacheKey(url)
-
-      console.log("API Service - Solicitando productos:", url)
-
-      // Verificar si hay una respuesta en caché
-      const cachedResponse = this.getCachedResponse(cacheKey)
-      if (cachedResponse) {
-        console.log("API Service - Usando datos en caché para productos")
-        return cachedResponse.data
-      }
-
-      const response = await api.get(url)
-      const data = response.data
-
-      console.log("API Service - Respuesta de productos recibida:", {
-        status: response.status,
-        dataKeys: Object.keys(data),
-        hasPayload: !!data.payload,
-        payloadLength: data.payload?.length || 0,
-      })
-
-      // Guardar la respuesta en caché
-      this.setCachedResponse(cacheKey, data)
-
-      return data
-    } catch (error) {
-      console.error("Error al obtener productos:", error)
-
-      // Proporcionar información más detallada del error
-      if (axios.isAxiosError(error)) {
-        console.error("Error de Axios:", {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-        })
-
-        // Manejar diferentes tipos de errores
-        if (error.response?.status === 500) {
-          throw new Error("Error interno del servidor. Intente nuevamente.")
-        } else if (error.response?.status === 404) {
-          throw new Error("Recurso no encontrado.")
-        } else if (error.code === "NETWORK_ERROR") {
-          throw new Error("Error de conexión. Verifique su conexión a internet.")
-        }
-      }
-
-      throw error
-    }
-  }
-
-  async getProduct(id: string) {
-    try {
-      const url = `/products/${id}`
-      const cacheKey = this.generateCacheKey(url)
-
-      // Verificar si hay una respuesta en caché
-      const cachedResponse = this.getCachedResponse(cacheKey)
-      if (cachedResponse) {
-        return cachedResponse.data
-      }
-
-      const response = await api.get(url)
-      const data = response.data
-
-      this.setCachedResponse(cacheKey, data)
-      return data
-    } catch (error) {
-      console.error("Error al obtener producto:", error)
-
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 404) {
-          return { success: false, error: "Producto no encontrado" }
-        } else if (error.response?.status === 400) {
-          return { success: false, error: "ID de producto inválido" }
-        }
-      }
-
-      throw error
-    }
-  }
-
-  async createProduct(productData: {
-    title: string
-    description: string
-    price: number
-    category: string
-    stock: number
-    size: string[] // Cambiado a array para múltiples tallas
-    status: boolean
-    thumbnails: string[]
-    discount?: number // NUEVO: Añadir descuento
-  }) {
-    try {
-      console.log("API Service - Creando producto con datos:", productData)
-
-      const url = "/products"
-      const response = await api.post(url, productData)
-
-      console.log("API Service - Respuesta de creación:", response.status, response.statusText)
-
-      // Limpiar caché después de una operación de escritura
-      this.clearCache()
-
-      return response.data
-    } catch (error) {
-      console.error("Error al crear producto:", error)
-      throw error
-    }
-  }
-
-  // MODIFICADO: Ahora acepta un objeto `productData` completo para la actualización
-  async updateProduct(
-    id: string,
-    productData: {
-      title?: string
-      description?: string
-      price?: number
-      category?: string
-      stock?: number
-      size?: string[]
-      status?: boolean
-      thumbnails?: string[]
-      discount?: number // NUEVO: Añadir descuento
+// Función auxiliar para hacer peticiones con delay
+const makeRequestWithDelay = async (url: string, method: string, data?: any, params?: any) => {
+  const config = {
+    method,
+    url: `${API_BASE_URL}${url}`,
+    data,
+    params,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
-  ) {
-    try {
-      console.log(`API Service - Actualizando producto ${id} con datos:`, productData)
-
-      const url = `/products/${id}`
-      const response = await api.put(url, productData) // Enviar el objeto completo
-
-      this.clearCache()
-      return response.data
-    } catch (error) {
-      console.error("Error al actualizar producto:", error)
-      throw error
-    }
   }
 
-  async deleteProduct(id: string) {
-    try {
-      console.log(`API Service - Eliminando producto ${id}`)
-
-      // Verificar si el producto existe primero
-      const existingProduct = await this.getProduct(id)
-      if (!existingProduct || !existingProduct.success) {
-        throw new Error("El producto no existe o no se puede eliminar")
-      }
-
-      const url = `/products/${id}`
-      const response = await api.delete(url)
-
-      console.log(`API Service - Producto ${id} eliminado exitosamente`)
-
-      // Limpiar cache después de eliminar
-      this.clearCache()
-      this.clearProductsCache()
-
-      return response.data
-    } catch (error) {
-      console.error("Error al eliminar producto:", error)
-
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 404) {
-          throw new Error("El producto no existe")
-        } else if (error.response?.status === 409) {
-          throw new Error("No se puede eliminar el producto porque está asociado a órdenes activas")
-        } else if (error.response?.status === 403) {
-          throw new Error("No tienes permisos para eliminar este producto")
-        }
-
-        const errorMessage = error.response?.data?.message || error.response?.data?.error || "Error desconocido"
-        throw new Error(`Error del servidor: ${errorMessage}`)
-      }
-
-      throw new Error("Error de conexión al eliminar el producto")
-    }
-  }
-
-  async getMostViewedProducts(limit = 5) {
-    try {
-      // CORRECCIÓN AQUÍ: Cambiado a la URL correcta para interacciones
-      const url = `/interactions/most-viewed-products?limit=${limit}`
-      const response = await api.get(url)
-      return response.data
-    } catch (error) {
-      console.error("Error al obtener productos más vistos:", error)
-      throw error
-    }
-  }
-
-  // Orders API
-  async getAllOrders(page = 1, limit = 20, status?: string) {
-    const now = Date.now()
-    const cacheKey = `orders_${page}_${limit}_${status || "all"}`
-
-    // Check cache but with shorter duration for orders
-    if (this.ordersCache && now - this.ordersCacheTimestamp < this.ORDERS_CACHE_DURATION) {
-      console.log("📦 Serving orders from cache:", cacheKey)
-      return this.ordersCache
-    }
-
-    try {
-      const searchParams = new URLSearchParams()
-      searchParams.append("page", page.toString())
-      searchParams.append("limit", limit.toString())
-      if (status) searchParams.append("status", status)
-
-      const url = `/orders?${searchParams.toString()}`
-      console.log("🌐 Fetching orders from API:", url)
-
-      const response = await api.get(url)
-
-      if (!response.data) {
-        throw new Error("No data received from server")
-      }
-
-      const data = response.data
-      console.log("✅ Orders API response:", {
-        status: response.status,
-        ordersCount: data.orders?.length || 0,
-        totalOrders: data.totalOrders || 0,
-        hasOrders: Array.isArray(data.orders),
-      })
-
-      // Validate response structure
-      if (!data.orders || !Array.isArray(data.orders)) {
-        console.warn("⚠️ Invalid orders structure, creating empty array")
-        data.orders = []
-      }
-
-      // Cache the response
-      this.ordersCache = data
-      this.ordersCacheTimestamp = now
-      console.log("💾 Orders cached successfully")
-
-      return data
-    } catch (error) {
-      console.error("❌ Error fetching orders:", error)
-
-      // Provide more detailed error information
-      if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          url: error.config?.url,
-        })
-
-        // Return a more specific error message
-        const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message
-        throw new Error(`Error del servidor: ${errorMessage}`)
-      }
-
-      throw new Error(`Error de red: ${error.message}`)
-    }
-  }
-
-  async getOrder(orderId: string) {
-    try {
-      const url = `/orders/${orderId}`
-      const cacheKey = this.generateCacheKey(url)
-
-      const cachedResponse = this.getCachedResponse(cacheKey)
-      if (cachedResponse) {
-        return cachedResponse
-      }
-
-      const response = await api.get(url)
-      const data = response.data
-
-      this.setCachedResponse(cacheKey, data)
-      return data
-    } catch (error) {
-      console.error("Error al obtener orden:", error)
-      throw error
-    }
-  }
-
-  // Nuevo método para obtener orden por número de orden
-  async getOrderByOrderNumber(orderNumber: string) {
-    try {
-      const url = `/orders/by-number/${orderNumber}`
-      const cacheKey = this.generateCacheKey(url)
-
-      const cachedResponse = this.getCachedResponse(cacheKey)
-      if (cachedResponse) {
-        return cachedResponse
-      }
-
-      const response = await api.get(url)
-      const data = response.data
-
-      this.setCachedResponse(cacheKey, data)
-      return data
-    } catch (error) {
-      console.error("Error al obtener orden por número:", error)
-      // Lanzar el error para que el componente pueda manejarlo
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data.error || "Error desconocido")
-      }
-      throw new Error("Error de red o servidor")
-    }
-  }
-
-  async updateOrderStatus(orderId: string, status: string, adminNotes = "") {
-    try {
-      console.log(`🔄 API Service - Actualizando estado de orden ${orderId} a ${status}`)
-
-      const url = `/orders/${orderId}/status`
-      const response = await api.put(url, { status, adminNotes })
-
-      // Clear orders cache after updating
-      this.clearOrdersCache()
-      console.log(`✅ API Service - Estado de orden actualizado exitosamente`)
-
-      return response.data
-    } catch (error) {
-      console.error("❌ API Service - Error al actualizar estado de orden:", error)
-
-      // Provide more detailed error information
-      if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message
-        throw new Error(`Error del servidor: ${errorMessage}`)
-      }
-
-      throw error
-    }
-  }
-
-  async deleteOrder(orderId: string) {
-    try {
-      console.log(`🗑️ API Service - Eliminando orden ${orderId}`)
-
-      const url = `/orders/${orderId}`
-      const response = await api.delete(url)
-
-      // Clear orders cache after deletion
-      this.clearOrdersCache()
-      console.log(`✅ API Service - Orden eliminada exitosamente`)
-
-      return response.data
-    } catch (error) {
-      console.error("❌ API Service - Error al eliminar orden:", error)
-
-      // Provide more detailed error information
-      if (axios.isAxiosError(error)) {
-        console.error("Delete order error details:", {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          url: error.config?.url,
-        })
-
-        const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message
-        throw new Error(`Error del servidor: ${errorMessage}`)
-      }
-
-      throw new Error(`Error de red: ${error.message}`)
-    }
-  }
-
-  // NUEVO: Método para subir comprobante de transferencia a Vercel Blob
-  async uploadTransferProof(file: File) {
-    try {
-      console.log("📤 API Service - Subiendo comprobante de transferencia:", {
-        name: file.name,
-        size: `${(file.size / 1024).toFixed(2)}KB`,
-        type: file.type,
-      })
-
-      // Validaciones previas
-      const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
-      if (!validTypes.includes(file.type)) {
-        throw new Error("Tipo de archivo no válido. Solo se aceptan JPG, PNG y WEBP.")
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error("El archivo es demasiado grande. Máximo 5MB permitido.")
-      }
-
-      const formData = new FormData()
-      formData.append("file", file) // CORREGIDO: usar "file" en lugar de "transferProof"
-
-      const url = "/upload/proof" // CORREGIDO: endpoint correcto
-
-      console.log("🌐 Enviando archivo a:", `${this.API_BASE_URL}${url}`)
-
-      // Crear una promesa con timeout personalizado
-      const uploadPromise = api.post(url, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        timeout: 30000, // 30 segundos timeout
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            console.log(`📊 Upload progress: ${percentCompleted}%`)
-          }
-        },
-      })
-
-      const response = await uploadPromise
-
-      console.log("✅ API Service - Comprobante subido exitosamente:", {
-        url: response.data.url,
-        filename: response.data.filename,
-        size: response.data.size,
-      })
-
-      return {
-        success: true,
-        url: response.data.url,
-        filename: response.data.filename,
-        size: response.data.size,
-      }
-    } catch (error) {
-      console.error("❌ API Service - Error subiendo comprobante:", error)
-
-      let errorMessage = "Error desconocido al subir el comprobante"
-
-      if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          url: error.config?.url,
-        })
-
-        if (error.code === "ECONNABORTED") {
-          errorMessage = "Tiempo de espera agotado. El archivo puede ser muy grande o la conexión lenta."
-        } else if (error.response?.status === 400) {
-          errorMessage = error.response.data?.error || "Archivo inválido o demasiado grande."
-        } else if (error.response?.status === 413) {
-          errorMessage = "El archivo es demasiado grande. Máximo 5MB permitido."
-        } else if (error.response?.status === 415) {
-          errorMessage = "Tipo de archivo no soportado. Solo se aceptan imágenes JPG, PNG y WEBP."
-        } else if (error.response?.status >= 500) {
-          errorMessage = "Error del servidor. Por favor intenta nuevamente."
-        } else if (error.message.includes("Network")) {
-          errorMessage = "Error de conexión. Verifica tu internet e intenta nuevamente."
-        } else {
-          errorMessage = error.response?.data?.error || error.message
-        }
-      } else if (error instanceof Error) {
-        errorMessage = error.message
-      }
-
-      return {
-        success: false,
-        error: errorMessage,
-      }
-    }
-  }
-
-  async createOrder(orderData: any) {
-    try {
-      console.log("📝 API Service - Creando orden con datos:", {
-        itemsCount: orderData.items?.length,
-        total: orderData.total,
-        paymentMethod: orderData.paymentMethod,
-        hasTransferProof: !!orderData.transferProofUrl,
-      })
-
-      const url = "/orders"
-      const response = await api.post(url, orderData, {
-        timeout: 15000, // 15 segundos timeout para crear orden
-      })
-
-      console.log("✅ API Service - Orden creada exitosamente:", {
-        orderNumber: response.data.order?.orderNumber,
-        status: response.data.order?.status,
-      })
-
-      // Limpiar caché después de crear orden
-      this.clearOrdersCache()
-      this.clearCache()
-
-      return response.data
-    } catch (error) {
-      console.error("❌ API Service - Error creando orden:", error)
-
-      let errorMessage = "Error procesando tu orden. Por favor intenta nuevamente."
-
-      if (axios.isAxiosError(error)) {
-        if (error.code === "ECONNABORTED") {
-          errorMessage = "Tiempo de espera agotado. Por favor intenta nuevamente."
-        } else if (error.response?.status === 400) {
-          errorMessage = "Datos de orden inválidos. Verifica la información e intenta nuevamente."
-        } else if (error.response?.status >= 500) {
-          errorMessage = "Error interno del servidor. Por favor intenta más tarde."
-        } else {
-          errorMessage = error.response?.data?.error || error.message
-        }
-      }
-
-      throw new Error(errorMessage)
-    }
-  }
-
-  // Health Check
-  async healthCheck() {
-    try {
-      const response = await api.get("/health")
-      return response.status === 200 && response.data.status === "online"
-    } catch (error) {
-      console.error("Error en health check:", error)
-      return false
-    }
-  }
-
-  // Orders Summary - MODIFICADO para incluir desglose por método de pago
-  async getOrdersSummary() {
-    try {
-      const url = "/orders/summary"
-      const response = await api.get(url)
-      return response.data
-    } catch (error) {
-      console.error("Error fetching orders summary:", error)
-      throw error
-    }
-  }
-
-  // NEW: Method to create interactions
-  async createInteraction(type: string, data: any, userId?: string, sessionId?: string, ipAddress?: string) {
-    try {
-      const url = "/interactions"
-      const response = await api.post(url, { type, data, userId, sessionId, ipAddress })
-      this.clearCache()
-      return response.data
-    } catch (error) {
-      console.error("Error creating interaction:", error)
-      // Don't throw, just log, as interaction tracking shouldn't block user flow
-      return { success: false, error: "Error creating interaction" }
-    }
-  }
-
-  // NEW: Method to get most viewed categories
-  async getMostViewedCategories(limit = 5) {
-    try {
-      const url = `/interactions/most-viewed-categories?limit=${limit}`
-      const response = await api.get(url)
-      return response.data
-    } catch (error) {
-      console.error("Error al obtener categorías más visitadas:", error)
-      throw error
-    }
-  }
-
-  // NUEVO: Métodos para la gestión de contenido del sitio
-  async getSiteContent() {
-    try {
-      const now = Date.now()
-
-      // Check cache with shorter duration for content
-      if (this.siteContentCache && now - this.siteContentCacheTimestamp < this.SITE_CONTENT_CACHE_DURATION) {
-        console.log("📦 Serving site content from cache")
-        return this.siteContentCache
-      }
-
-      console.log("🌐 Fetching site content from API")
-      const url = "/content"
-      const response = await api.get(url)
-
-      if (!response.data) {
-        throw new Error("No data received from server")
-      }
-
-      const data = response.data
-      console.log("✅ Site content API response:", {
-        status: response.status,
-        hasContent: !!data.content,
-        contentKeys: data.content ? Object.keys(data.content) : [],
-      })
-
-      // Validate response structure
-      if (!data.content) {
-        console.warn("⚠️ Invalid content structure received")
-        throw new Error("Estructura de contenido inválida")
-      }
-
-      // Cache the response
-      this.siteContentCache = data
-      this.siteContentCacheTimestamp = now
-      console.log("💾 Site content cached successfully")
-
-      return data
-    } catch (error) {
-      console.error("❌ Error fetching site content:", error)
-
-      if (axios.isAxiosError(error)) {
-        console.error("Site content error details:", {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          url: error.config?.url,
-        })
-
-        const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message
-        throw new Error(`Error del servidor: ${errorMessage}`)
-      }
-
-      throw new Error(`Error de red: ${error.message}`)
-    }
-  }
-
-  // Method to clear site content cache specifically
-  public clearSiteContentCache(): void {
-    this.siteContentCache = null
-    this.siteContentCacheTimestamp = 0
-    console.log("🗑️ Site content cache cleared")
-  }
-
-  async updateSiteContent(contentData: any) {
-    try {
-      console.log("API Service - Actualizando contenido del sitio:", contentData)
-      const url = "/content"
-      const response = await api.put(url, contentData)
-
-      // Clear specific caches after updating - MEJORADO
-      this.clearSiteContentCache()
-      this.clearRouteCache()
-      this.clearCache() // Limpiar todo el caché para asegurar consistencia
-
-      console.log("✅ Contenido actualizado y caché limpiado")
-      return response.data
-    } catch (error) {
-      console.error("Error al actualizar el contenido del sitio:", error)
-      throw error
-    }
-  }
-
-  // Añadir este nuevo método después del método updateSiteContent:
-  async forceRefreshSiteContent() {
-    try {
-      console.log("🔄 Forzando recarga del contenido del sitio...")
-      this.clearSiteContentCache()
-      this.clearCache()
-      return await this.getSiteContent()
-    } catch (error) {
-      console.error("Error al forzar recarga del contenido:", error)
-      throw error
-    }
-  }
-
-  // NUEVO: Método para enviar el formulario de contacto desde el frontend
-  async sendContactForm(formData: { name: string; email: string; phone: string; subject: string; message: string }) {
-    try {
-      console.log("API Service - Enviando formulario de contacto con datos:", formData)
-      const url = "/contact" // Esta es la ruta de tu backend para el formulario de contacto
-      const response = await api.post(url, formData)
-      return response.data
-    } catch (error) {
-      console.error("Error al enviar formulario de contacto:", error)
-      // Re-lanzar el error para que el componente que llama pueda manejarlo
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data.error || "Error desconocido al enviar el formulario")
-      }
-      throw new Error("Error de red o servidor al enviar el formulario de contacto")
-    }
-  }
-
-  // NEW: Method to get interactions summary (fixed method name)
-  async getInteractionsSummary() {
-    try {
-      const url = "/interactions/summary"
-      const response = await api.get(url)
-      return response.data
-    } catch (error) {
-      console.error("Error fetching interactions summary:", error)
-      // Return default structure instead of throwing
-      return {
-        success: true,
-        summary: {
-          totalInteractions: 0,
-          recentInteractions: [],
-          byType: [],
-          uniqueSessions: 0,
-          byDay: [],
-        },
-      }
-    }
-  }
-
-  // ============================== VIDEO GENERATION API ==============================
-
-  /**
-   * Genera un video automáticamente basado en la configuración
-   */
-  async generateVideo(config: {
-    videoType: "campaign" | "slideshow"
-    style: "dynamic" | "elegant" | "modern" | "romantic"
-    productSelection?: {
-      type: "category" | "featured" | "catalog" | "promotional"
-      categoryId?: string
-      productIds?: string[]
-    }
-    promotionalPhrases?: string
-    callToActionText?: string
-    introVideo?: string
-    outroVideo?: string
-    musicType?: "predetermined" | "upload"
-    musicTrack?: string
-    customText?: string
-  }) {
-    try {
-      console.log("🎬 API Service - Generando video con configuración:", config)
-
-      const url = "/videos/generate"
-      const response = await api.post(url, config)
-
-      console.log("✅ API Service - Video generado exitosamente")
-      return response.data
-    } catch (error) {
-      console.error("❌ API Service - Error generando video:", error)
-
-      if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message
-        throw new Error(`Error del servidor: ${errorMessage}`)
-      }
-
-      throw new Error(`Error de red: ${error.message}`)
-    }
-  }
-
-  /**
-   * Obtiene las plantillas disponibles para videos
-   */
-  async getVideoTemplates() {
-    try {
-      const url = "/videos/templates"
-      const cacheKey = this.generateCacheKey(url)
-
-      const cachedResponse = this.getCachedResponse(cacheKey)
-      if (cachedResponse) {
-        return cachedResponse.data
-      }
-
-      const response = await api.get(url)
-      const data = response.data
-
-      this.setCachedResponse(cacheKey, data)
-      return data
-    } catch (error) {
-      console.error("Error obteniendo plantillas de video:", error)
-      throw error
-    }
-  }
-
-  /**
-   * Obtiene el historial de videos generados
-   */
-  async getVideoHistory(limit = 20) {
-    try {
-      const url = `/videos/history?limit=${limit}`
-      const response = await api.get(url)
-      return response.data
-    } catch (error) {
-      console.error("Error obteniendo historial de videos:", error)
-      throw error
-    }
-  }
-
-  /**
-   * Elimina un video generado
-   */
-  async deleteVideo(filename: string) {
-    try {
-      console.log(`🗑️ API Service - Eliminando video: ${filename}`)
-
-      const url = `/videos/${filename}`
-      const response = await api.delete(url)
-
-      console.log("✅ API Service - Video eliminado exitosamente")
-      return response.data
-    } catch (error) {
-      console.error("❌ API Service - Error eliminando video:", error)
-
-      if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message
-        throw new Error(`Error del servidor: ${errorMessage}`)
-      }
-
-      throw new Error(`Error de red: ${error.message}`)
-    }
-  }
-
-  /**
-   * Obtiene estadísticas de videos generados
-   */
-  async getVideoStats() {
-    try {
-      const url = "/videos/stats"
-      const response = await api.get(url)
-      return response.data
-    } catch (error) {
-      console.error("Error obteniendo estadísticas de videos:", error)
-      throw error
-    }
-  }
-
-  // Actualiza el perfil del usuario
-  async updateProfile(data: { username: string; email: string }) {
-    try {
-      const response = await api.put("/admin/profile", data)
-      return response.data
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : "Error desconocido" }
-    }
-  }
-
-  // Actualiza la contraseña del usuario
-  async updatePassword(data: { currentPassword: string; newPassword: string }) {
-    try {
-      const response = await api.put("/admin/password", data)
-      return response.data
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : "Error desconocido" }
+  try {
+    const response = await axios(config)
+    return response.data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      console.error(`Error en la petición ${method} ${url}:`, error.response.status, error.response.data)
+      throw new Error(error.response.data.message || `Error en la petición: ${error.response.status}`)
+    } else {
+      console.error(`Error desconocido en la petición ${method} ${url}:`, error)
+      throw new Error("Error de red o desconocido")
     }
   }
 }
 
-// Exportar directamente la instancia de ApiService
-export const apiService = new ApiService()
+// Función para encolar una petición
+const queueRequest = (url: string, method: string, data?: any, params?: any) => {
+  return new Promise((resolve, reject) => {
+    requestQueue.push({ url, method, data, params, resolve, reject })
+    processRequestQueue() // Iniciar procesamiento si no está activo
+  })
+}
+
+export const apiService = {
+  // Limpiar todo el caché
+  clearCache: () => {
+    apiCache.clear()
+    console.log("🗑️ Caché de API limpiado.")
+  },
+
+  // Limpiar caché de productos
+  clearProductsCache: () => {
+    for (const key of apiCache.keys()) {
+      if (key.startsWith("/products")) {
+        apiCache.delete(key)
+      }
+    }
+    console.log("🗑️ Caché de productos limpiado.")
+  },
+
+  // Limpiar caché de órdenes
+  clearOrdersCache: () => {
+    for (const key of apiCache.keys()) {
+      if (key.startsWith("/orders")) {
+        apiCache.delete(key)
+      }
+    }
+    console.log("🗑️ Caché de órdenes limpiado.")
+  },
+
+  // Limpiar caché de contenido del sitio
+  clearSiteContentCache: () => {
+    for (const key of apiCache.keys()) {
+      if (key.startsWith("/site-content")) {
+        apiCache.delete(key)
+      }
+    }
+    console.log("🗑️ Caché de contenido del sitio limpiado.")
+  },
+
+  // Función genérica para hacer peticiones GET con caché
+  get: async (url: string, params?: any) => {
+    const cacheKey = `${url}?${new URLSearchParams(params).toString()}`
+    const cached = apiCache.get(cacheKey)
+
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      console.log(`⚡ Usando caché para GET ${url}`)
+      return cached.data
+    }
+
+    try {
+      const response = await queueRequest(url, "get", undefined, params)
+      apiCache.set(cacheKey, { data: response, timestamp: Date.now() })
+      return response
+    } catch (error) {
+      console.error(`Error en GET ${url}:`, error)
+      throw error
+    }
+  },
+
+  // Función genérica para hacer peticiones POST
+  post: async (url: string, data: any) => {
+    try {
+      const response = await queueRequest(url, "post", data)
+      // Invalidar caché relevante después de un POST
+      if (url.startsWith("/products")) apiService.clearProductsCache()
+      if (url.startsWith("/orders")) apiService.clearOrdersCache()
+      if (url.startsWith("/site-content")) apiService.clearSiteContentCache()
+      return response
+    } catch (error) {
+      console.error(`Error en POST ${url}:`, error)
+      throw error
+    }
+  },
+
+  // Función genérica para hacer peticiones PUT
+  put: async (url: string, data: any) => {
+    try {
+      const response = await queueRequest(url, "put", data)
+      // Invalidar caché relevante después de un PUT
+      if (url.startsWith("/products")) apiService.clearProductsCache()
+      if (url.startsWith("/orders")) apiService.clearOrdersCache()
+      if (url.startsWith("/site-content")) apiService.clearSiteContentCache()
+      return response
+    } catch (error) {
+      console.error(`Error en PUT ${url}:`, error)
+      throw error
+    }
+  },
+
+  // Función genérica para hacer peticiones DELETE
+  del: async (url: string) => {
+    try {
+      const response = await queueRequest(url, "delete")
+      // Invalidar caché relevante después de un DELETE
+      if (url.startsWith("/products")) apiService.clearProductsCache()
+      if (url.startsWith("/orders")) apiService.clearOrdersCache()
+      if (url.startsWith("/site-content")) apiService.clearSiteContentCache()
+      return response
+    } catch (error) {
+      console.error(`Error en DELETE ${url}:`, error)
+      throw error
+    }
+  },
+
+  // Auth Endpoints
+  login: async (credentials: any) => {
+    try {
+      const response = await apiService.post("/auth/login", credentials)
+      if (response.token) {
+        localStorage.setItem("token", response.token)
+      }
+      return { success: true, user: response.user }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error de credenciales"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  logout: () => {
+    localStorage.removeItem("token")
+    // No hay endpoint de logout en el backend, solo se limpia el token local
+    return { success: true }
+  },
+
+  checkAuth: async () => {
+    const token = localStorage.getItem("token")
+    if (!token) {
+      return { success: false, user: null }
+    }
+    try {
+      const response = await apiService.get("/auth/check", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      return { success: true, user: response.user }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      console.error("Error checking auth:", error)
+      localStorage.removeItem("token") // Token inválido o expirado
+      return { success: false, user: null }
+    }
+  },
+
+  // User Profile Endpoints
+  updateProfile: async (profileData: any) => {
+    try {
+      const response = await apiService.put("/users/profile", profileData)
+      return { success: true, user: response.user }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al actualizar perfil"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  updatePassword: async (passwordData: any) => {
+    try {
+      const response = await apiService.put("/users/password", passwordData)
+      return { success: true, message: response.message }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al actualizar contraseña"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  // Product Endpoints
+  getProducts: async (params?: any) => {
+    try {
+      const response = await apiService.get("/products", params)
+      return {
+        success: true,
+        payload: response.products,
+        totalPages: response.totalPages,
+        totalProducts: response.totalProducts,
+      }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener productos"
+          : "Error desconocido",
+        payload: [],
+        totalPages: 0,
+        totalProducts: 0,
+      } // Narrow type
+    }
+  },
+
+  getProduct: async (id: string) => {
+    try {
+      const response = await apiService.get(`/products/${id}`)
+      return { success: true, product: response.product }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener producto"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  createProduct: async (productData: any) => {
+    try {
+      const response = await apiService.post("/products", productData)
+      return { success: true, product: response.product }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al crear producto"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  updateProduct: async (id: string, productData: any) => {
+    try {
+      const response = await apiService.put(`/products/${id}`, productData)
+      return { success: true, product: response.product }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al actualizar producto"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  deleteProduct: async (id: string) => {
+    try {
+      const response = await apiService.del(`/products/${id}`)
+      return { success: true, message: response.message }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al eliminar producto"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  // Order Endpoints
+  createOrder: async (orderData: any) => {
+    try {
+      const response = await apiService.post("/orders", orderData)
+      return { success: true, order: response.order }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al crear orden"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  getOrder: async (id: string) => {
+    try {
+      const response = await apiService.get(`/orders/${id}`)
+      return { success: true, order: response.order }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener orden"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  getAllOrders: async (page = 1, limit = 10, status?: string) => {
+    try {
+      const params = { page, limit, ...(status && { status }) }
+      const response = await apiService.get("/orders", params)
+      return {
+        success: true,
+        orders: response.orders,
+        totalOrders: response.totalOrders,
+        totalPages: response.totalPages,
+      }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener órdenes"
+          : "Error desconocido",
+        orders: [],
+        totalOrders: 0,
+        totalPages: 0,
+      } // Narrow type
+    }
+  },
+
+  updateOrderStatus: async (id: string, status: string, adminNotes: string) => {
+    try {
+      const response = await apiService.put(`/orders/${id}/status`, { status, adminNotes })
+      return { success: true, order: response.order }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al actualizar estado de orden"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  deleteOrder: async (id: string) => {
+    try {
+      const response = await apiService.del(`/orders/${id}`)
+      return { success: true, message: response.message }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al eliminar orden"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  getOrdersSummary: async () => {
+    try {
+      const response = await apiService.get("/orders/summary")
+      return { success: true, summary: response.summary }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener resumen de órdenes"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  // Site Content Endpoints
+  getSiteContent: async () => {
+    try {
+      const response = await apiService.get("/site-content")
+      return { success: true, content: response.content }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener contenido del sitio"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  updateSiteContent: async (contentData: any) => {
+    try {
+      const response = await apiService.put("/site-content", contentData)
+      return { success: true, content: response.content }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al actualizar contenido del sitio"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  // Interaction Endpoints
+  createInteraction: async (type: string, data: any) => {
+    try {
+      const response = await apiService.post("/interactions", { type, data })
+      return { success: true, interaction: response.interaction }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al registrar interacción"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  getInteractionsSummary: async () => {
+    try {
+      const response = await apiService.get("/interactions/summary")
+      return { success: true, summary: response.summary }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener resumen de interacciones"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  getMostViewedProducts: async (limit: number) => {
+    try {
+      const response = await apiService.get("/interactions/most-viewed-products", { limit })
+      return { success: true, products: response.products }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener productos más vistos"
+          : "Error desconocido",
+        products: [],
+      } // Narrow type
+    }
+  },
+
+  getMostViewedCategories: async (limit: number) => {
+    try {
+      const response = await apiService.get("/interactions/most-viewed-categories", { limit })
+      return { success: true, categories: response.categories }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener categorías más vistas"
+          : "Error desconocido",
+        categories: [],
+      } // Narrow type
+    }
+  },
+
+  // File Upload Endpoints
+  uploadTransferProof: async (file: File) => {
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const response = await axios.post(`${API_BASE_URL}/upload/transfer-proof`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+      return { success: true, url: response.data.url, filename: response.data.filename }
+    } catch (error: unknown) {
+      // Type 'error' as unknown
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al subir archivo"
+          : "Error desconocido",
+      } // Narrow type
+    }
+  },
+
+  // Health Check
+  healthCheck: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/health`)
+      return response.data
+    } catch (error) {
+      console.error("Health check failed:", error)
+      return null
+    }
+  },
+}
