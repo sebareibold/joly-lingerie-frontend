@@ -1,0 +1,433 @@
+/* Admin Theme - Estilos compartidos para el backoffice */
+
+:root {
+  /* Paleta de colores principal */
+  --admin-bg-dark: #111827;
+  --admin-bg-medium: #1f2937;
+  --admin-bg-light: #374151;
+  --admin-text-primary: #f9fafb;
+  --admin-text-secondary: #d1d5db;
+  --admin-text-muted: #9ca3af;
+  --admin-border: #4b5563;
+  --admin-border-light: #6b7280;
+
+  /* Colores de acento */
+  --admin-accent-blue: #3b82f6;
+  --admin-accent-blue-hover: #2563eb;
+  --admin-accent-green: #10b981;
+  --admin-accent-green-hover: #059669;
+  --admin-accent-red: #ef4444;
+  --admin-accent-red-hover: #dc2626;
+  --admin-accent-yellow: #f59e0b;
+  --admin-accent-purple: #8b5cf6;
+
+  /* Sombras */
+  --admin-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --admin-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --admin-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --admin-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Transiciones */
+  --admin-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --admin-transition: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --admin-transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estilos base para el backoffice */
+.admin-layout {
+  background-color: var(--admin-bg-dark);
+  color: var(--admin-text-primary);
+  min-height: 100vh;
+}
+
+/* Tarjetas y contenedores */
+.admin-card {
+  background-color: rgba(31, 41, 55, 0.5); /* bg-gray-800/50 */
+  backdrop-filter: blur(8px); /* Añadido para el efecto futurista */
+  border-radius: 0.75rem;
+  border: 1px solid rgba(75, 85, 99, 0.5); /* border-gray-700/50 */
+  box-shadow: var(--admin-shadow);
+  transition: transform var(--admin-transition), box-shadow var(--admin-transition);
+}
+
+.admin-card:hover {
+  box-shadow: var(--admin-shadow-md);
+}
+
+/* Encabezados */
+.admin-heading-1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.admin-heading-2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.admin-heading-3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+/* Botones */
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all var(--admin-transition);
+  cursor: pointer;
+}
+
+.admin-btn-primary {
+  background-color: var(--admin-accent-blue);
+  color: white;
+}
+
+.admin-btn-primary:hover {
+  background-color: var(--admin-accent-blue-hover);
+}
+
+.admin-btn-success {
+  background-color: var(--admin-accent-green);
+  color: white;
+}
+
+.admin-btn-success:hover {
+  background-color: var(--admin-accent-green-hover);
+}
+
+.admin-btn-danger {
+  background-color: var(--admin-accent-red);
+  color: white;
+}
+
+.admin-btn-danger:hover {
+  background-color: var(--admin-accent-red-hover);
+}
+
+.admin-btn-secondary {
+  background-color: transparent;
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-secondary);
+}
+
+.admin-btn-secondary:hover {
+  background-color: var(--admin-bg-light);
+  color: var(--admin-text-primary);
+}
+
+/* Formularios */
+.admin-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: rgba(17, 24, 39, 0.5); /* bg-gray-900/50 */
+  border: 1px solid rgba(75, 85, 99, 0.5); /* border-gray-600/50 */
+  border-radius: 0.5rem;
+  color: var(--admin-text-primary);
+  transition: border-color var(--admin-transition);
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: var(--admin-accent-blue);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.admin-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--admin-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.admin-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: rgba(17, 24, 39, 0.5); /* bg-gray-900/50 */
+  border: 1px solid rgba(75, 85, 99, 0.5); /* border-gray-600/50 */
+  border-radius: 0.5rem;
+  color: var(--admin-text-primary);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.admin-select:focus {
+  outline: none;
+  border-color: var(--admin-accent-blue);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* Tablas */
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-table th {
+  background-color: rgba(31, 41, 55, 0.5); /* bg-gray-900/50 */
+  color: var(--admin-text-secondary);
+  font-weight: 500;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--admin-border-light);
+  color: var(--admin-text-primary);
+}
+
+.admin-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.03); /* Más sutil */
+}
+
+/* Badges */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.admin-badge-success {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.admin-badge-warning {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.admin-badge-danger {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.admin-badge-info {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.admin-animate-fade {
+  animation: fadeIn var(--admin-transition-slow) ease-out forwards;
+}
+
+.admin-animate-slide-up {
+  animation: slideInUp var(--admin-transition) ease-out forwards;
+}
+
+.admin-animate-slide-left {
+  animation: slideInLeft var(--admin-transition) ease-out forwards;
+}
+
+.admin-animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Utilidades */
+.admin-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Estilos para el sidebar */
+.admin-sidebar {
+  background-color: var(--admin-bg-medium);
+  border-right: 1px solid var(--admin-border);
+}
+
+.admin-sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: var(--admin-text-secondary);
+  border-radius: 0.375rem;
+  transition: all var(--admin-transition);
+}
+
+.admin-sidebar-link:hover {
+  background-color: var(--admin-bg-light);
+  color: var(--admin-text-primary);
+}
+
+.admin-sidebar-link.active {
+  background-color: var(--admin-accent-blue);
+  color: white;
+}
+
+/* Estilos para el header */
+.admin-header {
+  background-color: var(--admin-bg-medium);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+/* Estilos para las estadísticas */
+.admin-stat-card {
+  background-color: var(--admin-bg-medium);
+  border-radius: 0.75rem;
+  border: 1px solid var(--admin-border);
+  padding: 1.5rem;
+  transition: transform var(--admin-transition), box-shadow var(--admin-transition);
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--admin-shadow-lg);
+}
+
+.admin-stat-value {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+}
+
+.admin-stat-label {
+  font-size: 0.875rem;
+  color: var(--admin-text-secondary);
+}
+
+.admin-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+}
+
+/* Estilos para modales */
+.admin-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  animation: fadeIn var(--admin-transition-fast) ease-out forwards;
+}
+
+.admin-modal {
+  background-color: rgba(31, 41, 55, 0.5); /* bg-gray-800/50 */
+  backdrop-filter: blur(8px); /* Añadido para el efecto futurista */
+  border-radius: 0.75rem;
+  border: 1px solid rgba(75, 85, 99, 0.5); /* border-gray-700/50 */
+  box-shadow: var(--admin-shadow-lg);
+  width: 100%;
+  max-width: 32rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideInUp var(--admin-transition) ease-out forwards;
+}
+
+.admin-modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--admin-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(17, 24, 39, 0.5); /* bg-gray-900/50 */
+}
+
+.admin-modal-body {
+  padding: 1.5rem;
+  background-color: rgba(17, 24, 39, 0.5); /* bg-gray-900/50 */
+}
+
+.admin-modal-footer {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--admin-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background-color: rgba(17, 24, 39, 0.5); /* bg-gray-900/50 */
+}
