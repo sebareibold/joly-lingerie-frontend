@@ -131,7 +131,7 @@ export default function CategoryPage() {
       setCurrentPage(pageToLoad)
             // AÑADE ESTOS CONSOLE.LOGS
       console.log("Resultado de apiService.getProducts:", response);
-      console.log("Productos a establecer en el estado:", products);
+      console.log("Productos en si obtenidos al luego de setear", products);
       // FIN DE CONSOLE.LOGS
       setError(null)
     } catch (err) {
