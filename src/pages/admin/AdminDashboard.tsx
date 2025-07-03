@@ -35,6 +35,8 @@ export default function AdminDashboard() {
     recentInteractions: any[];
     ordersByStatus: {
       pending_manual: number;
+      pending_transfer_proof: number;
+      pending_transfer_confirmation: number;
       paid: number;
       cancelled: number;
       refunded: number;
