@@ -276,7 +276,7 @@ export default function CategoryPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="absolute top-1 md:top-4 right-1 md:right-4 flex flex-col gap-1 md:gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                <div className="absolute top-1 md:top-4 right-1 md:right-4 flex flex-col gap-1 md:gap-2 opacity-0 backdrop-blur-sm group-hover:opacity-100 transition-all duration-300">
                   <Link
                     to={`/product/${product._id}`}
                     className="p-1 md:p-3 rounded-full backdrop-blur-sm hover:scale-110 transition-all duration-300"
