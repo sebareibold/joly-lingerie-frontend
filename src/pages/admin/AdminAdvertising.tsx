@@ -96,22 +96,6 @@ const AdminAdvertising: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const recordedChunksRef = useRef<Blob[]>([])
 
-  // Estados adicionales
-  const [isConverting, setIsConverting] = useState(false)
-  const [conversionProgress, setConversionProgress] = useState(0)
-  const [convertedMp4, setConvertedMp4] = useState<{ blob: Blob, url: string } | null>(null)
-
-  // Estado para el módulo ffmpeg importado dinámicamente
-  const [ffmpegModule, setFfmpegModule] = useState<any>(null)
-
-  // Importo ffmpeg dinámicamente al montar el componente
-  useEffect(() => {
-    import('@ffmpeg/ffmpeg').then(mod => setFfmpegModule(mod))
-  }, [])
-
-  // Referencia para ffmpeg (no hay tipos ESM, se usa any)
-  const ffmpeg = useRef<any>(null)
-
   // Detectar estado de conexión
   useEffect(() => {
     const handleOnline = () => setIsOnline(true)
@@ -363,7 +347,7 @@ const AdminAdvertising: React.FC = () => {
     let imageScale = 1
     let imageOpacity = 1
     let imageRotation = 0
-    let imageOffsetX = 0
+    const imageOffsetX = 0
     let imageOffsetY = 0
     let textOffsetY = 0
     let textOpacity = 1
@@ -931,37 +915,6 @@ const AdminAdvertising: React.FC = () => {
 
     console.warn(`⚠️ Error cargando imagen para ${product.title}, usando placeholder`)
     target.src = "/placeholder.svg?height=200&width=200"
-  }
-
-  // Función para convertir WebM a MP4
-  const convertWebMtoMP4 = async (webmBlob: Blob) => {
-    if (!ffmpegModule) {
-      alert('Cargando ffmpeg, espera un momento...')
-      return
-    }
-    // Soporte universal para import dinámico con o sin .default
-    const ffmpegApi = ffmpegModule.default ? ffmpegModule.default : ffmpegModule;
-    const { createFFmpeg, fetchFile } = ffmpegApi;
-    setIsConverting(true)
-    setConversionProgress(0)
-    setConvertedMp4(null)
-
-    if (!ffmpeg.current) {
-      ffmpeg.current = createFFmpeg({
-        log: true,
-        corePath: 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/ffmpeg-core.js',
-        progress: ({ ratio }: { ratio: number }) => setConversionProgress(Math.round(ratio * 100)),
-      })
-      await ffmpeg.current.load()
-    }
-
-    ffmpeg.current.FS('writeFile', 'input.webm', await fetchFile(webmBlob))
-    await ffmpeg.current.run('-i', 'input.webm', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', 'output.mp4')
-    const data = ffmpeg.current.FS('readFile', 'output.mp4')
-    const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' })
-    const mp4Url = URL.createObjectURL(mp4Blob)
-    setConvertedMp4({ blob: mp4Blob, url: mp4Url })
-    setIsConverting(false)
   }
 
   // Mostrar loading
@@ -1558,40 +1511,6 @@ const AdminAdvertising: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {generatedVideo && !convertedMp4 && (
-            <button
-              onClick={() => convertWebMtoMP4(generatedVideo.videoBlob)}
-              className="flex-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
-              disabled={isConverting}
-            >
-              {isConverting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Convirtiendo a MP4... {conversionProgress}%
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  Convertir a MP4
-                </>
-              )}
-            </button>
-          )}
-
-          {convertedMp4 && (
-            <div className="mt-4">
-              <h4 className="font-semibold text-white mb-2">Video MP4 Convertido</h4>
-              <video src={convertedMp4.url} controls className="w-full max-h-64" />
-              <a
-                href={convertedMp4.url}
-                download="video_convertido.mp4"
-                className="mt-2 inline-block px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg"
-              >
-                Descargar MP4
-              </a>
             </div>
           )}
         </div>
