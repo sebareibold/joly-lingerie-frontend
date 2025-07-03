@@ -1,7 +1,7 @@
 // Este archivo se comporta como un manager de la API, de tal manera que únicamente los subsistemas del front se comunican con él.
 import axios from "axios"
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://joly-lingerie-backend.vercel.app/api"
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://joly-lingerie-backend-production.up.railway.app/api"
 
 // Cache para las respuestas de la API
 const apiCache = new Map<string, { data: any; timestamp: number }>()
@@ -551,7 +551,7 @@ export const apiService = {
   // Order by Order Number Endpoint
   getOrderByOrderNumber: async (orderNumber: string) => {
     try {
-      const response = (await apiService.get(`/orders/number/${orderNumber}`)) as any
+      const response = (await apiService.get(`/orders/by-number/${orderNumber}`)) as any
       return { success: true, order: response.order }
     } catch (error: unknown) {
       return {

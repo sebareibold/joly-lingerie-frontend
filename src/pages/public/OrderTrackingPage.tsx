@@ -50,12 +50,8 @@ export default function OrderTrackingPage() {
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  // --- Placeholder para la Información de Contacto del Administrador ---
-  // En una aplicación real, estos valores deberían provenir de variables de entorno
-  // (ej. VITE_APP_ADMIN_EMAIL_RECIPIENT, VITE_APP_ADMIN_PHONE_WHATSAPP si usas Vite)
-  // o ser obtenidos de un endpoint de API público para mayor seguridad y flexibilidad.
-  const ADMIN_PHONE_WHATSAPP = "2994513377" // Reemplaza con tu número de WhatsApp de administrador real
-  // --- Fin Placeholder ---
+
+  const ADMIN_PHONE_WHATSAPP = "2994513377" 
 
   const handleTrackOrder = async () => {
     if (!orderNumber.trim()) {

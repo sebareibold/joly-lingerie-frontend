@@ -55,11 +55,9 @@ export default function AdminSidebar({
       <div className="relative z-10 flex items-center justify-between px-4 py-3">
         {/* Logo */}
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-600/40 to-purple-600/40 rounded-lg flex items-center justify-center border border-blue-500/30">
-            <div className="w-4 h-4 bg-gradient-to-br from-blue-400 to-purple-500 rounded-sm"></div>
-          </div>
+          
           <h1 className="text-white text-lg font-light">
-            Joly<span className="font-thin text-gray-400"> Admin</span>
+            Joly Lingerie <span className="font-thin text-gray-400"> Administración</span>
           </h1>
         </div>
 

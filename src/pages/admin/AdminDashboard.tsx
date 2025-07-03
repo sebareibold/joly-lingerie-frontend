@@ -12,6 +12,7 @@ import {
   Tag,
   ChevronDown,
   ChevronUp,
+  MessageCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { apiService } from "../../services/api";
@@ -51,6 +52,8 @@ export default function AdminDashboard() {
     recentInteractions: [],
     ordersByStatus: {
       pending_manual: 0,
+      pending_transfer_proof: 0,
+      pending_transfer_confirmation: 0,
       paid: 0,
       cancelled: 0,
       refunded: 0,
@@ -292,11 +295,11 @@ export default function AdminDashboard() {
     const statusConfig: Record<string, { class: string; text: string }> = {
       pending_manual: {
         class: "admin-badge-warning",
-        text: "Pendiente (Efectivo)",
+        text: "Pendiente: Efectivo",
       },
       pending_transfer_confirmation: {
         class: "admin-badge-info",
-        text: "Pendiente (Verificar Comprobante)",
+        text: "Pendiente: Verificar Comprobante",
       },
       paid: { class: "admin-badge-success", text: "Pagado" },
       cancelled: { class: "admin-badge-danger", text: "Cancelado" },
@@ -338,12 +341,12 @@ export default function AdminDashboard() {
       </div>
 
       {/* Estadísticas Principales con Gradientes */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-6">
         {stats.map((stat) => (
           <Link
             to={stat.link}
             key={stat.name}
-            className={`${stat.gradient} border ${stat.border} rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group`}
+            className={`${stat.gradient} border ${stat.border} rounded-xl p-3 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -387,7 +390,7 @@ export default function AdminDashboard() {
               <Activity className="h-6 w-6 text-green-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-green-300">
+              <h2 className="text-base sm:text-xl font-bold text-green-300">
                 Productos Más Vistos
               </h2>
               <p className="text-sm text-green-400/80">
@@ -414,7 +417,7 @@ export default function AdminDashboard() {
           </div>
         ) : dashboardData.mostViewedProducts.length > 0 ? (
           <>
-            <div className="space-y-3">
+            <div className="space-y-5 sm:space-y-5">
               {productsToShow.map((product: any, _index: number) => (
                 <div
                   key={product._id || _index}
@@ -483,7 +486,7 @@ export default function AdminDashboard() {
                 <Tag className="h-6 w-6 text-purple-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-purple-300">
+                <h2 className="text-base sm:text-xl font-bold text-purple-300">
                   Categorías Más Visitadas
                 </h2>
                 <p className="text-sm text-purple-400/80">
@@ -577,7 +580,7 @@ export default function AdminDashboard() {
                 <Clock className="h-6 w-6 text-blue-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-blue-300">
+                <h2 className="text-base sm:text-xl font-bold text-blue-300">
                   Órdenes Recientes
                 </h2>
                 <p className="text-sm text-blue-400/80">Actividad reciente</p>
@@ -603,21 +606,64 @@ export default function AdminDashboard() {
               {dashboardData.recentOrders.map((order: any) => (
                 <div
                   key={order._id}
-                  className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-800/20 via-blue-700/10 to-transparent border border-blue-700/20 rounded-lg hover:from-blue-800/30 hover:via-blue-700/20 transition-all duration-300 cursor-pointer"
+                  className="flex flex-row items-stretch bg-gradient-to-r from-blue-800/20 via-blue-700/10 to-transparent border border-blue-700/20 rounded-2xl shadow-md p-4 mb-4 gap-4 lg:gap-x-8 lg:items-center"
                 >
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium text-white text-sm sm:text-base">
-                      #{order.orderNumber}
+                  {/* Mobile: grid de 2 columnas para datos y botón, estado debajo */}
+                  <div className="lg:hidden w-full">
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Columna izquierda: Id, Cliente, Precio */}
+                      <div className="flex flex-col items-start gap-0.5">
+                        <div className="text-[11px] text-blue-300 font-semibold">#{order.orderNumber}</div>
+                        <div className="text-sm text-white font-bold truncate">{order.shippingInfo?.fullName || "Cliente"}</div>
+                        <div className="text-[11px] text-blue-200 font-semibold">${order.total?.toLocaleString()}</div>
+                      </div>
+                      {/* Columna derecha: Botón WhatsApp */}
+                      <div className="flex items-start justify-end ">
+                        {order.shippingInfo?.phone && (
+                          <a
+                            href={`https://wa.me/${order.shippingInfo.phone}?text=Hola%20${encodeURIComponent(order.shippingInfo.fullName || '')},%20te%20contactamos%20por%20tu%20pedido%20%23${order.orderNumber}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex flex-row items-center   grid-cols-2 justify-center py-3  gap-0.5 bg-gradient-to-br from-green-800/40 via-green-600/30 to-green-400/20 border border-green-500/40 rounded-md px-0.5  text-white font-bold text-[9px] shadow-lg transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400/60 max-w-[120px]"
+                            style={{ minWidth: 0 }}
+                            title="Contactar por WhatsApp"
+                          >
+                            <MessageCircle className="w-4 h-4 mb-0.5 mx-2 text-green-300 group-hover:text-green-100 transition-colors duration-300" />
+                            <span className=" text-left">Comunicar al WhatsApp</span>
+                          </a>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-xs sm:text-sm text-blue-400/80 truncate">
-                      {order.shippingInfo?.fullName || "N/A"}
+                    {/* Estado debajo, ocupando todo el ancho */}
+                    <div className="mt-2">
+                      <span className="admin-badge px-2 py-0.5 text-[9px] max-w-full whitespace-pre-line break-words rounded-md block w-full text-center">{getStatusBadge(order.status)}</span>
                     </div>
                   </div>
-                  <div className="text-right flex-shrink-0 ml-2">
-                    {getStatusBadge(order.status)}
-                    <div className="text-xs sm:text-sm text-blue-400/80 mt-1">
-                      ${order.total?.toLocaleString()}
-                    </div>
+                  {/* Desktop: tres columnas separadas */}
+                  <div className="hidden lg:flex flex-col justify-center items-start mb-2 lg:mb-0 lg:w-1/3 lg:px-4">
+                    <div className="text-xs text-blue-300 font-semibold mb-1">#{order.orderNumber}</div>
+                    <div className="text-base text-white font-bold mb-1 truncate">{order.shippingInfo?.fullName || "Cliente"}</div>
+                  </div>
+                  <div className="hidden lg:flex flex-col justify-center items-end lg:w-1/3 lg:px-4">
+                    <div className="mb-1">{getStatusBadge(order.status)}</div>
+                    <div className="text-sm text-blue-200 font-semibold">${order.total?.toLocaleString()}</div>
+                  </div>
+                  <div className="hidden lg:flex justify-end items-center lg:w-1/3 lg:px-4">
+                    {order.shippingInfo?.phone && (
+                      <div className="rounded-2xl flex items-center w-full lg:justify-end">
+                        <a
+                          href={`https://wa.me/${order.shippingInfo.phone}?text=Hola%20${encodeURIComponent(order.shippingInfo.fullName || '')},%20te%20contactamos%20por%20tu%20pedido%20%23${order.orderNumber}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex flex-row items-center justify-center gap-x-3 bg-gradient-to-br from-green-800/40 via-green-600/30 to-green-400/20 border border-green-500/40 rounded-xl px-4 py-2 text-white font-bold text-xs shadow-lg transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400/60"
+                          style={{ minWidth: 90 }}
+                          title="Contactar por WhatsApp"
+                        >
+                          <MessageCircle className="w-6 h-6 text-green-300 group-hover:text-green-100 transition-colors duration-300" />
+                          <span className="text-left">Comunicar al WhatsApp</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -637,7 +683,7 @@ export default function AdminDashboard() {
             <Settings className="h-6 w-6 text-gray-400" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Accesos Rápidos</h2>
+            <h2 className="text-base sm:text-xl font-bold text-white">Accesos Rápidos</h2>
             <p className="text-sm text-gray-400">Herramientas principales</p>
           </div>
         </div>

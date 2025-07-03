@@ -96,9 +96,6 @@ const AdminAdvertising: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const recordedChunksRef = useRef<Blob[]>([])
 
-  // Configuración del backend
-  const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api"
-
   // Detectar estado de conexión
   useEffect(() => {
     const handleOnline = () => setIsOnline(true)

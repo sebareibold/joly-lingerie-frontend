@@ -11,23 +11,58 @@ import {
   CreditCard,
 } from "lucide-react";
 import { useCart } from "../../contexts/CartContext";
+import { useEffect, useState } from "react";
+import { apiService } from "../../services/api";
+
+// Define the type for contact info (copied from HomePage.tsx)
+interface ContactDetailContent {
+  icon: string;
+  title: string;
+  details: string[];
+  description?: string;
+}
 
 export default function CartPage() {
   const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } =
     useCart();
   const navigate = useNavigate();
+  const [contactPhone, setContactPhone] = useState<string | null>(null);
 
-  const handleVirtualOrder = () => {
+  useEffect(() => {
+    async function fetchContactPhone() {
+      try {
+        const response = await apiService.getSiteContent();
+        if (response.success && response.content?.contact?.contactInfo) {
+          const contactInfo: ContactDetailContent[] = response.content.contact.contactInfo;
+          const phoneInfo = contactInfo.find(
+            (info) => info.title === "Teléfono"
+          );
+          if (phoneInfo && Array.isArray(phoneInfo.details) && phoneInfo.details[0]) {
+            // Clean up the phone number for WhatsApp (remove spaces, dashes, etc)
+            const raw = phoneInfo.details[0];
+            const cleaned = raw.replace(/[^\d+]/g, "");
+            setContactPhone(cleaned);
+          }
+        }
+      } catch {
+        setContactPhone(null);
+      }
+    }
+    fetchContactPhone();
+  }, []);
+
+  function handleVirtualOrder() {
     if (items.length === 0) return;
     navigate("/checkout");
-  };
+  }
 
   const handleWhatsAppConsult = () => {
+    const whatsappNumber = contactPhone;
     if (items.length === 0) {
       // Consulta general sin productos
       const message =
         "Hola! Me gustaría consultar sobre los productos disponibles en Joly Lingerie.";
-      const whatsappUrl = `https://wa.me/5492995123456?text=${encodeURIComponent(
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
         message
       )}`;
       window.open(whatsappUrl, "_blank");
@@ -48,7 +83,7 @@ export default function CartPage() {
     message += `Total estimado: $${getTotalPrice().toLocaleString()}\n\n`;
     message += "¿Tienen stock disponible de estos productos?";
 
-    const whatsappUrl = `https://wa.me/5492995123456?text=${encodeURIComponent(
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
       message
     )}`;
     window.open(whatsappUrl, "_blank");

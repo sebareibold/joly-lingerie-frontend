@@ -418,7 +418,7 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
                       e.stopPropagation(); // Prevents card click from firing
                       navigate(`/product/${product._id}`);
                     }}
-                    className="p-2 md:p-3 rounded-full  backdrop-blur-sm hover:scale-110 transition-all duration-300 shadow-md"
+                    className="p-2 md:p-3 rounded-full bg-white/90 backdrop-blur-sm hover:scale-110 transition-all duration-300 shadow-md"
                     style={{ color: "var(--clay)" }}
                   >
                     <Eye className="h-4 w-4 md:h-5 md:w-5" />

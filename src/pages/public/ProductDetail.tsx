@@ -156,39 +156,6 @@ export default function ProductDetail() {
         showSizeGuideButton: true,
         sizeGuideButtonText: "Guía de tallas",
       })
-
-      /*
-      // Valores por defecto para múltiples guías de tallas
-      setSizeGuidesData([
-        {
-          category: "Corpiño",
-          enabled: true,
-          title: "Guía de Tallas - Corpiños",
-          subtitle: "Encuentra tu talla perfecta de corpiño",
-          tableHeaders: ["Talla", "Contorno (cm)", "Copa"],
-          tableRows: [
-            { size: "85A", measurements: ["85", "A"] },
-            { size: "90A", measurements: ["90", "A"] },
-            { size: "95A", measurements: ["95", "A"] },
-          ],
-          notes: "Medidas específicas para corpiños. Consulta si tienes dudas.",
-        },
-        {
-          category: "Bombacha",
-          enabled: true,
-          title: "Guía de Tallas - Bombachas",
-          subtitle: "Encuentra tu talla perfecta de bombacha",
-          tableHeaders: ["Talla", "Cintura (cm)", "Cadera (cm)"],
-          tableRows: [
-            { size: "XS", measurements: ["60-64", "86-90"] },
-            { size: "S", measurements: ["64-68", "90-94"] },
-            { size: "M", measurements: ["68-72", "94-98"] },
-            { size: "L", measurements: ["72-76", "98-102"] },
-          ],
-          notes: "Medidas de cintura y cadera para bombachas.",
-        },
-      ])
-        */
     }
   }
 

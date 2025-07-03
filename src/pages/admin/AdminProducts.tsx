@@ -343,7 +343,7 @@ export default function AdminProducts() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           <Link
             to="/admin/products/new"
-            className="flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600/30 to-blue-700/20 text-blue-300 border border-blue-600/40 rounded-lg hover:from-blue-600/40 hover:to-blue-700/30 transition-all duration-300 hover:scale-105 font-medium shadow-lg"
+            className="flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600/30 to-blue-700/20 text-blue-300 border border-blue-600/40 rounded-lg hover:from-blue-600/40 hover:to-blue-700/30 transition-all duration-300 hover:scale-105 font-medium shadow-lg text-xs sm:text-base"
           >
             <PlusCircle className="h-5 w-5 mr-2" />
             Añadir Nuevo Producto
@@ -357,7 +357,7 @@ export default function AdminProducts() {
                 placeholder="Buscar por título..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="admin-input w-full sm:w-auto"
+                className="admin-input w-full sm:w-auto text-xs sm:text-sm"
               />
             </div>
 
@@ -370,7 +370,7 @@ export default function AdminProducts() {
                     setCategoryFilter(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="admin-input"
+                  className="admin-input text-xs sm:text-sm"
                   disabled={categoriesLoading}
                 >
                   <option value="all">Todas las categorías</option>
@@ -390,7 +390,7 @@ export default function AdminProducts() {
                     setStatusFilter(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="admin-input"
+                  className="admin-input text-xs sm:text-sm"
                 >
                   <option value="all">Todos los estados</option>
                   <option value="active">Activos</option>
@@ -400,7 +400,7 @@ export default function AdminProducts() {
 
               <button
                 onClick={loadProducts}
-                className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-emerald-600/30 to-emerald-700/20 text-emerald-300 border border-emerald-600/40 rounded-lg hover:from-emerald-600/40 hover:to-emerald-700/30 transition-all duration-300 font-medium"
+                className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-emerald-600/30 to-emerald-700/20 text-emerald-300 border border-emerald-600/40 rounded-lg hover:from-emerald-600/40 hover:to-emerald-700/30 transition-all duration-300 font-medium text-xs sm:text-base"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Actualizar
@@ -466,7 +466,7 @@ export default function AdminProducts() {
                             src={product.thumbnails[0] || "/placeholder.svg?height=48&width=48"}
                             alt={product.title}
                           />
-                          <div>
+                          <div className="sm:pr-10">
                             <div className="text-sm font-medium text-white">{product.title}</div>
                             <div className="text-xs text-gray-400 line-clamp-1 max-w-xs">{product.description}</div>
                           </div>

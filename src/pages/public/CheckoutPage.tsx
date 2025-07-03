@@ -107,20 +107,10 @@ export default function CheckoutPage() {
       ? checkoutContent.paymentInfo.cashOnDelivery.additionalFee
       : 0)
 
-  console.log("💰 Cálculo de totales:", {
-    subtotal,
-    shippingCost,
-    total,
-    wantsShipping,
-    baseCost: checkoutContent?.shipping?.homeDelivery?.baseCost,
-    freeShippingThreshold: checkoutContent?.shipping?.homeDelivery?.freeShippingThreshold,
-  })
 
   // Agregar función para cargar el contenido de checkout después de useEffect existentes
   const loadCheckoutContent = async (forceRefresh = false) => {
     try {
-      console.log("🔄 Cargando contenido de checkout...", { forceRefresh })
-
       // Si forzamos refresh, limpiar caché específico de contenido
       if (forceRefresh) {
         // Limpiar caché del API service
@@ -130,7 +120,6 @@ export default function CheckoutPage() {
       const response = await apiService.getSiteContent()
 
       if (response.success && response.content?.checkout) {
-        console.log("✅ Contenido de checkout cargado:", response.content.checkout)
         setCheckoutContent(response.content.checkout)
       } else {
         console.warn("⚠️ No se encontró contenido de checkout, usando valores por defecto")
@@ -138,60 +127,6 @@ export default function CheckoutPage() {
       }
     } catch (err) {
       console.error("❌ Error loading checkout content:", err)
-
-      // Solo usar valores por defecto si realmente no se puede cargar nada
-      console.log("📝 Usando valores por defecto para checkout")
-      setCheckoutContent({
-        deliveryInfo: {
-          title: "Información de Entrega",
-          meetingPoint: {
-            enabled: true,
-            title: "Punto de Encuentro",
-            description:
-              "Nos pondremos en contacto contigo para coordinar el punto de encuentro más conveniente para ambos.",
-            address: "",
-            schedule: "Lunes a Viernes de 10:00 a 18:00, Sábados de 10:00 a 14:00",
-            notes: "También ofrecemos entrega a domicilio en Neuquén Capital y alrededores.",
-          },
-        },
-        paymentInfo: {
-          title: "Información de Pago",
-          bankTransfer: {
-            enabled: true,
-            title: "Transferencia Bancaria",
-            bankName: "Banco Nación",
-            accountType: "Cuenta Corriente",
-            accountNumber: "1234567890",
-            accountHolder: "Joly Lingerie",
-            cbu: "0110123456789012345678",
-            alias: "JOLY.LINGERIE",
-            instructions:
-              "Realiza la transferencia por el monto total y sube el comprobante. Procesaremos tu pedido una vez confirmado el pago.",
-          },
-          cashOnDelivery: {
-            enabled: true,
-            title: "Pago Contra Entrega",
-            description:
-              "Paga en efectivo al momento de recibir tu pedido. Solo disponible para entregas en Neuquén Capital.",
-            additionalFee: 0,
-            notes: "Por favor, ten el monto exacto disponible al momento de la entrega.",
-          },
-        },
-        shipping: {
-          enabled: true,
-          title: "Configuración de Envíos",
-          homeDelivery: {
-            enabled: true,
-            title: "Envío a Domicilio",
-            description: "Entregamos en Neuquén Capital y alrededores. El costo varía según la ubicación.",
-            baseCost: 2500,
-            freeShippingThreshold: 30000,
-            estimatedDays: "2-3 días hábiles",
-            coverage: "Neuquén Capital y alrededores (hasta 15km del centro)",
-            notes: "Los envíos se realizan de lunes a viernes en horario comercial.",
-          },
-        },
-      })
     }
   }
 

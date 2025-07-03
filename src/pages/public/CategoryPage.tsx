@@ -280,7 +280,9 @@ export default function CategoryPage() {
                   <Link
                     to={`/product/${product._id}`}
                     className="p-1 md:p-3 rounded-full backdrop-blur-sm hover:scale-110 transition-all duration-300"
-                    style={{ backgroundColor: "rgba(255,255,255,0.9)" }}
+                    style={{
+                      backgroundColor: "white !important"
+                    }}
                   >
                     <Eye className="h-3 w-3 md:h-5 md:w-5" style={{ color: "var(--clay)" }} />
                   </Link>
@@ -288,7 +290,7 @@ export default function CategoryPage() {
                   <button
                     onClick={() => handleQuickAdd(product)}
                     className="p-1 md:p-3 rounded-full backdrop-blur-sm hover:scale-110 transition-all duration-300"
-                    style={{ backgroundColor: "rgba(255,255,255,0.9)" }}
+                    style={{ backgroundColor: "rgba(255,255,255,0.8)", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
                   >
                     <ShoppingBag className="h-3 w-3 md:h-5 md:w-5" style={{ color: "var(--clay)" }} />
                   </button>
