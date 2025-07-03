@@ -45,7 +45,8 @@ interface Order {
     | "pending_transfer_confirmation"
     | "paid"
     | "cancelled"
-    | "refunded" // ACTUALIZADO: Nuevos estados
+    | "refunded"
+    | "confirmado"
   subtotal: number
   shippingCost: number
   total: number
@@ -180,6 +181,12 @@ export default function AdminOrderDetail() {
         label: "Reembolsado",
         className: "bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-400 border-blue-500/30",
         icon: RefreshCw,
+        bgClass: "bg-blue-500/10",
+      },
+      confirmado: {
+        label: "Confirmado",
+        className: "bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-400 border-blue-500/30",
+        icon: CheckCircle,
         bgClass: "bg-blue-500/10",
       },
     }
@@ -603,6 +610,7 @@ export default function AdminOrderDetail() {
                   <option value="paid">Pagado</option>
                   <option value="cancelled">Cancelado</option>
                   <option value="refunded">Reembolsado</option>
+                  <option value="confirmado">Confirmado</option>
                 </select>
               </div>
 
@@ -639,6 +647,32 @@ export default function AdminOrderDetail() {
               )}
             </div>
           </div>
+
+          {/* Confirm Order Button */}
+          {order && order.status === 'pending_manual' && (
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 mt-4"
+              onClick={async () => {
+                setUpdating(true);
+                try {
+                  const response = await fetch(`/api/orders/${order._id}/confirm`, { method: 'PATCH' });
+                  const data = await response.json();
+                  if (data.success) {
+                    setOrder(data.order);
+                  } else {
+                    alert('Error confirmando la orden: ' + (data.error || '')); 
+                  }
+                } catch {
+                  alert('Error confirmando la orden');
+                } finally {
+                  setUpdating(false);
+                }
+              }}
+              disabled={updating}
+            >
+              Confirmar Orden
+            </button>
+          )}
         </div>
       </div>
     </div>

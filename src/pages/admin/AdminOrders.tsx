@@ -1,7 +1,7 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import {
+  ClipboardCheck,
   ShoppingBag,
   Eye,
   Calendar,
@@ -56,6 +56,7 @@ interface Order {
     | "paid"
     | "cancelled"
     | "refunded"
+    | "confirmado"
   notes?: string
   adminNotes?: string
   createdAt: string
@@ -74,6 +75,7 @@ interface OrderStats {
     paid: { cash: number; transfer: number }
     cancelled: { cash: number; transfer: number }
     refunded: { cash: number; transfer: number }
+    confirmado: { cash: number; transfer: number }
   }
 }
 
@@ -102,6 +104,7 @@ export default function AdminOrders() {
       paid: { cash: 0, transfer: 0 },
       cancelled: { cash: 0, transfer: 0 },
       refunded: { cash: 0, transfer: 0 },
+      confirmado: { cash: 0, transfer: 0 },
     },
   })
 
@@ -180,6 +183,7 @@ export default function AdminOrders() {
             paid: { cash: 0, transfer: 0 },
             cancelled: { cash: 0, transfer: 0 },
             refunded: { cash: 0, transfer: 0 },
+            confirmado: { cash: 0, transfer: 0 },
           },
         })
       }
@@ -207,6 +211,7 @@ export default function AdminOrders() {
           paid: { cash: 0, transfer: 0 },
           cancelled: { cash: 0, transfer: 0 },
           refunded: { cash: 0, transfer: 0 },
+          confirmado: { cash: 0, transfer: 0 },
         },
       })
     } finally {
@@ -239,7 +244,8 @@ export default function AdminOrders() {
       | "pending_transfer_confirmation"
       | "paid"
       | "cancelled"
-      | "refunded",
+      | "refunded"
+      | "confirmado",
     adminNotes = "",
   ) => {
     // Explicitly type newStatus
@@ -269,46 +275,32 @@ export default function AdminOrders() {
   }
 
   const deleteOrder = async (orderId: string) => {
-    const order = orders.find((o) => o._id === orderId)
-    const orderNumber = order?.orderNumber || orderId
-
-    if (
-      window.confirm(`¿Estás seguro de que quieres eliminar la orden #${orderNumber}? Esta acción es irreversible.`)
-    ) {
-      try {
-        setDeletingOrderId(orderId)
-        console.log(`🗑️ Eliminando orden ${orderId}`)
-
-        const response = await apiService.deleteOrder(orderId)
-        console.log(`✅ Orden eliminada exitosamente:`, response)
-
-        // Clear cache and reload orders
-        apiService.clearOrdersCache()
-        await loadOrders()
-
-        // Close modal if the deleted order was open
+    setDeletingOrderId(orderId);
+    let confirmed = false;
+    try {
+      confirmed = window.confirm(`¿Estás seguro de que quieres eliminar la orden #${orderId}? Esta acción es irreversible.`);
+      if (confirmed) {
+        await apiService.deleteOrder(orderId);
+        apiService.clearOrdersCache();
+        await loadOrders();
         if (selectedOrder && selectedOrder._id === orderId) {
-          setShowDetails(false)
-          setSelectedOrder(null)
+          setShowDetails(false);
+          setSelectedOrder(null);
         }
-
-        alert(`Orden #${orderNumber} eliminada exitosamente.`)
-      } catch (error: unknown) {
-        // Type 'error' as unknown
-        console.error("❌ Error deleting order:", error)
-
-        // Show specific error message
-        const errorMessage = error instanceof Error ? error.message : "Error desconocido" // Narrow type
-        alert(`Error al eliminar la orden: ${errorMessage}`)
-      } finally {
-        setDeletingOrderId(null)
+        alert(`Orden #${orderId} eliminada exitosamente.`);
       }
+    } catch (error) {
+      console.error("❌ Error deleting order:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      alert(`Error al eliminar la orden: ${errorMessage}`);
+    } finally {
+      setDeletingOrderId(null);
     }
-  }
+  };
 
   // Enhanced getStatusBadge with clearer, more understandable names
   const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { class: string; text: string; icon: any }> = {
+    const statusConfig: Record<string, { class: string; text: string; icon: React.ElementType }> = {
       pending_manual: {
         class: "bg-amber-500/20 text-amber-300 border-amber-500/40",
         text: "Pendiente (Efectivo)",
@@ -338,6 +330,11 @@ export default function AdminOrders() {
         class: "bg-blue-500/20 text-blue-300 border-blue-500/40",
         text: "Reembolsado",
         icon: RefreshCw,
+      },
+      confirmado: {
+        class: "bg-blue-500/20 text-blue-300 border-blue-500/40",
+        text: "Confirmado",
+        icon: ClipboardCheck,
       },
     }
 
@@ -411,6 +408,7 @@ export default function AdminOrders() {
       paid: orderStats.byStatusAndPaymentMethod.paid.cash,
       cancelled: orderStats.byStatusAndPaymentMethod.cancelled.cash,
       refunded: orderStats.byStatusAndPaymentMethod.refunded.cash,
+      confirmado: orderStats.byStatusAndPaymentMethod.confirmado.cash,
     }
 
     const transferStats = {
@@ -420,6 +418,7 @@ export default function AdminOrders() {
       paid: orderStats.byStatusAndPaymentMethod.paid.transfer,
       cancelled: orderStats.byStatusAndPaymentMethod.cancelled.transfer,
       refunded: orderStats.byStatusAndPaymentMethod.refunded.transfer,
+      confirmado: orderStats.byStatusAndPaymentMethod.confirmado.transfer,
     }
 
     const cashTotal = Object.values(cashStats).reduce((sum, count) => sum + count, 0)
@@ -451,7 +450,7 @@ export default function AdminOrders() {
               <div className="flex items-center justify-between p-3 bg-green-800/10 rounded-lg border border-green-700/20">
                 <div className="flex items-center space-x-2">
                   <Clock className="h-4 w-4 text-amber-400" />
-                  <span className="text-sm text-green-200">Pendiente Confirmación</span>
+                  <span className="text-sm text-green-200">Pendiente</span>
                 </div>
                 <span className="text-lg font-bold text-green-300">{cashStats.pending_manual}</span>
               </div>
@@ -484,6 +483,16 @@ export default function AdminOrders() {
                   <span className="text-sm text-green-200">Reembolsado</span>
                 </div>
                 <span className="text-lg font-bold text-green-300">{cashStats.refunded}</span>
+              </div>
+            )}
+
+            {cashStats.confirmado > 0 && (
+              <div className="flex items-center justify-between p-3 bg-green-800/10 rounded-lg border border-green-700/20">
+                <div className="flex items-center space-x-2">
+                  <ClipboardCheck className="h-4 w-4 text-blue-400" />
+                  <span className="text-sm text-green-200">Confirmado</span>
+                </div>
+                <span className="text-lg font-bold text-green-300">{cashStats.confirmado}</span>
               </div>
             )}
 
@@ -529,7 +538,7 @@ export default function AdminOrders() {
               <div className="flex items-center justify-between p-3 bg-blue-800/10 rounded-lg border border-blue-700/20">
                 <div className="flex items-center space-x-2">
                   <ImageIcon className="h-4 w-4 text-orange-400" />
-                  <span className="text-sm text-blue-200">Esperando Comprobante</span>
+                  <span className="text-sm text-blue-200">Pendiente (Falta Comprobante)</span>
                 </div>
                 <span className="text-lg font-bold text-blue-300">{transferStats.pending_transfer_proof}</span>
               </div>
@@ -539,7 +548,7 @@ export default function AdminOrders() {
               <div className="flex items-center justify-between p-3 bg-blue-800/10 rounded-lg border border-blue-700/20">
                 <div className="flex items-center space-x-2">
                   <CreditCard className="h-4 w-4 text-purple-400" />
-                  <span className="text-sm text-blue-200">Verificando Pago</span>
+                  <span className="text-sm text-blue-200">Pendiente (Verificar Comprobante)</span>
                 </div>
                 <span className="text-lg font-bold text-blue-300">{transferStats.pending_transfer_confirmation}</span>
               </div>
@@ -572,6 +581,16 @@ export default function AdminOrders() {
                   <span className="text-sm text-blue-200">Reembolsado</span>
                 </div>
                 <span className="text-lg font-bold text-blue-300">{transferStats.refunded}</span>
+              </div>
+            )}
+
+            {transferStats.confirmado > 0 && (
+              <div className="flex items-center justify-between p-3 bg-blue-800/10 rounded-lg border border-blue-700/20">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-4 w-4 text-blue-400" />
+                  <span className="text-sm text-blue-200">Confirmado</span>
+                </div>
+                <span className="text-lg font-bold text-blue-300">{transferStats.confirmado}</span>
               </div>
             )}
 
@@ -681,6 +700,7 @@ export default function AdminOrders() {
               <option value="paid">Pagadas</option>
               <option value="cancelled">Canceladas</option>
               <option value="refunded">Reembolsadas</option>
+              <option value="confirmado">Confirmadas</option>
             </select>
           </div>
 
@@ -790,25 +810,23 @@ export default function AdminOrders() {
                           <Eye className="h-4 w-4 mr-1" />
                           Ver Detalles
                         </Link>
-                        {
-                          <button
-                            onClick={() => deleteOrder(order._id)}
-                            disabled={deletingOrderId === order._id}
-                            className="inline-flex items-center px-3 py-1.5 bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm font-medium"
-                          >
-                            {deletingOrderId === order._id ? (
-                              <>
-                                <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                                Eliminando...
-                              </>
-                            ) : (
-                              <>
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Eliminar
-                              </>
-                            )}
-                          </button>
-                        }
+                        <button
+                          onClick={() => deleteOrder(order._id)}
+                          disabled={!!deletingOrderId && deletingOrderId === order._id}
+                          className="inline-flex items-center px-3 py-1.5 bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm font-medium"
+                        >
+                          {deletingOrderId === order._id ? (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                              Eliminando...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Eliminar
+                            </>
+                          )}
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -974,6 +992,7 @@ export default function AdminOrders() {
                     <option value="paid">Pagado</option>
                     <option value="cancelled">Cancelado</option>
                     <option value="refunded">Reembolsado</option>
+                    <option value="confirmado">Confirmado</option>
                   </select>
                   <span className="text-sm text-gray-400">Estado actual: {getStatusBadge(selectedOrder.status)}</span>
                 </div>

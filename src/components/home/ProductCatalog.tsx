@@ -517,7 +517,7 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
         {filteredProducts.length === 0 && !loading && !error && (
           <div className="text-center py-20">
             <p className="text-xl font-light" style={{ color: "var(--oak)" }}>
-              No se encontraron productos en esta categoría.
+              Aún no hay productos cargados en el sistema. ¡Pronto verás tus productos aquí!
             </p>
           </div>
         )}

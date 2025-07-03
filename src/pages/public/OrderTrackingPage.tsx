@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Search, MapPin, Truck, Info, XCircle, ArrowLeft, MessageSquare } from "lucide-react" // Mail is still imported but not used for the button
 import { apiService } from "../../services/api"
@@ -49,9 +49,28 @@ export default function OrderTrackingPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
+  const [contactPhone, setContactPhone] = useState<string | null>(null);
 
-
-  const ADMIN_PHONE_WHATSAPP = "2994513377" 
+  useEffect(() => {
+    async function fetchContactPhone() {
+      try {
+        const response = await apiService.getSiteContent();
+        if (response.success && response.content?.contact?.contactInfo) {
+          const contactInfo = response.content.contact.contactInfo;
+          const phoneInfo = contactInfo.find((info: { title: string; details: string[] }) => info.title === "Teléfono");
+          if (phoneInfo && Array.isArray(phoneInfo.details) && phoneInfo.details[0]) {
+            // Clean up the phone number for WhatsApp (remove spaces, dashes, etc)
+            const raw = phoneInfo.details[0];
+            const cleaned = raw.replace(/[^\d+]/g, "");
+            setContactPhone(cleaned);
+          }
+        }
+      } catch {
+        setContactPhone(null);
+      }
+    }
+    fetchContactPhone();
+  }, []);
 
   const handleTrackOrder = async () => {
     if (!orderNumber.trim()) {
@@ -108,13 +127,12 @@ export default function OrderTrackingPage() {
   const showContactOptions = order && (order.status === "pending_manual" || order.status === "paid")
 
   // Preparar mensajes pre-rellenados para los botones de contacto
-  const clientName = order?.shippingInfo.fullName.split(" ")[0] || "Cliente"
-  const orderRef = order?.orderNumber || "tu pedido"
-
-  // Email subject and body are still generated, but the button is removed
+  const orderRef = order?.orderNumber || "(sin número)";
+  const clientName = order?.shippingInfo.fullName || "Cliente";
+  // Mensaje prellenado para contactar a la tienda (como en el carrito)
   const whatsappText = encodeURIComponent(
-    `Hola ${clientName}, te escribo desde Joly Lingerie en referencia a tu orden #${orderRef}.`,
-  )
+    `¡Hola! Quisiera consultar sobre el estado de mi pedido #${orderRef} a nombre de ${clientName}.`
+  );
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--soft-creme)" }}>
@@ -310,14 +328,16 @@ export default function OrderTrackingPage() {
                 </h3>
                 <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
                   <a
-                    href={`https://wa.me/${ADMIN_PHONE_WHATSAPP}?text=${whatsappText}`}
+                    href={contactPhone ? `https://wa.me/${contactPhone}?text=${whatsappText}` : undefined}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full sm:w-auto px-4 sm:px-6 py-3 border border-transparent text-sm sm:text-base font-medium rounded-xl text-white transition-all duration-300 hover:shadow-lg flex items-center justify-center"
+                    className={`w-full sm:w-auto px-4 sm:px-6 py-3 border border-transparent text-sm sm:text-base font-medium rounded-xl text-white transition-all duration-300 hover:shadow-lg flex items-center justify-center ${!contactPhone ? 'opacity-50 cursor-not-allowed' : ''}`}
                     style={{ backgroundColor: "var(--clay)" }}
+                    aria-disabled={!contactPhone}
+                    tabIndex={!contactPhone ? -1 : 0}
                   >
                     <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                    Contactar por WhatsApp
+                    {contactPhone ? 'Contactar por WhatsApp' : 'WhatsApp no disponible'}
                   </a>
                 </div>
               </div>
