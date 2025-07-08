@@ -494,8 +494,7 @@ export default function AdminContent() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden && content === null) {
-        console.log("Página visible y sin contenido, recargando...");
-        loadContent();
+        // console.log("Página visible y sin contenido, recargando...");
       }
     };
 
@@ -509,7 +508,7 @@ export default function AdminContent() {
   // Agregar después del useEffect existente
   useEffect(() => {
     if (content) {
-      console.log("Contenido actualizado:", content);
+      // console.log("Contenido actualizado:", content);
     }
   }, [content]);
 
@@ -676,7 +675,7 @@ export default function AdminContent() {
         };
 
         setContent(defaultContent);
-        console.log("Contenido cargado exitosamente:", defaultContent);
+        // console.log("Contenido cargado exitosamente:", defaultContent);
       } else {
         setError(response.error || "Error al cargar el contenido.");
       }
@@ -689,7 +688,7 @@ export default function AdminContent() {
   };
 
   const handleRefresh = () => {
-    console.log("Refrescando contenido manualmente...");
+    // console.log("Refrescando contenido manualmente...");
     loadContent();
   };
 
@@ -1296,9 +1295,9 @@ export default function AdminContent() {
     setSuccess(null);
 
     try {
-      console.log("Enviando contenido:", content);
+      // console.log("Enviando contenido:", content);
       const response = await apiService.updateSiteContent(content);
-      console.log("Respuesta del servidor:", response);
+      // console.log("Respuesta del servidor:", response);
 
       if (response.success) {
         setSuccess("Contenido actualizado exitosamente!");

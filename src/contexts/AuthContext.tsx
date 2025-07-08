@@ -55,10 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
         setToken(storedToken);
-        console.log("AuthContext - Usuario establecido:", parsedUser);
-        console.log("token", storedToken);
       } catch (error) {
-        console.error("Error al parsear el usuario almacenado:", error);
         localStorage.removeItem("adminUser");
         localStorage.removeItem("adminToken");
       }
@@ -70,11 +67,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (email: string, password: string): Promise<boolean> => {
       try {
-        console.log(
-          "API Service - Intentando iniciar sesión con email:",
-          email
-        );
-
         const response = await apiService.login({ email, password });
         if (response && response.success && response.token) {
           // Guardar token y datos del usuario
@@ -92,14 +84,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(userData);
           setToken(response.token);
 
-          console.log("AuthContext - Login exitoso:", userData);
           return true;
         } else {
-          console.error("AuthContext - Respuesta de login inválida:", response);
           return false;
         }
       } catch (error) {
-        console.error("AuthContext - Error en login:", error);
         throw error;
       }
     },
@@ -111,7 +100,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("adminUser");
     setUser(null);
     setToken(null);
-    console.log("AuthContext - Usuario desconectado");
   }, []); // Dependencias vacías porque setUser/setToken son estables.
 
   const value = useMemo(

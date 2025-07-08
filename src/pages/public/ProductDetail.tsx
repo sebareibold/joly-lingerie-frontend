@@ -92,6 +92,13 @@ const iconMap: { [key: string]: React.ElementType } = {
   Info,
 }
 
+// Agrega una función utilitaria para formatear el precio con punto como separador de miles
+function formatPriceWithDot(value: number | string) {
+  const intValue = Math.floor(Number(value));
+  const num = intValue.toString();
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -108,6 +115,7 @@ export default function ProductDetail() {
   const [error, setError] = useState<string | null>(null)
   const [productDetailContent, setProductDetailContent] = useState<ProductDetailContent | null>(null)
   const [currentSizeGuides, setCurrentSizeGuides] = useState<SizeGuideData[]>([])
+  const [selectedGuideIndex, setSelectedGuideIndex] = useState(0);
 
   // Cambiar el estado para manejar múltiples guías
   const [sizeGuidesData, setSizeGuidesData] = useState<SizeGuideData[]>([])
@@ -224,9 +232,9 @@ export default function ProductDetail() {
 
       // Filter to not include the current product and limit to 3
       const related = (response.payload || [])
-        .filter((p: any) => p._id !== id) // Use 'any' for initial product from API
+        .filter((p: Product) => p._id !== id) // Use 'any' for initial product from API
         .slice(0, 4) // Mostrar 4 productos relacionados en la cuadrícula de 4 columnas
-        .map((p: any) => ({
+        .map((p: Product) => ({
           // Use 'any' for initial product from API
           ...p,
           images: p.thumbnails,
@@ -288,18 +296,22 @@ export default function ProductDetail() {
   useEffect(() => {
     if (product && sizeGuidesData.length > 0) {
       if (product.category.toLowerCase() === "conjuntos") {
-        // Buscar ambas guías: corpiño y bombacha
-        const corpinio = sizeGuidesData.find((g) => g.enabled && g.category.toLowerCase() === "corpiño")
-        const bombacha = sizeGuidesData.find((g) => g.enabled && g.category.toLowerCase() === "bombacha")
-        setCurrentSizeGuides([corpinio, bombacha].filter(Boolean) as SizeGuideData[])
+        // Busca la guía de conjuntos, corpiño, bombacha y bombis (todas si existen y están habilitadas, sin repetir)
+        const guides = [
+          sizeGuidesData.find(g => g.enabled && g.category.toLowerCase() === "conjuntos"),
+          sizeGuidesData.find(g => g.enabled && g.category.toLowerCase() === "corpiño"),
+          sizeGuidesData.find(g => g.enabled && g.category.toLowerCase() === "bombacha"),
+          sizeGuidesData.find(g => g.enabled && g.category.toLowerCase() === "bombis"),
+        ].filter((g, idx, arr) => g && arr.findIndex(x => x && x.category === g.category) === idx) as SizeGuideData[];
+        setCurrentSizeGuides(guides);
       } else {
-        const guide =
-          sizeGuidesData.find((g) => g.enabled && g.category.toLowerCase() === product.category.toLowerCase()) ||
-          sizeGuidesData.find((g) => g.enabled)
-        setCurrentSizeGuides(guide ? [guide] : [])
+        const guide = sizeGuidesData.find(
+          (g) => g.enabled && g.category.toLowerCase() === product.category.toLowerCase()
+        );
+        setCurrentSizeGuides(guide ? [guide] : []);
       }
     }
-  }, [product, sizeGuidesData])
+  }, [product, sizeGuidesData]);
 
   if (loading) {
     return (
@@ -421,16 +433,16 @@ export default function ProductDetail() {
 
               <div className="flex items-center space-x-3 lg:space-x-4 mb-4 lg:mb-6">
                 <div className="flex items-center space-x-2 lg:space-x-3">
-                  {product.originalPrice && (
+                  {typeof product.originalPrice === "number" && product.originalPrice > 0 && (
                     <span className="text-lg lg:text-xl line-through font-light" style={{ color: "var(--oak)" }}>
-                      ${product.originalPrice.toLocaleString()}
+                      ${formatPriceWithDot(product.originalPrice)}
                     </span>
                   )}
                   <span className="text-2xl lg:text-3xl font-medium" style={{ color: "var(--deep-clay)" }}>
-                    ${product.price.toLocaleString()}
+                    ${formatPriceWithDot(product.price)}
                   </span>
                 </div>
-                {product.discount && product.discount > 0 && (
+                {typeof product.originalPrice === "number" && product.originalPrice > 0 && (
                   <span
                     className="text-white px-3 py-1.5 lg:px-4 lg:py-2 rounded-full text-xs lg:text-sm font-medium shadow-lg"
                     style={{
@@ -605,87 +617,111 @@ export default function ProductDetail() {
 
             {/* Size Guide Table - Mostrar todas las guías para esta categoría */}
             {currentSizeGuides.length > 0 && (
-              <>
-                {currentSizeGuides.map((guide) => (
-                  <div
-                    key={guide.category}
-                    className="mb-6 lg:mb-10 p-6 rounded-2xl shadow-warm border"
-                    style={{
-                      backgroundColor: "var(--pure-white)",
-                      borderColor: "var(--bone)",
-                    }}
-                  >
-                    <div className="text-center mb-4">
-                      <h3
-                        className="font-serif text-lg lg:text-xl font-medium mb-2"
-                        style={{ color: "var(--deep-clay)" }}
+              <div className="w-full">
+                {currentSizeGuides.length > 1 && (
+                  <div className="flex flex-row gap-x-4 mb-6 overflow-x-auto">
+                    {currentSizeGuides.map((guide, idx) => (
+                      <button
+                        key={guide.category}
+                        onClick={() => setSelectedGuideIndex(idx)}
+                        className={`min-w-[120px] px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
+  ${selectedGuideIndex === idx
+    ? "bg-gradient-to-r from-[#f5e9da] to-[#f3e5c0] text-deep-clay border-bone shadow-lg  font-bold"
+    : "bg-white text-clay border-bone hover:bg-bone hover:text-emerald-700"
+  }`}
+                        style={{
+                          boxShadow: selectedGuideIndex === idx ? "0 4px 16px #e2cfa855" : undefined,
+                        }}
                       >
                         {guide.title}
-                      </h3>
-                      <p className="text-sm lg:text-base font-light" style={{ color: "var(--dark-clay)" }}>
-                        {guide.subtitle}
-                      </p>
-                    </div>
-                    {/* Tabla de Tallas */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr style={{ borderBottom: `2px solid var(--bone)` }}>
-                            {guide.tableHeaders.map((header, index) => (
-                              <th
-                                key={index}
-                                className="px-3 py-3 text-center text-xs lg:text-sm font-medium uppercase tracking-wider"
-                                style={{ color: "var(--clay)" }}
-                              >
-                                {header}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {guide.tableRows.map((row, rowIndex) => (
-                            <tr
-                              key={rowIndex}
-                              className="hover:bg-opacity-50 transition-colors duration-200"
-                              style={{
-                                backgroundColor: rowIndex % 2 === 0 ? "transparent" : "var(--bone)",
-                                borderBottom: `1px solid var(--bone)`,
-                              }}
-                            >
-                              <td
-                                className="px-3 py-3 text-center text-sm lg:text-base font-medium"
-                                style={{ color: "var(--deep-clay)" }}
-                              >
-                                {row.size}
-                              </td>
-                              {row.measurements.map((measurement, measurementIndex) => (
-                                <td
-                                  key={measurementIndex}
-                                  className="px-3 py-3 text-center text-sm lg:text-base"
-                                  style={{ color: "var(--dark-clay)" }}
-                                >
-                                  {measurement}
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    {/* Notas */}
-                    {guide.notes && (
-                      <div className="mt-4 pt-4" style={{ borderTop: `1px solid var(--bone)` }}>
-                        <p
-                          className="text-xs lg:text-sm font-light text-center leading-relaxed"
-                          style={{ color: "var(--oak)" }}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {/* Solo muestra la guía seleccionada */}
+                {(() => {
+                  const guide = currentSizeGuides[selectedGuideIndex] || currentSizeGuides[0];
+                  return (
+                    <div
+                      key={guide.category}
+                      className="mb-6 lg:mb-10 p-6 rounded-2xl shadow-warm border"
+                      style={{
+                        backgroundColor: "var(--pure-white)",
+                        borderColor: "var(--bone)",
+                      }}
+                    >
+                      <div className="text-center mb-4">
+                        <h3
+                          className="font-serif text-lg lg:text-xl font-medium mb-2"
+                          style={{ color: "var(--deep-clay)" }}
                         >
-                          {guide.notes}
+                          {guide.title}
+                        </h3>
+                        <p className="text-sm lg:text-base font-light" style={{ color: "var(--dark-clay)" }}>
+                          {guide.subtitle}
                         </p>
                       </div>
-                    )}
-                  </div>
-                ))}
-              </>
+                      {/* Tabla de Tallas */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr style={{ borderBottom: `2px solid var(--bone)` }}>
+                              {guide.tableHeaders.map((header, index) => (
+                                <th
+                                  key={index}
+                                  className="px-3 py-3 text-center text-xs lg:text-sm font-medium uppercase tracking-wider"
+                                  style={{ color: "var(--clay)" }}
+                                >
+                                  {header}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {guide.tableRows.map((row, rowIndex) => (
+                              <tr
+                                key={rowIndex}
+                                className="hover:bg-opacity-50 transition-colors duration-200"
+                                style={{
+                                  backgroundColor: rowIndex % 2 === 0 ? "transparent" : "var(--bone)",
+                                  borderBottom: `1px solid var(--bone)`,
+                                }}
+                              >
+                                <td
+                                  className="px-3 py-3 text-center text-sm lg:text-base font-medium"
+                                  style={{ color: "var(--deep-clay)" }}
+                                >
+                                  {row.size}
+                                </td>
+                                {row.measurements.map((measurement, measurementIndex) => (
+                                  <td
+                                    key={measurementIndex}
+                                    className="px-3 py-3 text-center text-sm lg:text-base"
+                                    style={{ color: "var(--dark-clay)" }}
+                                  >
+                                    {measurement}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {/* Notas */}
+                      {guide.notes && (
+                        <div className="mt-4 pt-4" style={{ borderTop: `1px solid var(--bone)` }}>
+                          <p
+                            className="text-xs lg:text-sm font-light text-center leading-relaxed"
+                            style={{ color: "var(--oak)" }}
+                          >
+                            {guide.notes}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
             )}
           </div>
 
@@ -733,7 +769,7 @@ export default function ProductDetail() {
                         {relatedProduct.title}
                       </h3>
                       <p className="font-semibold text-lg lg:text-xl mb-4" style={{ color: "var(--dark-clay)" }}>
-                        ${Math.round(relatedProduct.price).toLocaleString()}
+                        ${formatPriceWithDot(relatedProduct.price)}
                       </p>
 
                       {/* "Ver más" button */}

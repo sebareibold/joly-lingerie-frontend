@@ -43,6 +43,12 @@ interface Order {
   updatedAt: string
 }
 
+function formatPriceWithDot(value: number | string) {
+  const intValue = Math.floor(Number(value));
+  const num = intValue.toString();
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 export default function OrderTrackingPage() {
   const [orderNumber, setOrderNumber] = useState("")
   const [order, setOrder] = useState<Order | null>(null)
@@ -88,7 +94,7 @@ export default function OrderTrackingPage() {
       if (response.success && response.order) {
         setOrder(response.order)
       } else {
-        setError(response.error || "Pedido no encontrado. Verifica el número e intenta de nuevo.")
+        setError('Pedido no encontrado. Verifica el número e intenta de nuevo')
       }
     } catch (err) {
       console.error("Error al buscar pedido:", err)
@@ -219,7 +225,7 @@ export default function OrderTrackingPage() {
                     {order.paymentMethod === "cash" ? "Efectivo" : "Transferencia Bancaria"}
                   </p>
                   <p>
-                    <strong>Total:</strong> ${order.total.toLocaleString()}
+                    <strong>Total:</strong> ${formatPriceWithDot(order.total)}
                   </p>
                   {order.adminNotes && (
                     <p className="text-xs bg-blue-50 p-2 rounded border-l-4 border-blue-400">
@@ -260,7 +266,7 @@ export default function OrderTrackingPage() {
                   </p>
                   <p>
                     <strong>Costo de Envío:</strong>{" "}
-                    {order.shippingCost > 0 ? `$${order.shippingCost.toLocaleString()}` : "Gratis (Retiro en punto)"}
+                    {order.shippingCost > 0 ? `$${formatPriceWithDot(order.shippingCost)}` : "Gratis (Retiro en punto)"}
                   </p>
                   {order.shippingInfo.notes && (
                     <p className="text-xs bg-yellow-50 p-2 rounded border-l-4 border-yellow-400">
@@ -306,10 +312,10 @@ export default function OrderTrackingPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium text-sm sm:text-base" style={{ color: "var(--clay)" }}>
-                        ${(item.price * item.quantity).toLocaleString()}
+                        {formatPriceWithDot(item.price * item.quantity)}
                       </p>
                       <p className="text-xs sm:text-sm" style={{ color: "var(--oak)" }}>
-                        ${item.price.toLocaleString()} c/u
+                        {formatPriceWithDot(item.price)} c/u
                       </p>
                     </div>
                   </div>

@@ -48,69 +48,38 @@ export default function AdminProductForm() {
   const [availableCategories, setAvailableCategories] = useState<Category[]>([])
   const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [categoriesError, setCategoriesError] = useState<string | null>(null)
-
-  const availableSizes = [
-    // Ropa
-    "XS",
-    "S",
-    "M",
-    "L",
-    "XL",
-    "XXL",
-    // Calzado
-    "35",
-    "36",
-    "37",
-    "38",
-    "39",
-    "40",
-    "41",
-    "42",
-    "43",
-    "44",
-    // Accesorios
-    "Único",
-    "Ajustable",
-    // Relojes/Electrónicos
-    "35mm",
-    "40mm",
-    "42mm",
-    "45mm",
-  ]
+  const [availableSizes, setAvailableSizes] = useState<string[]>([])
+  const [sizeGuides, setSizeGuides] = useState<Array<{
+    enabled: boolean;
+    category: string;
+    tableRows?: Array<{ size: string }>
+  }>>([])
 
   // Verificar autenticación
   useEffect(() => {
-    console.log("AdminProductForm - Verificando autenticación:", { user, isEditing, id })
-
     if (user && user.role !== "admin") {
-      console.warn("AdminProductForm - Acceso denegado: Se requiere rol de administrador")
       navigate("/admin/login")
       return
     }
 
     if (isEditing && !id) {
-      console.error("AdminProductForm - ID de producto requerido para edición")
       navigate("/admin/products")
       return
     }
-
-    console.log("AdminProductForm - Autenticación verificada correctamente")
   }, [user, navigate, isEditing, id])
 
-  // Cargar categorías
+  // Cargar categorías y guías de tallas desde el contenido del sitio
   useEffect(() => {
-    const loadCategories = async () => {
+    const loadCategoriesAndGuides = async () => {
       try {
-        console.log("AdminProductForm - Cargando categorías...")
         setCategoriesLoading(true)
         setCategoriesError(null)
 
         const response = await apiService.getSiteContent()
-        console.log("AdminProductForm - Respuesta de contenido:", response)
 
+        // CATEGORÍAS
         if (response.success && response.content?.productCatalog?.categories) {
           setAvailableCategories(response.content.productCatalog.categories)
-          console.log("AdminProductForm - Categorías cargadas:", response.content.productCatalog.categories.length)
         } else {
           // Si no hay categorías, usar categorías por defecto
           const defaultCategories = [
@@ -125,11 +94,15 @@ export default function AdminProductForm() {
             { name: "automotive", display_name: "Automotriz" },
           ]
           setAvailableCategories(defaultCategories)
-          console.log("AdminProductForm - Usando categorías por defecto debido a:", response.error || "respuesta vacía")
+        }
+
+        // GUÍAS DE TALLAS
+        if (response.success && response.content?.sizeGuides) {
+          setSizeGuides(response.content.sizeGuides)
+        } else {
+          setSizeGuides([])
         }
       } catch (err) {
-        console.error("AdminProductForm - Error loading categories:", err)
-
         // En caso de error, usar categorías por defecto para no bloquear el formulario
         const defaultCategories = [
           { name: "electronics", display_name: "Electrónicos" },
@@ -144,13 +117,30 @@ export default function AdminProductForm() {
         ]
         setAvailableCategories(defaultCategories)
         setCategoriesError("No se pudieron cargar las categorías del servidor. Usando categorías por defecto.")
+        setSizeGuides([])
       } finally {
         setCategoriesLoading(false)
       }
     }
 
-    loadCategories()
+    loadCategoriesAndGuides()
   }, [])
+
+  // Actualizar availableSizes según la categoría seleccionada
+  useEffect(() => {
+    if (!form.category || sizeGuides.length === 0) {
+      setAvailableSizes([])
+      return
+    }
+    const guide = sizeGuides.find(
+      (g) => g.enabled && g.category === form.category
+    )
+    if (guide && Array.isArray(guide.tableRows)) {
+      setAvailableSizes([...new Set(guide.tableRows.map((row) => row.size))])
+    } else {
+      setAvailableSizes([])
+    }
+  }, [form.category, sizeGuides])
 
   // Cargar producto si es edición
   useEffect(() => {
@@ -158,14 +148,11 @@ export default function AdminProductForm() {
       if (isEditing && id) {
         try {
           setLoading(true)
-          console.log(`AdminProductForm - Cargando producto con ID: ${id}`)
 
           const response = await apiService.getProduct(id)
-          console.log("AdminProductForm - Respuesta del producto:", response)
 
           if (response.success && response.product) {
             const product = response.product
-            console.log("AdminProductForm - Datos del producto recibidos:", product)
 
             setForm({
               title: product.title || "",
@@ -178,28 +165,17 @@ export default function AdminProductForm() {
               thumbnails: product.thumbnails && product.thumbnails.length > 0 ? product.thumbnails : [""],
               discount: product.discount !== undefined ? String(product.discount) : "0",
             })
-            console.log("AdminProductForm - Estado del formulario actualizado")
           } else {
-            console.error("AdminProductForm - Error en la respuesta:", response)
-            const errorMessage = response.error || "Error al cargar el producto"
-
-            if (errorMessage.includes("no encontrado")) {
-              alert("❌ El producto no existe o fue eliminado.")
-            } else {
-              alert(`❌ ${errorMessage}`)
-            }
-
+            alert(response.error || "Error al cargar el producto")
             navigate("/admin/products")
           }
         } catch (error) {
-          console.error("AdminProductForm - Error loading product:", error)
-
           let errorMessage = "Error desconocido al cargar el producto"
           if (error instanceof Error) {
             errorMessage = error.message
           }
 
-          alert(`❌ ${errorMessage}`)
+          alert(errorMessage)
           navigate("/admin/products")
         } finally {
           setLoading(false)
@@ -222,6 +198,56 @@ export default function AdminProductForm() {
 
     loadProductData()
   }, [id, isEditing, navigate])
+
+  // Utilidad para formatear con separador de miles (solo para visualización)
+  function formatPriceVisual(value: string | number) {
+    if (value === "" || value === null || value === undefined) return ""
+    // Solo números
+    const num = String(value).replace(/[^\d]/g, "")
+    if (num === "") return ""
+    // Agrega puntos como separador de miles
+    return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+  }
+
+  // Utilidad para limpiar el valor (solo números y un punto decimal)
+  function cleanNumberInput(value: string, allowDecimal = false) {
+    let cleaned = value.replace(/[^\d.,]/g, "")
+    if (allowDecimal) {
+      // Solo un punto o coma decimal
+      cleaned = cleaned.replace(/(\.|,)(?=.*(\.|,))/g, "")
+      cleaned = cleaned.replace(",", ".")
+    } else {
+      cleaned = cleaned.replace(/\D/g, "")
+    }
+    return cleaned
+  }
+
+  // Handler para el input de precio (solo números, sin puntos ni comas)
+  const handlePriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^\d]/g, "")
+    setForm((prev) => ({
+      ...prev,
+      price: value,
+    }))
+  }
+
+  // Nuevo handler para inputs numéricos
+  const handleNumberInput = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "price" | "stock" | "discount"
+  ) => {
+    let value = e.target.value
+    if (field === "price") {
+      // Ahora el precio se maneja con handlePriceInput, así que no hace nada aquí
+      return
+    } else {
+      value = cleanNumberInput(value, false)
+    }
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -309,14 +335,10 @@ export default function AdminProductForm() {
         thumbnails: form.thumbnails.filter((thumb) => thumb.trim() !== ""),
       }
 
-      console.log("AdminProductForm - Enviando datos del producto:", productData)
-
       if (isEditing && id) {
         await apiService.updateProduct(id, productData)
-        console.log("AdminProductForm - Producto actualizado exitosamente")
       } else {
         await apiService.createProduct(productData)
-        console.log("AdminProductForm - Producto creado exitosamente")
       }
 
       navigate("/admin/products")
@@ -427,7 +449,7 @@ export default function AdminProductForm() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-400">Precio</p>
-                      <p className="text-white font-medium">${Number(form.price).toFixed(2)}</p>
+                      <p className="text-white font-medium">${form.price}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-400">Descuento</p>
@@ -710,13 +732,13 @@ export default function AdminProductForm() {
                     Stock Disponible
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     name="stock"
                     id="stock"
                     min="0"
                     className="admin-input"
                     value={form.stock}
-                    onChange={handleInputChange}
+                    onChange={e => handleNumberInput(e, "stock")}
                     placeholder="Cantidad disponible"
                   />
                 </div>
@@ -731,16 +753,16 @@ export default function AdminProductForm() {
                       <span className="text-gray-400 text-lg font-medium">$</span>
                     </div>
                     <input
-                      type="number"
+                      type="text"
                       name="price"
                       id="price"
                       required
                       min="0"
-                      step="0.01"
+                      step="1"
                       className="admin-input pl-6 pr-4"
-                      value={form.price}
-                      onChange={handleInputChange}
-                      placeholder="0.00"
+                      value={formatPriceVisual(form.price)}
+                      onChange={handlePriceInput}
+                      placeholder="0"
                     />
                   </div>
                 </div>
@@ -752,7 +774,7 @@ export default function AdminProductForm() {
                   </label>
                   <div className="relative">
                     <input
-                      type="number"
+                      type="text"
                       name="discount"
                       id="discount"
                       min="0"
@@ -760,7 +782,7 @@ export default function AdminProductForm() {
                       step="1"
                       className="admin-input pr-8 pl-4"
                       value={form.discount}
-                      onChange={handleInputChange}
+                      onChange={e => handleNumberInput(e, "discount")}
                       placeholder="0"
                     />
                     <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">

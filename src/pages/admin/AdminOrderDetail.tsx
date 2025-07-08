@@ -67,6 +67,12 @@ interface Order {
   }>
 }
 
+function formatPriceWithDot(value: number | string) {
+  const intValue = Math.floor(Number(value));
+  const num = intValue.toString();
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 export default function AdminOrderDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -348,13 +354,13 @@ export default function AdminOrderDetail() {
                         </span>
                         <span className="text-gray-300">
                           Precio unitario:{" "}
-                          <span className="font-medium text-white">${item.price.toLocaleString()}</span>
+                          <span className="font-medium text-white">{formatPriceWithDot(item.price)}</span>
                         </span>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-white">
-                        ${(item.price * item.quantity).toLocaleString()}
+                        {formatPriceWithDot(item.price * item.quantity)}
                       </div>
                     </div>
                   </div>
@@ -366,17 +372,17 @@ export default function AdminOrderDetail() {
                 <div className="bg-gray-900/30 rounded-xl p-6 space-y-3">
                   <div className="flex justify-between text-gray-300">
                     <span>Subtotal</span>
-                    <span className="font-medium">${order.subtotal.toLocaleString()}</span>
+                    <span className="font-medium">${formatPriceWithDot(order.subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-gray-300">
                     <span>Costo de envío</span>
                     <span className="font-medium">
-                      {order.shippingCost === 0 ? "Gratis" : `$${order.shippingCost.toLocaleString()}`}
+                      {order.shippingCost === 0 ? "Gratis" : `$${formatPriceWithDot(order.shippingCost)}`}
                     </span>
                   </div>
                   <div className="flex justify-between text-2xl font-bold text-white pt-3 border-t border-gray-700/50">
                     <span>Total</span>
-                    <span>${order.total.toLocaleString()}</span>
+                    <span>${formatPriceWithDot(order.total)}</span>
                   </div>
                 </div>
               </div>

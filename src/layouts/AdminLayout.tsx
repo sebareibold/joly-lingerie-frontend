@@ -85,7 +85,7 @@ const AdminLayout: React.FC = () => {
           isSidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
         }`}
       >
-        <main className="p-3 sm:p-4 lg:p-6 lg:px-36 lg:px-36">
+        <main className="px-[clamp(0.5rem,2vw,1.5rem)] py-2 sm:py-3 lg:py-4 xl:py-6 max-w-7xl xl:max-w-[1600px] mx-auto">
           {/* Enhanced System Status Container */}
           {!isMobile && (
             <>

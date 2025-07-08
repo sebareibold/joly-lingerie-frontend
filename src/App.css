@@ -37,11 +37,39 @@
 html {
   scroll-behavior: smooth;
   background-color: var(--soft-creme);
+  font-size: 15px; /* Antes 16px, reduce escala general ~6% */
 }
 
 body {
   background-color: var(--soft-creme);
   color: var(--dark-clay);
+  font-size: 1rem;
+}
+
+/* Encabezados grandes más compactos */
+.font-serif.text-5xl, .text-5xl {
+  font-size: 2.9rem;
+}
+.font-serif.text-4xl, .text-4xl {
+  font-size: 2.4rem;
+}
+.font-serif.text-3xl, .text-3xl {
+  font-size: 1.8rem;
+}
+.font-serif.text-2xl, .text-2xl {
+  font-size: 1.3rem;
+}
+.font-serif.text-xl, .text-xl {
+  font-size: 1.1rem;
+}
+
+/* Reduce paddings globales en secciones principales */
+.max-w-7xl.mx-auto.px-4.sm\:px-6.lg\:px-8.py-16,
+.max-w-7xl.mx-auto.px-4.sm\:px-6.lg\:px-8.py-6.lg\:py-12 {
+  padding-left: 1.2rem !important;
+  padding-right: 1.2rem !important;
+  padding-top: 2.5rem !important;
+  padding-bottom: 2.5rem !important;
 }
 
 /* Custom scrollbar */

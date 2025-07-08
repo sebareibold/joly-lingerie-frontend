@@ -14,7 +14,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
 
   useEffect(() => {
-    console.log("ProtectedRoute: user", user, "loading", loading)
+    // console.log("ProtectedRoute: user", user, "loading", loading)
     if (!loading && (!user || user.role !== "admin")) {
       console.warn("ProtectedRoute: Usuario no autenticado o no es admin. Redirigiendo a /admin/login.")
     }

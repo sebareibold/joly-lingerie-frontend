@@ -7,7 +7,6 @@ import {
   LogOut,
   Home,
   ShoppingCart,
-  Megaphone,
   X,
   FileText,
   ChevronLeft,
@@ -34,7 +33,6 @@ export default function AdminSidebar({
     { name: "Dashboard", href: "/admin", icon: Home, exact: true },
     { name: "Productos", href: "/admin/products", icon: Package },
     { name: "Órdenes", href: "/admin/orders", icon: ShoppingCart },
-    { name: "Publicidad", href: "/admin/advertising", icon: Megaphone },
     { name: "Contenido", href: "/admin/content", icon: FileText },
     { name: "Config", href: "/admin/settings", icon: Settings },
   ]

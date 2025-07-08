@@ -22,6 +22,12 @@ interface ContactDetailContent {
   description?: string;
 }
 
+function formatPriceWithDot(value: number | string) {
+  const intValue = Math.floor(Number(value));
+  const num = intValue.toString();
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 export default function CartPage() {
   const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } =
     useCart();
@@ -77,10 +83,10 @@ export default function CartPage() {
       if (item.size) message += `   Talla: ${item.size}\n`;
       if (item.color) message += `   Color: ${item.color}\n`;
       message += `   Cantidad: ${item.quantity}\n`;
-      message += `   Precio: $${item.price.toLocaleString()}\n\n`;
+      message += `   Precio: $${formatPriceWithDot(item.price)}\n\n`;
     });
 
-    message += `Total estimado: $${getTotalPrice().toLocaleString()}\n\n`;
+    message += `Total estimado: $${formatPriceWithDot(getTotalPrice())}\n\n`;
     message += "¿Tienen stock disponible de estos productos?";
 
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
@@ -275,7 +281,7 @@ export default function CartPage() {
                               className="text-lg font-medium"
                               style={{ color: "var(--deep-clay)" }}
                             >
-                              ${(item.price * item.quantity).toLocaleString()}
+                              ${formatPriceWithDot(item.price * item.quantity)}
                             </div>
                           </div>
                         </div>
@@ -322,7 +328,7 @@ export default function CartPage() {
                         Subtotal
                       </span>
                       <span style={{ color: "var(--deep-clay)" }}>
-                        ${subtotal.toLocaleString()}
+                        ${formatPriceWithDot(subtotal)}
                       </span>
                     </div>
 

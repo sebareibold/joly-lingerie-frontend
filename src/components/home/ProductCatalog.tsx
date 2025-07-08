@@ -106,10 +106,9 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
       }
 
       const response = await apiService.getProducts(params);
-      console.log("Resultado de apiService.getProducts:", response);
       // Transformar los datos de la API al formato que espera la UI
       const transformedProducts = (response.payload || []).map(
-        (product: any) => {
+        (product: Product) => {
           const originalPrice = product.price;
           const discountPercentage = product.discount || 0;
           const discountedPrice =
@@ -131,7 +130,7 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
               { name: "Negro", value: "#000000" },
               { name: "Blanco", value: "#FFFFFF" },
             ],
-            sizes: product.size || ["S", "M", "L"], // Use product.size directly if it's an array, or default
+            sizes: product.sizes || ["S", "M", "L"], // Use product.sizes directly if it exists, or default
             new: product.stock > 10,
           } as Product;
         }
@@ -197,8 +196,6 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
   // Filter products by category (this filtering is now mostly handled by the API call)
   // This local filter is only for the products already loaded.
   // The `selectedCategory` state now directly influences the API call.
-  const filteredProducts = products; // Products are already filtered by API based on selectedCategory
-
   const hasMore = currentPage < totalPages;
 
   if (loading && products.length === 0) {
@@ -271,11 +268,11 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
             Lencería de Lujo
           </p>
           <h2
-            className="font-serif text-2xl sm:text-5xl lg:text-7xl font-light mb-4 sm:mb-8 tracking-wide animate-fade-in-up animate-delay-200"
+            className="font-serif text-5xl sm:text-5xl lg:text-8xl font-light mb-8 tracking-wide animate-fade-in-up"
             style={{ color: "var(--deep-clay)" }}
           >
             {content.mainTitle.split(" ")[0]}{" "}
-            <span className="italic" style={{ color: "var(--clay)" }}>
+            <span className="text-primary font-bold">
               {content.mainTitle.split(" ").slice(1).join(" ")}
             </span>
           </h2>
@@ -372,7 +369,7 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
               />
             </div>
           )}
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <div
               key={product._id}
               className="group relative overflow-hidden transition-all duration-500 ease-in-out
@@ -514,7 +511,7 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
           ))}
         </div>
 
-        {filteredProducts.length === 0 && !loading && !error && (
+        {products.length === 0 && !loading && !error && (
           <div className="text-center py-20">
             <p className="text-xl font-light" style={{ color: "var(--oak)" }}>
               Aún no hay productos cargados en el sistema. ¡Pronto verás tus productos aquí!

@@ -14,6 +14,12 @@ import {
   MessageCircle,
 } from "lucide-react"
 
+function formatPriceWithDot(value: number | string) {
+  const intValue = Math.floor(Number(value));
+  const num = intValue.toString();
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 export default function OrderConfirmationPage() {
   const { orderNumber } = useParams<{ orderNumber: string }>()
   const location = useLocation()
@@ -295,8 +301,8 @@ export default function OrderConfirmationPage() {
                 <td>${item.title}</td>
                 <td>${item.size || ""} ${item.color ? `/ ${item.color}` : ""}</td>
                 <td>${item.quantity}</td>
-                <td>$${item.price?.toLocaleString("es-AR")}</td>
-                <td>$${(item.price * item.quantity)?.toLocaleString("es-AR")}</td>
+                <td>${formatPriceWithDot(item.price)}</td>
+                <td>${formatPriceWithDot(item.price * item.quantity)}</td>
               </tr>
             `,
                 )
@@ -553,10 +559,10 @@ export default function OrderConfirmationPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium" style={{ color: "var(--clay)" }}>
-                        ${(item.price * item.quantity).toLocaleString()}
+                        ${formatPriceWithDot(item.price * item.quantity)}
                       </p>
                       <p className="text-sm" style={{ color: "var(--oak)" }}>
-                        ${item.price.toLocaleString()} c/u
+                        ${formatPriceWithDot(item.price)} c/u
                       </p>
                     </div>
                   </div>
@@ -570,18 +576,18 @@ export default function OrderConfirmationPage() {
                 <div className="w-full max-w-sm space-y-2">
                   <div className="flex justify-between text-sm" style={{ color: "var(--oak)" }}>
                     <span>Subtotal:</span>
-                    <span>${orderData.subtotal?.toLocaleString()}</span>
+                    <span>${formatPriceWithDot(orderData.subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm" style={{ color: "var(--oak)" }}>
                     <span>{wantsShipping ? "Envío:" : "Punto de encuentro:"}</span>
-                    <span>{wantsShipping ? `$${orderData.shippingCost?.toLocaleString()}` : "Gratis"}</span>
+                    <span>{wantsShipping ? `$${formatPriceWithDot(orderData.shippingCost)}` : "Gratis"}</span>
                   </div>
                   <div
                     className="flex justify-between text-xl font-semibold pt-2 border-t"
                     style={{ color: "var(--deep-clay)", borderColor: "var(--bone)" }}
                   >
                     <span>Total:</span>
-                    <span>${orderData.total?.toLocaleString()}</span>
+                    <span>${formatPriceWithDot(orderData.total)}</span>
                   </div>
                 </div>
               </div>

@@ -23,7 +23,6 @@ import AdminProductForm from "./pages/admin/AdminProductForm"
 import AdminOrders from "./pages/admin/AdminOrders"
 import AdminOrderDetail from "./pages/admin/AdminOrderDetail"
 import AdminSettings from "./pages/admin/AdminSettings"
-import AdminAdvertising from "./pages/admin/AdminAdvertising"
 import AdminContent from "./pages/admin/AdminContent"
 
 import "./App.css"
@@ -66,7 +65,6 @@ function App() {
               <Route path="products/edit/:id" element={<AdminProductForm />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="orders/:id" element={<AdminOrderDetail />} />
-              <Route path="advertising" element={<AdminAdvertising />} />
               <Route path="content" element={<AdminContent />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>

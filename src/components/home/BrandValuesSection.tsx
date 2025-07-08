@@ -22,15 +22,15 @@ interface BrandValuesSectionProps {
 // Mapeo de nombres de string a componentes de Lucide React
 const iconMap: { [key: string]: React.ElementType } = Object.keys(LucideIcons).reduce(
   (acc, key) => {
-    const Component = (LucideIcons as any)[key]
+    const Component = (LucideIcons as unknown as Record<string, React.ElementType>)[key];
     if (typeof Component === "function" && Component.displayName) {
       // Check if it's a React component
-      acc[key] = Component
+      acc[key] = Component;
     }
-    return acc
+    return acc;
   },
   {} as { [key: string]: React.ElementType },
-)
+);
 
 export default function BrandValuesSection({ content }: BrandValuesSectionProps) {
   return (
@@ -45,7 +45,7 @@ export default function BrandValuesSection({ content }: BrandValuesSectionProps)
             {content.subtitle}
           </p>
           <h2
-            className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light mb-6 tracking-wide animate-fade-in-up animate-delay-200"
+            className="font-serif text-5xl sm:text-5xl lg:text-8xl font-light mb-6 tracking-wide animate-fade-in-up animate-delay-200"
             style={{ color: "var(--deep-clay)" }}
           >
             {content.mainTitle}

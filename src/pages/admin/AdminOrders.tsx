@@ -113,7 +113,6 @@ export default function AdminOrders() {
 
     const loadData = async () => {
       if (isMounted) {
-        console.log(`🔄 useEffect triggered - Page: ${currentPage}, Status: ${statusFilter}`)
         try {
           await retryLoadOrders()
         } catch (error) {
@@ -132,7 +131,6 @@ export default function AdminOrders() {
 
   const loadOrders = async () => {
     try {
-      console.log(`🔄 Cargando órdenes - Página: ${currentPage}, Filtro: ${statusFilter}`)
       setLoading(true)
 
       // Clear any existing data to show loading state properly
@@ -144,18 +142,6 @@ export default function AdminOrders() {
         apiService.getAllOrders(currentPage, 20, statusFilter === "all" ? undefined : statusFilter),
         apiService.getOrdersSummary(),
       ])
-
-      console.log("📦 Respuesta de órdenes:", {
-        orders: ordersResponse?.orders?.length || 0,
-        totalOrders: ordersResponse?.totalOrders || 0,
-        currentPage,
-        statusFilter,
-      })
-
-      console.log("📊 Respuesta de resumen:", {
-        totalOrders: summaryResponse?.summary?.totalOrders || 0,
-        revenue: summaryResponse?.summary?.totalRevenue || 0,
-      })
 
       // Validate responses
       if (!ordersResponse || !summaryResponse) {
@@ -187,8 +173,6 @@ export default function AdminOrders() {
           },
         })
       }
-
-      console.log(`✅ Órdenes cargadas exitosamente: ${ordersData.length} órdenes`)
     } catch (error: unknown) {
       // Type 'error' as unknown
       console.error("❌ Error loading orders:", error)
@@ -251,7 +235,6 @@ export default function AdminOrders() {
     // Explicitly type newStatus
     try {
       setUpdating(true)
-      console.log(`🔄 Actualizando estado de orden ${orderId} a ${newStatus}`)
 
       await apiService.updateOrderStatus(orderId, newStatus, adminNotes)
 
@@ -262,8 +245,6 @@ export default function AdminOrders() {
       if (selectedOrder && selectedOrder._id === orderId) {
         setSelectedOrder({ ...selectedOrder, status: newStatus, adminNotes })
       }
-
-      console.log(`✅ Estado de orden actualizado exitosamente`)
     } catch (error: unknown) {
       // Type 'error' as unknown
       console.error("❌ Error updating order status:", error)
@@ -716,7 +697,6 @@ export default function AdminOrders() {
 
           <button
             onClick={async () => {
-              console.log("🔄 Refresh manual iniciado")
               // Clear API cache first
               apiService.clearCache()
 

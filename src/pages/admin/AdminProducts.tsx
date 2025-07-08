@@ -53,13 +53,6 @@ export default function AdminProducts() {
 
   const loadProducts = async () => {
     try {
-      console.log("AdminProducts - Iniciando carga de productos...", {
-        currentPage,
-        categoryFilter,
-        statusFilter,
-        searchTerm,
-      })
-
       setLoading(true)
       const params: {
         page?: number
@@ -82,19 +75,13 @@ export default function AdminProducts() {
         params.status = statusFilter === "active"
       }
 
-      console.log("AdminProducts - Parámetros de búsqueda:", params)
-
       const response = await apiService.getProducts(params)
-
-      console.log("AdminProducts - Respuesta recibida:", response)
 
       if (!response) {
         throw new Error("Respuesta vacía del servidor")
       }
 
-      // Manejar tanto respuestas exitosas como de error
       if (!response.success) {
-        console.warn("AdminProducts - Error en la respuesta:", response.error)
         setProducts([])
         setTotalProductsCount(0)
         setTotalPages(1)
@@ -105,26 +92,15 @@ export default function AdminProducts() {
       const totalDocs = response.totalProducts || 0
       const totalPages = response.totalPages || Math.ceil(totalDocs / 10) || 1
 
-      console.log("AdminProducts - Datos procesados:", {
-        productsCount: products.length,
-        totalDocs,
-        totalPages,
-      })
-
       setProducts(products)
       setTotalProductsCount(totalDocs)
       setTotalPages(totalPages)
     } catch (error) {
-      console.error("Error loading products:", error)
-
-      // Establecer estado de error pero no bloquear la UI
       setProducts([])
       setTotalProductsCount(0)
       setTotalPages(1)
 
       if (error instanceof Error) {
-        console.error("Error específico:", error.message)
-        // Solo mostrar alerta si es un error crítico, no para errores de red menores
         if (!error.message.includes("Network Error") && !error.message.includes("timeout")) {
           alert(`Error al cargar productos: ${error.message}`)
         }
@@ -135,7 +111,6 @@ export default function AdminProducts() {
   }
 
   useEffect(() => {
-    console.log("AdminProducts - useEffect ejecutándose por cambio en dependencias")
     loadProducts()
   }, [currentPage, categoryFilter, statusFilter])
 
@@ -146,7 +121,6 @@ export default function AdminProducts() {
     }
 
     const timeoutId = setTimeout(() => {
-      console.log("AdminProducts - Búsqueda por término:", searchTerm)
       setCurrentPage(1)
       loadProducts()
     }, 500)
@@ -154,7 +128,6 @@ export default function AdminProducts() {
     return () => clearTimeout(timeoutId)
   }, [searchTerm])
 
-  // Cargar categorías desde el backend
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -163,9 +136,7 @@ export default function AdminProducts() {
 
         if (response.success && response.content?.productCatalog?.categories) {
           setAvailableCategories(response.content.productCatalog.categories)
-          console.log("AdminProducts - Categorías cargadas:", response.content.productCatalog.categories.length)
         } else {
-          // Categorías por defecto si no se pueden cargar
           const defaultCategories = [
             { name: "electronics", display_name: "Electrónicos" },
             { name: "clothing", display_name: "Ropa" },
@@ -178,22 +149,9 @@ export default function AdminProducts() {
             { name: "automotive", display_name: "Automotriz" },
           ]
           setAvailableCategories(defaultCategories)
-          console.log("AdminProducts - Usando categorías por defecto")
         }
       } catch (error) {
-        console.error("AdminProducts - Error loading categories:", error)
-        // Usar categorías por defecto en caso de error
-        const defaultCategories = [
-          { name: "electronics", display_name: "Electrónicos" },
-          { name: "clothing", display_name: "Ropa" },
-          { name: "books", display_name: "Libros" },
-          { name: "home", display_name: "Hogar" },
-          { name: "sports", display_name: "Deportes" },
-          { name: "beauty", display_name: "Belleza" },
-          { name: "toys", display_name: "Juguetes" },
-          { name: "food", display_name: "Comida" },
-          { name: "automotive", display_name: "Automotriz" },
-        ]
+
         setAvailableCategories(defaultCategories)
       } finally {
         setCategoriesLoading(false)
@@ -204,7 +162,6 @@ export default function AdminProducts() {
   }, [])
 
   const deleteProduct = async (id: string) => {
-    // Encontrar el producto para mostrar información en la confirmación
     const product = products.find((p) => p._id === id)
     const productName = product ? product.title : "este producto"
 
@@ -216,17 +173,14 @@ export default function AdminProducts() {
       try {
         setUpdating(true)
 
-        // Llamar al servicio API mejorado
         await apiService.deleteProduct(id)
 
         alert("Producto eliminado exitosamente.")
 
-        // Recargar la lista de productos
         await loadProducts()
       } catch (error) {
         console.error("Error deleting product:", error)
 
-        // Mostrar mensaje de error específico
         if (error instanceof Error) {
           if (error.message.includes("órdenes activas")) {
             alert(
@@ -234,7 +188,6 @@ export default function AdminProducts() {
             )
           } else if (error.message.includes("no encontrado")) {
             alert("❌ El producto ya no existe o fue eliminado previamente.")
-            // Recargar la lista para reflejar el estado actual
             await loadProducts()
           } else {
             alert(`❌ Error al eliminar el producto: ${error.message}`)
@@ -262,7 +215,6 @@ export default function AdminProducts() {
     }
   }
 
-  // Function to get category-based gradient styling
   const getCategoryGradient = (category: string) => {
     const categoryStyles: Record<string, { gradient: string; border: string; textColor: string }> = {
       electronics: {
@@ -321,9 +273,17 @@ export default function AdminProducts() {
     )
   }
 
+  // Agrega una función utilitaria para formatear el precio con punto como separador de miles
+  function formatPriceWithDot(value: number | string) {
+    const intValue = Math.floor(Number(value));
+    const num = intValue.toString();
+
+    console.log(num);
+    return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-white">Gestión de Productos</h1>
@@ -338,7 +298,6 @@ export default function AdminProducts() {
         </Link>
       </div>
 
-      {/* Action Bar con Gradiente */}
       <div className="bg-gradient-to-br from-gray-900/40 via-gray-800/20 to-gray-700/10 border border-gray-600/30 rounded-xl p-6 shadow-lg">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           <Link
@@ -410,7 +369,6 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* Products Table con Gradientes por Categoría */}
       <div className="bg-gradient-to-br from-gray-900/40 via-gray-800/20 to-gray-700/10 border border-gray-600/30 rounded-xl shadow-lg overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
@@ -482,8 +440,8 @@ export default function AdminProducts() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-white font-medium flex items-center">
                           <DollarSign className="h-4 w-4 mr-1 text-emerald-400" />
-                          {product.price.toLocaleString()}
-                          {product.discount && (
+                          {formatPriceWithDot(product.price)}
+                          {typeof product.discount === "number" && product.discount > 0 && (
                             <span className="ml-2 text-xs bg-gradient-to-r from-green-500/30 to-green-600/20 text-green-300 px-2 py-0.5 rounded-full border border-green-500/40">
                               -{product.discount}%
                             </span>
@@ -518,14 +476,12 @@ export default function AdminProducts() {
                           to={`/admin/products/edit/${product._id}`}
                           className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-amber-600/30 to-amber-700/20 text-amber-300 border border-amber-600/40 rounded-lg hover:from-amber-600/40 hover:to-amber-700/30 transition-all duration-300 text-sm font-medium"
                           onClick={(e) => {
-                            // Verificar que el producto existe antes de navegar
                             if (!product._id || product._id.trim() === "") {
                               e.preventDefault()
                               alert("Error: ID de producto inválido")
                               return
                             }
 
-                            // Opcional: Prefetch del producto para edición más rápida
                             apiService.getProduct(product._id).catch((err) => {
                               console.warn("Error prefetching product:", err)
                             })
@@ -571,7 +527,6 @@ export default function AdminProducts() {
         )}
       </div>
 
-      {/* Pagination con Gradiente */}
       {totalPages > 1 && (
         <div className="bg-gradient-to-r from-gray-900/40 via-gray-800/20 to-gray-700/10 border border-gray-600/30 rounded-xl px-6 py-4 flex items-center justify-between shadow-lg">
           <div className="text-sm text-gray-400">

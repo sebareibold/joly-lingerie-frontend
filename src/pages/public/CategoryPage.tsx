@@ -32,6 +32,12 @@ interface Product {
 
 const PRODUCTS_PER_PAGE_CATEGORY = 12 // Define how many products to load per page for category page
 
+function formatPriceWithDot(value: number | string) {
+  const intValue = Math.floor(Number(value));
+  const num = intValue.toString();
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 export default function CategoryPage() {
   const { category } = useParams<{ category: string }>()
   const [sortBy, setSortBy] = useState("name")
@@ -129,10 +135,6 @@ export default function CategoryPage() {
       )
       setTotalPages(response.totalPages)
       setCurrentPage(pageToLoad)
-            // AÑADE ESTOS CONSOLE.LOGS
-      console.log("Resultado de apiService.getProducts:", response);
-      console.log("Productos en si obtenidos al luego de setear", products);
-      // FIN DE CONSOLE.LOGS
       setError(null)
     } catch (err) {
       console.error("Error loading products by category:", err)
@@ -323,11 +325,11 @@ export default function CategoryPage() {
                 <div className="mb-1 md:mb-4">
                   <div className="flex items-baseline space-x-1 md:space-x-2 mb-0 md:mb-1">
                     <span className="text-sm md:text-xl font-semibold" style={{ color: "var(--deep-clay)" }}>
-                      ${product.price.toLocaleString()}
+                      {formatPriceWithDot(product.price)}
                     </span>
                     {product.originalPrice && (
                       <span className="text-[10px] md:text-sm line-through opacity-50" style={{ color: "var(--oak)" }}>
-                        ${product.originalPrice.toLocaleString()}
+                        {formatPriceWithDot(product.originalPrice)}
                       </span>
                     )}
                   </div>

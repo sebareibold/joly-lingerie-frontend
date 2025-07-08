@@ -90,6 +90,7 @@ export default function CheckoutPage() {
 
   // Agregar estado para el contenido de checkout después de los estados existentes
   const [checkoutContent, setCheckoutContent] = useState<CheckoutContent | null>(null)
+  const [copiedField, setCopiedField] = useState<null | 'cbu' | 'alias'>(null)
 
   const subtotal = getTotalPrice()
 
@@ -147,7 +148,7 @@ export default function CheckoutPage() {
   // Nuevo useEffect para recargar cuando la ventana vuelve a tener foco
   useEffect(() => {
     const handleFocus = () => {
-      console.log("🔄 Ventana enfocada, recargando contenido de checkout...")
+      // console.log("🔄 Ventana enfocada, recargando contenido de checkout...")
       loadCheckoutContent(true)
     }
 
@@ -211,6 +212,14 @@ export default function CheckoutPage() {
     }
   }
 
+  const handleCopy = (text: string, field: 'cbu' | 'alias') => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopiedField(field)
+        setTimeout(() => setCopiedField(null), 1500)
+      })
+  }
+
   const handleCheckout = async () => {
     if (!validateForm()) {
       return
@@ -264,7 +273,7 @@ export default function CheckoutPage() {
         transferProofUrl,
       }
 
-      console.log("Enviando orden:", orderData)
+      // console.log("Enviando orden:", orderData)
 
       const response = await apiService.createOrder(orderData)
 
@@ -759,11 +768,25 @@ export default function CheckoutPage() {
                         <p>
                           <strong>Banco:</strong> {checkoutContent.paymentInfo.bankTransfer.bankName}
                         </p>
-                        <p>
+                        <p className="flex items-center">
                           <strong>CBU:</strong> {checkoutContent.paymentInfo.bankTransfer.cbu}
+                          <button
+                            type="button"
+                            className="ml-2 px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300 transition-colors"
+                            onClick={() => handleCopy(checkoutContent.paymentInfo.bankTransfer.cbu, 'cbu')}
+                          >
+                            {copiedField === 'cbu' ? '¡Copiado!' : 'Copiar'}
+                          </button>
                         </p>
-                        <p>
+                        <p className="flex items-center">
                           <strong>Alias:</strong> {checkoutContent.paymentInfo.bankTransfer.alias}
+                          <button
+                            type="button"
+                            className="ml-2 px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300 transition-colors"
+                            onClick={() => handleCopy(checkoutContent.paymentInfo.bankTransfer.alias, 'alias')}
+                          >
+                            {copiedField === 'alias' ? '¡Copiado!' : 'Copiar'}
+                          </button>
                         </p>
                         <p>
                           <strong>Titular:</strong> {checkoutContent.paymentInfo.bankTransfer.accountHolder}
@@ -880,14 +903,21 @@ export default function CheckoutPage() {
                     <span className="text-sm sm:text-base" style={{ color: "var(--oak)" }}>
                       {wantsShipping ? "Envío" : "Punto de encuentro"}
                     </span>
-                    <span className="font-medium text-sm sm:text-base" style={{ color: "var(--deep-clay)" }}>
-                      {wantsShipping
-                        ? shouldHaveFreeShipping
+                    {wantsShipping ? (
+                      <span className="font-medium text-sm sm:text-base" style={{ color: "var(--deep-clay)" }}>
+                        {shouldHaveFreeShipping || shippingCost === 0
                           ? "Gratis"
-                          : `$${shippingCost.toLocaleString()}`
-                        : "Gratis"}
-                    </span>
+                          : `$${shippingCost.toLocaleString()}`}
+                      </span>
+                    ) : null}
                   </div>
+
+                  {/* Mostrar dirección de retiro si es punto de encuentro */}
+                  {!wantsShipping && checkoutContent?.deliveryInfo.meetingPoint.address && (
+                    <div className="text-xs mt-1" style={{ color: "var(--oak)" }}>
+                      {checkoutContent.deliveryInfo.meetingPoint.address}
+                    </div>
+                  )}
 
                   {/* Mostrar información adicional sobre envío gratis */}
                   {wantsShipping &&
@@ -899,19 +929,7 @@ export default function CheckoutPage() {
                       </div>
                     )}
 
-                  {/* Mostrar cargo adicional por pago en efectivo si aplica */}
-                  {paymentMethod === "cash" &&
-                    checkoutContent?.paymentInfo?.cashOnDelivery?.additionalFee &&
-                    checkoutContent.paymentInfo.cashOnDelivery.additionalFee > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-sm sm:text-base" style={{ color: "var(--oak)" }}>
-                          Cargo pago en efectivo
-                        </span>
-                        <span className="font-medium text-sm sm:text-base" style={{ color: "var(--deep-clay)" }}>
-                          ${checkoutContent.paymentInfo.cashOnDelivery.additionalFee.toLocaleString()}
-                        </span>
-                      </div>
-                    )}
+                  
                 </div>
 
                 {/* Botón de Checkout - Optimizado para móvil */}
