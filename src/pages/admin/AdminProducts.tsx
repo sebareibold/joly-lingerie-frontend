@@ -17,6 +17,7 @@ import {
   Eye,
 } from "lucide-react"
 import { apiService } from "../../services/api"
+import formatPriceWithDot from "../../components/utils/formatPriceWithDot";
 
 interface Product {
   _id: string
@@ -130,6 +131,17 @@ export default function AdminProducts() {
 
   useEffect(() => {
     const loadCategories = async () => {
+      const defaultCategories = [
+        { name: "electronics", display_name: "Electrónicos" },
+        { name: "clothing", display_name: "Ropa" },
+        { name: "books", display_name: "Libros" },
+        { name: "home", display_name: "Hogar" },
+        { name: "sports", display_name: "Deportes" },
+        { name: "beauty", display_name: "Belleza" },
+        { name: "toys", display_name: "Juguetes" },
+        { name: "food", display_name: "Comida" },
+        { name: "automotive", display_name: "Automotriz" },
+      ]
       try {
         setCategoriesLoading(true)
         const response = await apiService.getSiteContent()
@@ -137,21 +149,9 @@ export default function AdminProducts() {
         if (response.success && response.content?.productCatalog?.categories) {
           setAvailableCategories(response.content.productCatalog.categories)
         } else {
-          const defaultCategories = [
-            { name: "electronics", display_name: "Electrónicos" },
-            { name: "clothing", display_name: "Ropa" },
-            { name: "books", display_name: "Libros" },
-            { name: "home", display_name: "Hogar" },
-            { name: "sports", display_name: "Deportes" },
-            { name: "beauty", display_name: "Belleza" },
-            { name: "toys", display_name: "Juguetes" },
-            { name: "food", display_name: "Comida" },
-            { name: "automotive", display_name: "Automotriz" },
-          ]
           setAvailableCategories(defaultCategories)
         }
-      } catch (error) {
-
+      } catch {
         setAvailableCategories(defaultCategories)
       } finally {
         setCategoriesLoading(false)
@@ -271,15 +271,6 @@ export default function AdminProducts() {
         textColor: "text-gray-400",
       }
     )
-  }
-
-  // Agrega una función utilitaria para formatear el precio con punto como separador de miles
-  function formatPriceWithDot(value: number | string) {
-    const intValue = Math.floor(Number(value));
-    const num = intValue.toString();
-
-    console.log(num);
-    return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
 
   return (

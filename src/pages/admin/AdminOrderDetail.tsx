@@ -25,6 +25,7 @@ import {
   ImageIcon,
 } from "lucide-react"
 import { apiService } from "../../services/api"
+import formatPriceWithDot from "../../components/utils/formatPriceWithDot";
 
 interface Order {
   _id: string
@@ -65,12 +66,6 @@ interface Order {
     color?: string
     image?: string
   }>
-}
-
-function formatPriceWithDot(value: number | string) {
-  const intValue = Math.floor(Number(value));
-  const num = intValue.toString();
-  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 export default function AdminOrderDetail() {

@@ -2,6 +2,7 @@
 import axios from "axios"
 
  const API_BASE_URL = import.meta.env.VITE_API_URL || "https://joly-lingerie-backend-production.up.railway.app/api"
+//const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api"
 
 // Cache para las respuestas de la API
 const apiCache = new Map<string, { data: any; timestamp: number }>()
@@ -24,9 +25,7 @@ const processRequestQueue = async () => {
   if (isProcessingQueue || requestQueue.length === 0) {
     return
   }
-
   isProcessingQueue = true
-
   while (requestQueue.length > 0) {
     const { url, method, data, params, resolve, reject } = requestQueue.shift()!
     try {
@@ -37,7 +36,6 @@ const processRequestQueue = async () => {
     }
     await new Promise((res) => setTimeout(res, REQUEST_INTERVAL)) // Esperar antes de la siguiente petición
   }
-
   isProcessingQueue = false
 }
 
@@ -53,7 +51,6 @@ const makeRequestWithDelay = async (url: string, method: string, data?: any, par
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   }
-
   try {
     const response = await axios(config)
     return response.data
@@ -117,12 +114,10 @@ export const apiService = {
   get: async (url: string, params?: any) => {
     const cacheKey = `${url}?${new URLSearchParams(params).toString()}`
     const cached = apiCache.get(cacheKey)
-
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
       console.log(`⚡ Usando caché para GET ${url}`)
       return cached.data
     }
-
     try {
       const response = await queueRequest(url, "get", undefined, params)
       apiCache.set(cacheKey, { data: response, timestamp: Date.now() })
@@ -266,6 +261,47 @@ export const apiService = {
           : "Error desconocido",
         payload: [],
         totalPages: 0,
+        totalProducts: 0,
+      }
+    }
+  },
+
+  // 🆕 NUEVO: Método específico para obtener solo el conteo de productos
+  getProductsCount: async () => {
+    try {
+      const response = (await apiService.get("/products/count")) as any
+      return {
+        success: true,
+        count: response.count || 0,
+      }
+    } catch (error: unknown) {
+      console.error("Error obteniendo conteo de productos:", error)
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener conteo de productos"
+          : "Error desconocido",
+        count: 0,
+      }
+    }
+  },
+
+  // 🆕 NUEVO: Método alternativo para obtener todos los productos (sin límite)
+  getAllProducts: async () => {
+    try {
+      const response = (await apiService.get("/products", { limit: "all" })) as any
+      return {
+        success: response.status === "success",
+        payload: response.payload,
+        totalProducts: response.totalDocs,
+      }
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener todos los productos"
+          : "Error desconocido",
+        payload: [],
         totalProducts: 0,
       }
     }
@@ -514,8 +550,7 @@ export const apiService = {
     try {
       const formData = new FormData()
       formData.append("file", file)
-
-      const response = await axios.post(`${API_BASE_URL}/upload/transfer-proof`, formData, {
+      const response = await axios.post(`${API_BASE_URL}/upload/proof`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${localStorage.getItem("token")}`,

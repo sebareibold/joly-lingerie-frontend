@@ -1,4 +1,5 @@
 import { Instagram, Facebook, Twitter } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
@@ -38,6 +39,15 @@ export default function Footer() {
             </div>
           </div>
         </div>
+      </div>
+      {/* Botón visible en todas las resoluciones para ir al admin */}
+      <div className="flex justify-center mt-4 mb-2">
+        <Link
+          to="/admin/login"
+          className="bg-[#5C4033] text-white px-4 py-2 rounded-full font-medium text-sm shadow hover:bg-[#8B735C] transition-colors duration-200"
+        >
+          Entrada administración
+        </Link>
       </div>
     </footer>
   );

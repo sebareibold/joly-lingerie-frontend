@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ShoppingBag, Eye, RefreshCw, Loader2 } from "lucide-react"; // Added Loader2 for button loading
+import { ShoppingBag, Eye, RefreshCw, Loader2, Filter, X } from "lucide-react"; // Added Filter, X for size filter
 import { useCart } from "../../contexts/CartContext";
 import { useNavigate } from "react-router-dom";
 import { apiService } from "../../services/api";
+import { useNotification } from "../../contexts/NotificationContext";
 
 // Definición de interfaces
 interface ProductColor {
@@ -44,6 +45,20 @@ interface ProductCatalogProps {
   content: ProductCatalogContent;
 }
 
+// NUEVO: Interfaz para la guía de talles
+interface SizeGuideData {
+  category: string;
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+  tableHeaders: string[];
+  tableRows: {
+    size: string;
+    measurements: string[];
+  }[];
+  notes: string;
+}
+
 const PRODUCTS_PER_PAGE = 12; // Define how many products to load per page
 
 export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
@@ -53,14 +68,21 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
   const [error, setError] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
   const { addToCart } = useCart();
+  const { showNotification } = useNotification();
   const scrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const [sizeGuides, setSizeGuides] = useState<SizeGuideData[]>([]);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false); // State for "Load More" button
   const [isCategoryChanging, setIsCategoryChanging] = useState(false); // NEW: State for category change loading
+
+  // Size filter states
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [showSizeFilter, setShowSizeFilter] = useState(false);
+  const [availableSizes, setAvailableSizes] = useState<string[]>([]);
 
   // Categorías dinámicas del contenido, más "Todos"
   const categories = [
@@ -77,6 +99,14 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
     loadProducts(1, selectedCategory); // Load first page for the new category
   }, [selectedCategory]); // Depend on selectedCategory
 
+  // Effect for size filter change
+  useEffect(() => {
+    setCurrentPage(1);
+    setTotalPages(1);
+    setIsCategoryChanging(true);
+    loadProducts(1, selectedCategory);
+  }, [selectedSizes]); // Depend on selectedSizes
+
   // Initial load (only once on component mount)
   useEffect(() => {
     if (products.length === 0 && !loadingMore && !isCategoryChanging) {
@@ -84,6 +114,45 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
     }
     loadProducts(1, selectedCategory);
   }, []); // Empty dependency array means it runs once on mount
+
+  // Al montar, obtener la guía de talles
+  useEffect(() => {
+    const fetchSizeGuides = async () => {
+      try {
+        const response = await apiService.getSiteContent();
+        if (response.success && response.content.sizeGuides) {
+          setSizeGuides(response.content.sizeGuides);
+        }
+      } catch (err) {
+        // Si falla, no hacer nada (el filtro usará los talles de productos)
+      }
+    };
+    fetchSizeGuides();
+  }, []);
+
+  // Modificar el efecto que extrae los talles disponibles
+  useEffect(() => {
+    // Si hay categoría seleccionada y existe guía de talles para esa categoría, usarla
+    if (selectedCategory !== "Todos") {
+      const guide = sizeGuides.find(
+        (g) => g.enabled && g.category.toLowerCase() === selectedCategory.toLowerCase()
+      );
+      if (guide) {
+        setAvailableSizes(
+          Array.from(new Set(guide.tableRows.map((row) => row.size))).sort()
+        );
+        return;
+      }
+    }
+    // Si no hay guía, usar los talles de los productos como antes
+    const allSizes = new Set<string>();
+    products.forEach((product: Product) => {
+      if (product.sizes) {
+        product.sizes.forEach((size: string) => allSizes.add(size));
+      }
+    });
+    setAvailableSizes(Array.from(allSizes).sort());
+  }, [selectedCategory, sizeGuides, products]);
 
   const loadProducts = async (pageToLoad: number, categoryToLoad: string) => {
     try {
@@ -97,12 +166,15 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
         setLoadingMore(true);
       }
 
-      const params: { limit: number; page: number; category?: string } = {
+      const params: { limit: number; page: number; category?: string; sizes?: string[] } = {
         limit: PRODUCTS_PER_PAGE,
         page: pageToLoad,
       };
       if (categoryToLoad !== "Todos") {
         params.category = categoryToLoad;
+      }
+      if (selectedSizes.length > 0) {
+        params.sizes = selectedSizes;
       }
 
       const response = await apiService.getProducts(params);
@@ -130,7 +202,13 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
               { name: "Negro", value: "#000000" },
               { name: "Blanco", value: "#FFFFFF" },
             ],
-            sizes: product.sizes || ["S", "M", "L"], // Use product.sizes directly if it exists, or default
+            sizes: Array.isArray(product.sizes)
+              ? product.sizes.map((s: string) => s.trim().toUpperCase())
+              : Array.isArray((product as any).size)
+                ? (product as any).size.map((s: string) => s.trim().toUpperCase())
+                : typeof (product as any).size === "string"
+                  ? (product as any).size.split(",").map((s: string) => s.trim().toUpperCase())
+                  : [],
             new: product.stock > 10,
           } as Product;
         }
@@ -144,6 +222,17 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
       setTotalPages(response.totalPages);
       setCurrentPage(pageToLoad);
       setError(null);
+
+      // Extract available sizes from products for filter
+      if (pageToLoad === 1) {
+        const allSizes = new Set<string>();
+        transformedProducts.forEach((product: Product) => {
+          if (product.sizes) {
+            product.sizes.forEach((size: string) => allSizes.add(size));
+          }
+        });
+        setAvailableSizes(Array.from(allSizes).sort());
+      }
     } catch (err) {
       console.error("Error loading products:", err);
       if (err instanceof Error && err.message.includes("429")) {
@@ -178,6 +267,7 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
     }
   };
 
+  // Extender el tipo para permitir stock
   const handleQuickAdd = (product: Product) => {
     addToCart(
       {
@@ -188,9 +278,28 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
           product.images?.[0] || product.thumbnails?.[0] || "/placeholder.svg",
         size: product.sizes?.[0] || "M",
         color: product.colors?.[0]?.name || "Negro",
-      },
+        stock: product.stock as number,
+      } as any, // forzar tipado para permitir stock
       1
     );
+    showNotification(`¡${product.name || product.title} agregado al carrito!`);
+  };
+
+  // Size filter functions
+  const toggleSize = (size: string) => {
+    setSelectedSizes(prev => 
+      prev.includes(size) 
+        ? prev.filter(s => s !== size)
+        : [...prev, size]
+    );
+  };
+
+  const clearSizeFilter = () => {
+    setSelectedSizes([]);
+  };
+
+  const toggleSizeFilter = () => {
+    setShowSizeFilter(!showSizeFilter);
   };
 
   // Filter products by category (this filtering is now mostly handled by the API call)
@@ -252,6 +361,16 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
     );
   }
 
+  const filteredProducts = (selectedSizes.length > 0
+    ? products.filter(product =>
+        Array.isArray(product.sizes) && product.sizes.length > 0 &&
+        product.sizes.some(size =>
+          selectedSizes.map(s => s.trim().toUpperCase()).includes(size.trim().toUpperCase())
+        )
+      )
+    : products
+  );
+
   return (
     <section
       id="products"
@@ -293,7 +412,7 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
               className="flex overflow-x-auto scrollbar-hide gap-3 px-8 py-2"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-              {categories.map((category, _) => (
+              {categories.map((category) => (
                 <button
                   key={category.name}
                   onClick={() => setSelectedCategory(category.name)}
@@ -325,8 +444,9 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
           </div>
         </div>
 
+
         {/* Category Filter - Desktop */}
-        <div className="hidden md:flex flex-wrap justify-center gap-3 mb-20">
+        <div className="hidden md:flex flex-wrap justify-center gap-3 mb-8">
           {categories.map((category) => (
             <button
               key={category.name}
@@ -354,6 +474,76 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
           ))}
         </div>
 
+        {/* Size Filter */}
+        {selectedCategory !== 'Todos' && (
+          <div className="mb-12">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <button
+                onClick={toggleSizeFilter}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium uppercase tracking-[0.15em] transition-all duration-300 ${
+                  selectedSizes.length > 0
+                    ? "text-white shadow-warm"
+                    : "text-gray-700 border hover:shadow-warm"
+                }`}
+                style={{
+                  backgroundColor:
+                    selectedSizes.length > 0
+                      ? "var(--clay)"
+                      : "var(--pure-white)",
+                  borderColor: "var(--oak)",
+                  borderWidth: selectedSizes.length > 0 ? "0" : "1px",
+                }}
+              >
+                <Filter className="h-4 w-4" />
+                Filtrar por talla
+                {selectedSizes.length > 0 && (
+                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">
+                    {selectedSizes.length}
+                  </span>
+                )}
+              </button>
+              
+              {selectedSizes.length > 0 && (
+                <button
+                  onClick={clearSizeFilter}
+                  className="flex items-center gap-1 px-3 py-2 rounded-full text-xs font-medium text-gray-600 hover:text-gray-800 transition-colors"
+                  style={{ backgroundColor: "var(--bone)" }}
+                >
+                  <X className="h-3 w-3" />
+                  Limpiar
+                </button>
+              )}
+            </div>
+
+            {/* Size Filter Options */}
+            {showSizeFilter && availableSizes.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-2 mb-6">
+                {availableSizes.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => toggleSize(size)}
+                    className={`px-4 py-2 rounded-full text-xs font-medium uppercase tracking-[0.15em] transition-all duration-300 ${
+                      selectedSizes.includes(size)
+                        ? "text-white shadow-warm"
+                        : "text-gray-700 border hover:shadow-warm"
+                    }`}
+                    style={{
+                      backgroundColor:
+                        selectedSizes.includes(size)
+                          ? "var(--clay)"
+                          : "var(--pure-white)",
+                      borderColor: "var(--oak)",
+                      borderWidth: selectedSizes.includes(size) ? "0" : "1px",
+                    }}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Products Grid - 2 fixed columns on mobile */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8 lg:gap-10 relative">
           {isCategoryChanging && (
@@ -369,15 +559,14 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
               />
             </div>
           )}
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <div
               key={product._id}
-              className="group relative overflow-hidden transition-all duration-500 ease-in-out
-            shadow-lg hover:shadow-xl rounded-lg cursor-pointer flex flex-col hover:scale-[1.03]" /* This div has cursor-pointer */
+              className="group relative overflow-hidden transition-all duration-500 ease-in-out shadow-lg hover:shadow-xl rounded-lg cursor-pointer flex flex-col hover:scale-[1.03] animate-fade-in-up"
               style={{
                 backgroundColor: "var(--pure-white)",
               }}
-              onClick={() => navigate(`/product/${product._id}`)} // Makes the entire card clickable
+              onClick={() => navigate(`/product/${product._id}`)}
             >
               {/* Image Container */}
               <div className="relative overflow-hidden rounded-t-lg flex-shrink-0">
@@ -519,28 +708,57 @@ export default function ProductCatalogAlt({ content }: ProductCatalogProps) {
           </div>
         )}
 
-        {hasMore && (
-          <div
-            className="text-center mt-12"
-            style={{ backgroundColor: "var(--creme)" }}
-          >
+        {hasMore && filteredProducts.length > 8 && (
+          <div className="text-center mt-16">
             <button
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="px-8 py-3 rounded-full text-white font-semibold text-base uppercase tracking-[0.1em] transition-all duration-300 hover:brightness-110 shadow-md hover:shadow-lg flex items-center justify-center mx-auto"
+              className="group relative px-10 py-4 rounded-full text-white font-medium text-sm uppercase tracking-[0.15em] transition-all duration-500 hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center mx-auto overflow-hidden"
               style={{
-                background: "var(--creme)",
+                background: "linear-gradient(135deg, var(--clay) 0%, var(--dark-clay) 100%)",
+                boxShadow: "0 8px 25px rgba(139, 69, 19, 0.3)",
               }}
             >
-              {loadingMore ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Cargando más...
-                </>
-              ) : (
-                "Ver más productos"
-              )}
+              {/* Background overlay for hover effect */}
+              <div 
+                className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500"
+                style={{ borderRadius: "9999px" }}
+              />
+              
+              {/* Border glow effect */}
+              <div 
+                className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%)",
+                  boxShadow: "inset 0 0 20px rgba(255,255,255,0.2)",
+                }}
+              />
+              
+              {/* Content */}
+              <div className="relative z-10 flex items-center">
+                {loadingMore ? (
+                  <>
+                    <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                    <span>Cargando más productos...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">Ver más productos</span>
+                    <svg 
+                      className="w-4 h-4 transform group-hover:translate-y-1 transition-transform duration-300" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </>
+                )}
+              </div>
             </button>
+            
+
+            
             {error && !loadingMore && (
               <p className="text-red-500 mt-4">{error}</p>
             )}

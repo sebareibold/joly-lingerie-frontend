@@ -13,6 +13,7 @@ import {
 import { useCart } from "../../contexts/CartContext";
 import { useEffect, useState } from "react";
 import { apiService } from "../../services/api";
+import formatPriceWithDot from "../../components/utils/formatPriceWithDot";
 
 // Define the type for contact info (copied from HomePage.tsx)
 interface ContactDetailContent {
@@ -20,12 +21,6 @@ interface ContactDetailContent {
   title: string;
   details: string[];
   description?: string;
-}
-
-function formatPriceWithDot(value: number | string) {
-  const intValue = Math.floor(Number(value));
-  const num = intValue.toString();
-  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 export default function CartPage() {
@@ -270,6 +265,7 @@ export default function CartPage() {
                                   )
                                 }
                                 className="p-2 rounded-r-xl hover:bg-gray-50 transition-colors"
+                                disabled={item.quantity >= (item.stock ?? 99)}
                               >
                                 <Plus
                                   className="h-4 w-4"

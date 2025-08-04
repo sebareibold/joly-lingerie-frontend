@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { ShoppingBag, Eye, Loader2, RefreshCw } from "lucide-react" // Added Loader2, RefreshCw
 import { useCart } from "../../contexts/CartContext"
 import { apiService } from "../../services/api"
+import formatPriceWithDot from "../../components/utils/formatPriceWithDot";
+import { useNotification } from "../../contexts/NotificationContext";
 
 // Definición de interfaces
 interface ProductColor {
@@ -32,12 +34,6 @@ interface Product {
 
 const PRODUCTS_PER_PAGE_CATEGORY = 12 // Define how many products to load per page for category page
 
-function formatPriceWithDot(value: number | string) {
-  const intValue = Math.floor(Number(value));
-  const num = intValue.toString();
-  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-
 export default function CategoryPage() {
   const { category } = useParams<{ category: string }>()
   const [sortBy, setSortBy] = useState("name")
@@ -45,6 +41,7 @@ export default function CategoryPage() {
   const [loading, setLoading] = useState(true) // For initial full page load
   const [error, setError] = useState<string | null>(null)
   const { addToCart } = useCart()
+  const { showNotification } = useNotification();
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -161,7 +158,9 @@ export default function CategoryPage() {
       image: product.thumbnails[0] || "/placeholder.svg",
       size: product.sizes?.[0] || "M",
       color: product.colors?.[0]?.name || "Negro",
-    })
+      stock: product.stock,
+    } as any)
+    showNotification(`¡${product.title} agregado al carrito!`);
   }
 
   const handleLoadMore = () => {
@@ -361,24 +360,56 @@ export default function CategoryPage() {
       )}
 
       {hasMore && (
-        <div className="text-center mt-12">
+        <div className="text-center mt-16">
           <button
             onClick={handleLoadMore}
             disabled={loadingMore}
-            className="px-8 py-3 rounded-full text-white font-semibold text-base uppercase tracking-[0.1em] transition-all duration-300 hover:brightness-110 shadow-md hover:shadow-lg flex items-center justify-center mx-auto"
+            className="group relative px-10 py-4 rounded-full text-white font-medium text-sm uppercase tracking-[0.15em] transition-all duration-500 hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center mx-auto overflow-hidden"
             style={{
-              background: "linear-gradient(to right, var(--clay), var(--dark-clay))",
+              background: "linear-gradient(135deg, var(--clay) 0%, var(--dark-clay) 100%)",
+              boxShadow: "0 8px 25px rgba(139, 69, 19, 0.3)",
             }}
           >
-            {loadingMore ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Cargando más...
-              </>
-            ) : (
-              "Ver más productos"
-            )}
+            {/* Background overlay for hover effect */}
+            <div 
+              className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500"
+              style={{ borderRadius: "9999px" }}
+            />
+            
+            {/* Border glow effect */}
+            <div 
+              className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+              style={{
+                background: "linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%)",
+                boxShadow: "inset 0 0 20px rgba(255,255,255,0.2)",
+              }}
+            />
+            
+            {/* Content */}
+            <div className="relative z-10 flex items-center">
+              {loadingMore ? (
+                <>
+                  <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                  <span>Cargando más productos...</span>
+                </>
+              ) : (
+                <>
+                  <span className="mr-2">Ver más productos </span>
+                                      <svg 
+                      className="w-4 h-4 transform group-hover:translate-y-1 transition-transform duration-300" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                </>
+              )}
+            </div>
           </button>
+          
+          
+          
           {error && !loadingMore && <p className="text-red-500 mt-4">{error}</p>}
         </div>
       )}

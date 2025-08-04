@@ -11,6 +11,7 @@ interface CartItem {
   size: string
   color?: string
   quantity: number
+  stock?: number // <-- agregar stock
 }
 
 interface CartContextType {
@@ -43,13 +44,22 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     localStorage.setItem("cart", JSON.stringify(items))
   }, [items])
 
-  const addToCart = (product: Omit<CartItem, "quantity">, quantity = 1) => {
+  const addToCart = (product: Omit<CartItem, "quantity"> & { stock?: number }, quantity = 1) => {
     const itemKey = `${product.id}-${product.size}-${product.color || ""}`
     const existingItem = items.find((item) => `${item.id}-${item.size}-${item.color || ""}` === itemKey)
+    const stock = product.stock ?? 99 // fallback si no viene stock
 
     if (existingItem) {
+      if (existingItem.quantity + quantity > stock) {
+        // Opcional: notificación de error aquí
+        return
+      }
       updateQuantity(product.id, existingItem.quantity + quantity, product.size, product.color)
     } else {
+      if (quantity > stock) {
+        // Opcional: notificación de error aquí
+        return
+      }
       setItems([...items, { ...product, quantity }])
     }
   }

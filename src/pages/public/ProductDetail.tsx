@@ -22,6 +22,8 @@ import {
 } from "lucide-react"
 import { useCart } from "../../contexts/CartContext"
 import { apiService } from "../../services/api"
+import formatPriceWithDot from "../../components/utils/formatPriceWithDot";
+import { useNotification } from "../../contexts/NotificationContext";
 
 // Definición de interfaces
 interface Product {
@@ -92,17 +94,11 @@ const iconMap: { [key: string]: React.ElementType } = {
   Info,
 }
 
-// Agrega una función utilitaria para formatear el precio con punto como separador de miles
-function formatPriceWithDot(value: number | string) {
-  const intValue = Math.floor(Number(value));
-  const num = intValue.toString();
-  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { addToCart } = useCart()
+  const { showNotification } = useNotification();
 
   const [product, setProduct] = useState<Product | null>(null)
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
@@ -264,11 +260,12 @@ export default function ProductDetail() {
         image: product.thumbnails[selectedImage],
         size: selectedSize,
         color: "Negro", // You can add color selection if needed
-      },
+        stock: product.stock,
+      } as any,
       quantity,
     )
 
-    alert(`${product.title} agregado al carrito`)
+    showNotification(`¡${product.title} agregado al carrito!`);
   }
 
   const toggleSection = (section: string) => {
@@ -401,14 +398,35 @@ export default function ProductDetail() {
               {/* Main Image */}
               <div className="flex-1">
                 <div
-                  className="aspect-[3/4] rounded-2xl overflow-hidden shadow-warm-lg"
+                  className="group relative aspect-[3/4] rounded-2xl overflow-hidden shadow-warm-lg cursor-zoom-in"
                   style={{ backgroundColor: "var(--pure-white)" }}
+                  onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    const x = ((e.clientX - rect.left) / rect.width) * 100
+                    const y = ((e.clientY - rect.top) / rect.height) * 100
+                    
+                    const img = e.currentTarget.querySelector('img')
+                    if (img) {
+                      img.style.transformOrigin = `${x}% ${y}%`
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    const img = e.currentTarget.querySelector('img')
+                    if (img) {
+                      img.style.transformOrigin = 'center'
+                    }
+                  }}
                 >
                   <img
                     src={product.thumbnails[selectedImage] || "/placeholder.svg"}
                     alt={product.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-150"
                   />
+                  
+                  {/* Zoom overlay with magnifying glass effect */}
+                  <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  
+
                 </div>
               </div>
             </div>

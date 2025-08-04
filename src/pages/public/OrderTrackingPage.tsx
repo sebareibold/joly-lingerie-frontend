@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Search, MapPin, Truck, Info, XCircle, ArrowLeft, MessageSquare } from "lucide-react" // Mail is still imported but not used for the button
 import { apiService } from "../../services/api"
+import formatPriceWithDot from "../../components/utils/formatPriceWithDot";
 
 interface OrderItem {
   productId: string
@@ -41,12 +42,6 @@ interface Order {
   paidAt?: string
   createdAt: string
   updatedAt: string
-}
-
-function formatPriceWithDot(value: number | string) {
-  const intValue = Math.floor(Number(value));
-  const num = intValue.toString();
-  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 export default function OrderTrackingPage() {

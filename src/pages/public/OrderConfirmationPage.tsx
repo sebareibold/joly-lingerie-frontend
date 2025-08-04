@@ -13,12 +13,7 @@ import {
   Building2,
   MessageCircle,
 } from "lucide-react"
-
-function formatPriceWithDot(value: number | string) {
-  const intValue = Math.floor(Number(value));
-  const num = intValue.toString();
-  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
+import formatPriceWithDot from "../../components/utils/formatPriceWithDot";
 
 export default function OrderConfirmationPage() {
   const { orderNumber } = useParams<{ orderNumber: string }>()

@@ -1,6 +1,6 @@
 "use client"
 
-import { User, ShoppingBag, Menu, X } from "lucide-react"
+import { ShoppingBag, Menu, X } from "lucide-react"
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useCart } from "../../contexts/CartContext"
@@ -74,12 +74,6 @@ export default function Header() {
           </nav>
           {/* Icons */}
           <div className="flex items-center space-x-4 sm:space-x-6">
-            {" "}
-            {/* Ajustado space-x para móvil */}
-            {/* Admin Login Icon */}
-            <Link to="/admin/login">
-               <User className="h-5 w-5 cursor-pointer transition-colors" style={{ color: "var(--clay)" }} />
-            </Link>
             {/* Cart Icon */}
             <Link to="/cart" className="relative">
               <ShoppingBag className="h-5 w-5 cursor-pointer transition-colors" style={{ color: "var(--clay)" }} />

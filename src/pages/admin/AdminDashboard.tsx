@@ -70,120 +70,91 @@ export default function AdminDashboard() {
 
   const loadDashboardData = async () => {
     try {
-      setLoading(true);
-      // console.log(
-      //   "🔄 AdminDashboard - Iniciando carga optimizada del dashboard..."
-      // );
+      setLoading(true)
+      console.log("🔄 AdminDashboard - Iniciando carga optimizada del dashboard...")
 
-      // OPTIMIZACIÓN: Hacer todas las peticiones en PARALELO en lugar de secuencial
+      // 🎯 CAMBIO PRINCIPAL: Usar getProductsCount() en lugar de getProducts()
       const [
-        productsResponse,
+        productsCountResponse,
         ordersResponse,
         interactionsResponse,
         mostViewedProductsResponse,
         mostVisitedCategoriesResponse,
       ] = await Promise.allSettled([
-        // Reducir la cantidad de datos iniciales para mayor velocidad
-        apiService.getProducts({ limit: 10 }), // Menos productos inicialmente
-        apiService.getAllOrders(1, 20), // Menos órdenes inicialmente
+        // ✅ NUEVO: Usar el método específico para obtener solo el conteo
+        apiService.getProductsCount(),
+        apiService.getAllOrders(1, 20),
         apiService.getInteractionsSummary(),
-        apiService.getMostViewedProducts(10), // Menos productos más vistos
+        apiService.getMostViewedProducts(10),
         apiService.getMostViewedCategories(5),
-      ]);
+      ])
 
-      // console.log("✅ Todas las peticiones completadas en paralelo");
+      console.log("✅ Todas las peticiones completadas en paralelo")
 
       // Procesar respuestas de manera segura
-      const products =
-        productsResponse.status === "fulfilled"
-          ? productsResponse.value
-          : { payload: [] };
-      const orders =
-        ordersResponse.status === "fulfilled"
-          ? ordersResponse.value
-          : { orders: [] };
+      const productsCount = productsCountResponse.status === "fulfilled" ? productsCountResponse.value : { count: 0 }
+      const orders = ordersResponse.status === "fulfilled" ? ordersResponse.value : { orders: [] }
       const interactions =
         interactionsResponse.status === "fulfilled"
           ? interactionsResponse.value
-          : { summary: { totalInteractions: 0, recentInteractions: [] } };
+          : { summary: { totalInteractions: 0, recentInteractions: [] } }
       const mostViewedProducts =
-        mostViewedProductsResponse.status === "fulfilled"
-          ? mostViewedProductsResponse.value
-          : { products: [] };
+        mostViewedProductsResponse.status === "fulfilled" ? mostViewedProductsResponse.value : { products: [] }
       const mostVisitedCategories =
-        mostVisitedCategoriesResponse.status === "fulfilled"
-          ? mostVisitedCategoriesResponse.value
-          : { categories: [] };
+        mostVisitedCategoriesResponse.status === "fulfilled" ? mostVisitedCategoriesResponse.value : { categories: [] }
 
       // Log de errores si los hay
-      if (productsResponse.status === "rejected") {
-        // console.error("❌ Error cargando productos:", productsResponse.reason);
+      if (productsCountResponse.status === "rejected") {
+        console.error("❌ Error cargando conteo de productos:", productsCountResponse.reason)
       }
       if (ordersResponse.status === "rejected") {
-        // console.error("❌ Error cargando órdenes:", ordersResponse.reason);
+        console.error("❌ Error cargando órdenes:", ordersResponse.reason)
       }
       if (interactionsResponse.status === "rejected") {
-        // console.error(
-        //   "❌ Error cargando interacciones:",
-        //   interactionsResponse.reason
-        // );
+        console.error("❌ Error cargando interacciones:", interactionsResponse.reason)
       }
       if (mostViewedProductsResponse.status === "rejected") {
-        // console.error(
-        //   "❌ Error cargando productos más vistos:",
-        //   mostViewedProductsResponse.reason
-        // );
+        console.error("❌ Error cargando productos más vistos:", mostViewedProductsResponse.reason)
       }
       if (mostVisitedCategoriesResponse.status === "rejected") {
-        // console.error(
-        //   "❌ Error cargando categorías más visitadas:",
-        //   mostVisitedCategoriesResponse.reason
-        // );
+        console.error("❌ Error cargando categorías más visitadas:", mostVisitedCategoriesResponse.reason)
       }
 
-      // Calcular estadísticas con datos seguros
-      const totalProducts = products.payload?.length || 0;
-      const ordersArray: Order[] = orders.orders || [];
-      const totalOrders = ordersArray.length;
+      // 🎯 CAMBIO PRINCIPAL: Usar el conteo directo del nuevo endpoint
+      const totalProducts = productsCount.count || 0 // ← Aquí está el cambio clave
+      const ordersArray: Order[] = orders.orders || []
+      const totalOrders = ordersArray.length
       const totalRevenue = ordersArray
         .filter((order: Order) => order.status === "paid")
-        .reduce((sum: number, order: Order) => sum + (order.total || 0), 0);
+        .reduce((sum: number, order: Order) => sum + (order.total || 0), 0)
 
-      // console.log("📈 Estadísticas calculadas:", {
-      //   totalProducts,
-      //   totalOrders,
-      //   totalRevenue,
-      //   ordersCount: ordersArray.length,
-      // });
+      console.log("📈 Estadísticas calculadas:", {
+        totalProducts, // 🎯 Ahora debería mostrar el número real
+        totalOrders,
+        totalRevenue,
+        ordersCount: ordersArray.length,
+      })
 
       const ordersByStatus = ordersArray.reduce(
         (
           acc: {
-            // Explicitly define the keys and types for the accumulator
-            pending_manual: number;
-            pending_transfer_proof: number; // Add missing states based on usage in AdminOrders.tsx
-            pending_transfer_confirmation: number; // Add missing states
-            paid: number;
-            cancelled: number;
-            refunded: number;
+            pending_manual: number
+            pending_transfer_proof: number
+            pending_transfer_confirmation: number
+            paid: number
+            cancelled: number
+            refunded: number
           },
-          order: Order
+          order: Order,
         ) => {
-          // Use a type assertion or check if order.status is a valid key of acc
-          const statusKey = order.status as keyof typeof acc;
+          const statusKey = order.status as keyof typeof acc
           if (Object.prototype.hasOwnProperty.call(acc, statusKey)) {
-            // Safely access property
-            acc[statusKey] = (acc[statusKey] || 0) + 1;
+            acc[statusKey] = (acc[statusKey] || 0) + 1
           } else {
-            // Handle unexpected status values if necessary, though types should prevent this
-            // console.warn(
-            //   `Unexpected order status encountered: ${order.status}`
-            // );
-            (acc as Record<string, number>)[order.status] = ((acc as Record<string, number>)[order.status] || 0) + 1; // Fallback for unexpected keys
+            ;(acc as Record<string, number>)[order.status] = ((acc as Record<string, number>)[order.status] || 0) + 1
           }
-          return acc;
+          return acc
         },
-        // Initialize with all possible keys to match the expected type structure
         {
           pending_manual: 0,
           pending_transfer_proof: 0,
@@ -191,40 +162,32 @@ export default function AdminDashboard() {
           paid: 0,
           cancelled: 0,
           refunded: 0,
-        }
-      );
+        },
+      )
+
       // Órdenes recientes
       const recentOrders = ordersArray
-        .sort(
-          (a: Order, b: Order) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-        .slice(0, 5);
+        .sort((a: Order, b: Order) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5)
 
       // Productos más vistos con nombres claros
-      const processedMostViewedProducts = (
-        mostViewedProducts.products || []
-      ).map((product: Record<string, unknown>) => {
-        return {
-          ...product,
-          displayName:
-            product.productTitle ||
-            product.title ||
-            product.name ||
-            "Producto sin nombre",
-          viewCount: product.count || 0,
-          category:
-            product.productCategory || product.category || "Sin categoría",
-        };
-      });
+      const processedMostViewedProducts = (mostViewedProducts.products || []).map(
+        (product: Record<string, unknown>) => {
+          return {
+            ...product,
+            displayName: product.productTitle || product.title || product.name || "Producto sin nombre",
+            viewCount: product.count || 0,
+            category: product.productCategory || product.category || "Sin categoría",
+          }
+        },
+      )
 
       // Categorías más visitadas
-      const processedMostVisitedCategories =
-        mostVisitedCategories.categories || [];
+      const processedMostVisitedCategories = mostVisitedCategories.categories || []
 
       const finalData = {
         stats: {
-          totalProducts,
+          totalProducts, // 🎯 Ahora con el conteo real
           totalOrders,
           totalRevenue,
           totalInteractions: interactions.summary?.totalInteractions || 0,
@@ -234,17 +197,17 @@ export default function AdminDashboard() {
         mostVisitedCategories: processedMostVisitedCategories,
         recentInteractions: interactions.summary?.recentInteractions || [],
         ordersByStatus,
-      };
+      }
 
-      // console.log("🎯 Dashboard cargado exitosamente en paralelo");
-      setDashboardData(finalData);
-    } catch {
-      // console.error("💥 Error general cargando datos del dashboard:", error);
+      console.log("🎯 Dashboard cargado exitosamente con conteo real de productos:", finalData.stats.totalProducts)
+      setDashboardData(finalData)
+    } catch (error) {
+      console.error("💥 Error general cargando datos del dashboard:", error)
     } finally {
-      setLoading(false);
-      // console.log("✅ Carga del dashboard completada");
+      setLoading(false)
+      console.log("✅ Carga del dashboard completada")
     }
-  };
+  }
 
   const handleResetInteractions = async () => {
     if (!window.confirm("¿Estás seguro de que quieres borrar TODAS las interacciones? Esta acción no se puede deshacer.")) return;
