@@ -3,14 +3,19 @@
 ![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white)
-![SCSS](https://img.shields.io/badge/SCSS-CC6699?style=for-the-badge&logo=sass&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
 ## Objetivo del Proyecto
 
 Este proyecto consiste en el desarrollo de la interfaz de usuario (frontend) para Joly Lingerie, una tienda online de lencería. El objetivo es crear una experiencia de usuario fluida y moderna, separando claramente la vista pública para clientes de un panel de administración privado para la gestión de la tienda.
 
 La aplicación está construida con React y TypeScript, siguiendo una arquitectura modular basada en componentes, contextos y layouts reutilizables. 
+
+
+## Aprendizajes y soporte
+
+El desarrollo de este proyecto me permitió profundizar en temas como el uso de `localStorage` y la creación de layouts. La asistencia de IAs generativas fue clave para aclarar dudas y acelerar el aprendizaje.
+
 
 ## Características Principales
 
