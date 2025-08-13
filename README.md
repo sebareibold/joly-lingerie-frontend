@@ -14,7 +14,7 @@ La aplicación está construida con React y TypeScript, siguiendo una arquitectu
 
 ## Aprendizajes y soporte
 
-El desarrollo de este proyecto me permitió profundizar en temas como el uso de `localStorage` y la creación de layouts. La asistencia de IAs generativas fue clave para aclarar dudas y acelerar el aprendizaje.
+Durante el desarrollo, pude profundizar en temas como el uso de `localStorage` y la creación de un proyecto con arquitectura modular orientada a buenas prácticas. La asistencia de IAs generativas fue clave para aclarar dudas y acelerar el aprendizaje.
 
 
 ## Características Principales
