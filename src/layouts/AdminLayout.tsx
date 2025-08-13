@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 import { Outlet } from "react-router-dom";
 import { Suspense, useState, useCallback, useEffect } from "react";

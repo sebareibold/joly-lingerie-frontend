@@ -1,8 +1,23 @@
-// Este archivo se comporta como un manager de la API, de tal manera que únicamente los subsistemas del front se comunican con él.
+/*
+  ====================  API Service ====================
+
+  Este módulo centraliza toda la comunicación del frontend con la API.
+  implementa una cola de peticiones con retardo para evitar errores 429, un 
+  sistema de caché en memoria con expiración de 5 minutos para respuestas GET,
+  y métodos genéricos (get, post, put, del) que gestionan cabeceras, token y
+  borran el caché relacionado tras cambios de datos; maneja errores diferenciando
+  fallos de red, HTTP y mensajes del backend; ofrece endpoints específicos para 
+  autenticación, usuarios, productos, órdenes, contenido, interacciones, subida
+  de archivos, formulario de contacto y chequeo de salud; invalida de forma 
+  selectiva el caché al modificar recursos clave y procesa las solicitudes de
+  forma secuencial con intervalos de 100 ms.
+
+  =========================================================
+*/
+
 import axios from "axios"
 
- const API_BASE_URL = import.meta.env.VITE_API_URL || "https://joly-lingerie-backend-production.up.railway.app/api"
-//const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api"
+const API_BASE_URL = import.meta.env.VITE_API_URL 
 
 // Cache para las respuestas de la API
 const apiCache = new Map<string, { data: any; timestamp: number }>()
@@ -77,7 +92,7 @@ export const apiService = {
   // Limpiar todo el caché
   clearCache: () => {
     apiCache.clear()
-    console.log("🗑️ Caché de API limpiado.")
+    console.log(" Caché de API limpiado.")
   },
 
   // Limpiar caché de productos
@@ -87,7 +102,7 @@ export const apiService = {
         apiCache.delete(key)
       }
     }
-    console.log("🗑️ Caché de productos limpiado.")
+    console.log(" Caché de productos limpiado.")
   },
 
   // Limpiar caché de órdenes
@@ -97,7 +112,7 @@ export const apiService = {
         apiCache.delete(key)
       }
     }
-    console.log("🗑️ Caché de órdenes limpiado.")
+    console.log(" Caché de órdenes limpiado.")
   },
 
   // Limpiar caché de contenido del sitio
@@ -107,7 +122,7 @@ export const apiService = {
         apiCache.delete(key)
       }
     }
-    console.log("🗑️ Caché de contenido del sitio limpiado.")
+    console.log(" Caché de contenido del sitio limpiado.")
   },
 
   // Función genérica para hacer peticiones GET con caché
@@ -173,7 +188,8 @@ export const apiService = {
     }
   },
 
-  // Auth Endpoints
+  /* =================== Endpoints de Usuarios  y Autentifacion ===================== */
+
   login: async (credentials: any) => {
     try {
       const response = (await apiService.post("/auth/login", credentials)) as any
@@ -193,7 +209,6 @@ export const apiService = {
 
   logout: () => {
     localStorage.removeItem("token")
-    // No hay endpoint de logout en el backend, solo se limpia el token local
     return { success: true }
   },
 
@@ -213,8 +228,7 @@ export const apiService = {
       return { success: false, user: null }
     }
   },
-
-  // User Profile Endpoints
+  
   updateProfile: async (profileData: any) => {
     try {
       const response = (await apiService.put("/users/profile", profileData)) as any
@@ -243,15 +257,16 @@ export const apiService = {
     }
   },
 
-  // Product Endpoints
+  /* ========================== Endpoints de Productos ========================== */
+
   getProducts: async (params?: any) => {
     try {
       const response = (await apiService.get("/products", params)) as any
       return {
         success: response.status === "success", // Propagar el éxito del backend
-        payload: response.payload, // ✅ CORREGIDO: Acceder directamente a 'payload'
-        totalPages: response.totalPages, // ✅ Correcto
-        totalProducts: response.totalDocs, // ✅ CORREGIDO: Usar 'totalDocs' del backend
+        payload: response.payload, 
+        totalPages: response.totalPages, 
+        totalProducts: response.totalDocs, 
       }
     } catch (error: unknown) {
       return {
@@ -266,8 +281,8 @@ export const apiService = {
     }
   },
 
-  // 🆕 NUEVO: Método específico para obtener solo el conteo de productos
-  getProductsCount: async () => {
+
+ getProductsCount: async () => {
     try {
       const response = (await apiService.get("/products/count")) as any
       return {
@@ -286,7 +301,7 @@ export const apiService = {
     }
   },
 
-  // 🆕 NUEVO: Método alternativo para obtener todos los productos (sin límite)
+
   getAllProducts: async () => {
     try {
       const response = (await apiService.get("/products", { limit: "all" })) as any
@@ -363,7 +378,7 @@ export const apiService = {
     }
   },
 
-  // Order Endpoints
+  /* ========================== Endpoints de Orden ========================== */
   createOrder: async (orderData: any) => {
     try {
       const response = (await apiService.post("/orders", orderData)) as any
@@ -456,8 +471,23 @@ export const apiService = {
       }
     }
   },
+  
 
-  // Site Content Endpoints
+  getOrderByOrderNumber: async (orderNumber: string) => {
+    try {
+      const response = (await apiService.get(`/orders/by-number/${orderNumber}`)) as any
+      return { success: true, order: response.order }
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || "Error al obtener orden por número"
+          : "Error desconocido",
+      }
+    }
+  },
+
+  /* ========================== Endpoints de Contenido del Sitio ========================== */
   getSiteContent: async () => {
     try {
       const response = (await apiService.get("/content")) as any
@@ -486,7 +516,7 @@ export const apiService = {
     }
   },
 
-  // Interaction Endpoints
+  /* ========================== Endpoints de Interaccion ========================== */
   createInteraction: async (type: string, data: any) => {
     try {
       const response = (await apiService.post("/interactions", { type, data })) as any
@@ -545,7 +575,7 @@ export const apiService = {
     }
   },
 
-  // File Upload Endpoints
+  /* ====================== Endpoints de Fotos de Transferencias  ====================== */
   uploadTransferProof: async (file: File) => {
     try {
       const formData = new FormData()
@@ -568,7 +598,7 @@ export const apiService = {
     }
   },
 
-  // Contact Form Endpoint
+  /* ========================== Endpoints de Contacto ========================== */
   sendContactForm: async (formData: any) => {
     try {
       const response = (await apiService.post("/contact", formData)) as any
@@ -583,22 +613,8 @@ export const apiService = {
     }
   },
 
-  // Order by Order Number Endpoint
-  getOrderByOrderNumber: async (orderNumber: string) => {
-    try {
-      const response = (await apiService.get(`/orders/by-number/${orderNumber}`)) as any
-      return { success: true, order: response.order }
-    } catch (error: unknown) {
-      return {
-        success: false,
-        error: axios.isAxiosError(error)
-          ? error.response?.data?.message || "Error al obtener orden por número"
-          : "Error desconocido",
-      }
-    }
-  },
 
-  // Health Check
+  /* ========================== Endpoints de Health ========================== */
   healthCheck: async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/health`)

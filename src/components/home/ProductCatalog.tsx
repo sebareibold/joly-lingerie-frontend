@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useRef, useEffect } from "react";
 import { ShoppingBag, Eye, RefreshCw, Loader2, Filter, X } from "lucide-react"; // Added Filter, X for size filter
 import { useCart } from "../../contexts/CartContext";

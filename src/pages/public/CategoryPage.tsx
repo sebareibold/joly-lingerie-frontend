@@ -1,13 +1,20 @@
-"use client"
+/*
+  ====================  CartPage ====================
+
+  CategoryPage muestra productos de una categoría, los obtiene
+   de la API con paginación y ordenamiento, transforma los datos
+   para el UI y maneja estados de carga, error y cambio de categoría.
+
+  =========================================================
+*/
+
 import { useParams, Link } from "react-router-dom"
 import { useState, useEffect } from "react"
-import { ShoppingBag, Eye, Loader2, RefreshCw } from "lucide-react" // Added Loader2, RefreshCw
+import { ShoppingBag, Eye, Loader2, RefreshCw } from "lucide-react" 
 import { useCart } from "../../contexts/CartContext"
 import { apiService } from "../../services/api"
 import formatPriceWithDot from "../../components/utils/formatPriceWithDot";
 import { useNotification } from "../../contexts/NotificationContext";
-
-// Definición de interfaces
 interface ProductColor {
   name: string
   value: string
@@ -23,22 +30,21 @@ interface Product {
   status: boolean
   thumbnails: string[]
   size: string | string[]
-  // Campos adicionales para UI
   originalPrice?: number
-  discount?: string // This is a string like "20% OFF"
-  discountPercentage?: number // Added to store the actual percentage from backend
+  discount?: string 
+  discountPercentage?: number 
   new?: boolean
   colors?: ProductColor[]
   sizes?: string[]
 }
 
-const PRODUCTS_PER_PAGE_CATEGORY = 12 // Define how many products to load per page for category page
+const PRODUCTS_PER_PAGE_CATEGORY = 12 
 
 export default function CategoryPage() {
   const { category } = useParams<{ category: string }>()
   const [sortBy, setSortBy] = useState("name")
   const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true) // For initial full page load
+  const [loading, setLoading] = useState(true) 
   const [error, setError] = useState<string | null>(null)
   const { addToCart } = useCart()
   const { showNotification } = useNotification();
@@ -46,25 +52,22 @@ export default function CategoryPage() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [loadingMore, setLoadingMore] = useState(false) // State for "Load More" button
-  const [retrying, setRetrying] = useState(false) // State for retry button
-  const [isCategoryChanging, setIsCategoryChanging] = useState(false) // NEW: State for category/sort change loading
+  const [loadingMore, setLoadingMore] = useState(false) 
+  const [retrying, setRetrying] = useState(false) 
+  const [isCategoryChanging, setIsCategoryChanging] = useState(false) 
 
   useEffect(() => {
     if (category) {
-      // Reset pagination when category or sort order changes
       setCurrentPage(1)
-      // setProducts([]) // REMOVED: Do not clear products immediately
       setTotalPages(1)
-      setIsCategoryChanging(true) // Indicate category/sort is loading
-      loadProductsByCategory(1, category, sortBy) // Load first page for the new category
+      setIsCategoryChanging(true) 
+      loadProductsByCategory(1, category, sortBy) 
     }
-  }, [category, sortBy]) // Depend on category and sortBy
+  }, [category, sortBy]) 
 
   const loadProductsByCategory = async (pageToLoad: number, categoryName: string, currentSortBy: string) => {
     try {
       if (pageToLoad === 1) {
-        // Only show full-page loading spinner if it's the very first load and no products are present
         if (products.length === 0) {
           setLoading(true)
         }
@@ -74,13 +77,11 @@ export default function CategoryPage() {
       }
 
       const params: { limit: number; page: number; category?: string; sortBy?: string; sortOrder?: "asc" | "desc" } = {
-        // Explicitly type sortOrder
         limit: PRODUCTS_PER_PAGE_CATEGORY,
         page: pageToLoad,
         category: categoryName,
       }
 
-      // Add sorting parameters based on currentSortBy
       if (currentSortBy === "price-low") {
         params.sortBy = "price"
         params.sortOrder = "asc"
@@ -146,7 +147,7 @@ export default function CategoryPage() {
     } finally {
       setLoading(false)
       setLoadingMore(false)
-      setIsCategoryChanging(false) // Reset category/sort loading state
+      setIsCategoryChanging(false) 
     }
   }
 

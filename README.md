@@ -1,370 +1,95 @@
-# 🌸 Joly Lingerie - Documentación Frontend
+# 🌸 Joly Lingerie - Frontend con React y TypeScript
 
-## 📖 ¿Qué es este proyecto?
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white)
+![SCSS](https://img.shields.io/badge/SCSS-CC6699?style=for-the-badge&logo=sass&logoColor=white)
 
-**Joly Lingerie** es una tienda online de lencería que tiene dos partes principales:
-- **Parte Pública**: Donde los clientes ven productos y compran
-- **Parte Privada (Admin)**: Donde el administrador gestiona la tienda
+## Objetivo del Proyecto
 
----
+Este proyecto consiste en el desarrollo de la interfaz de usuario (frontend) para Joly Lingerie, una tienda online de lencería. El objetivo es crear una experiencia de usuario fluida y moderna, separando claramente la vista pública para clientes de un panel de administración privado para la gestión de la tienda.
 
-## 🏗️ ¿Cómo está organizado el código?
+La aplicación está construida con React y TypeScript, siguiendo una arquitectura modular basada en componentes, contextos y layouts reutilizables. 
 
-### 📁 **Estructura de Carpetas**
+## Características Principales
+
+### 🌐 Interfaz Pública para Clientes
+
+- **Catálogo de Productos**: Visualización de productos con filtros y categorías.
+- **Detalle de Producto**: Página dedicada con galería de imágenes, selección de variantes y descripción.
+- **Diseño Responsivo**: Adaptado para una correcta visualización en dispositivos móviles, tablets y escritorio.
+
+### 🛒 Sistema de Carrito de Compras
+
+- **Gestión del Carrito**: Lógica para agregar, actualizar y eliminar productos.
+- **Contexto Global**: El estado del carrito es accesible desde cualquier parte de la aplicación gracias al Context API de React.
+- **Proceso de Compra**: Flujo simplificado para que el cliente finalice su pedido.
+
+### 🔒 Panel de Administración
+
+- **Dashboard de Control**: Resumen con estadísticas clave de la tienda.
+- **Gestión de Productos (CRUD)**: Interfaz para crear, leer, actualizar y eliminar productos del catálogo.
+- **Visualización de Carritos**: Seguimiento de los carritos de compra de los usuarios.
+- **Rutas Protegidas**: Acceso exclusivo para administradores autenticados.
+
+## Tecnologías Utilizadas
+
+- **React**: Biblioteca de JavaScript para construir interfaces de usuario interactivas.
+- **TypeScript**: Superset de JavaScript que añade tipado estático para un código más robusto y mantenible.
+- **Vite**: Entorno de desarrollo moderno y rápido para proyectos frontend.
+- **React Router**: Librería para la gestión de rutas y navegación entre las distintas páginas de la aplicación.
+- **React Context API**: Para la gestión de estados globales como la autenticación y el carrito de compras.
+- **SCSS**: Preprocesador de CSS para escribir estilos de forma más organizada y potente.
+- **JWT (JSON Web Tokens)**: Utilizados para asegurar las rutas del panel de administración.
+
+## Estructura del Proyecto
+
+La estructura de carpetas está diseñada para separar responsabilidades y facilitar la escalabilidad.
 
 ```
 frontend/
+├── public/                # Archivos estáticos
 ├── src/
-│   ├── components/          # Piezas reutilizables de la página
-│   ├── contexts/           # Información compartida entre páginas
-│   ├── layouts/            # Plantillas base para las páginas
-│   ├── pages/              # Las páginas que ve el usuario
-│   ├── data/               # Información de productos (temporal)
-│   └── App.tsx             # El "cerebro" que controla todo
+│   ├── components/        # Componentes reutilizables (Header, ProductCard, etc.)
+│   │   ├── admin/         # Componentes exclusivos del panel de admin
+│   │   └── public/        # Componentes para la vista pública
+│   ├── contexts/          # Lógica de estado global (AuthContext, CartContext)
+│   ├── layouts/           # Plantillas estructurales (AdminLayout, PublicLayout)
+│   ├── pages/             # Componentes que representan páginas completas
+│   │   ├── admin/         # Páginas del panel de administración
+│   │   └── public/        # Páginas de la tienda pública
+│   ├── styles/            # Archivos de estilos globales (SCSS)
+│   └── App.tsx            # Componente raíz, define el enrutamiento principal
+├── .env.example           # Ejemplo de variables de entorno
+├── index.html             # Punto de entrada HTML
+├── package.json           # Dependencias y scripts del proyecto
+└── tsconfig.json          # Configuración de TypeScript
 ```
 
----
+## Vistas y Lógica Principal
 
-## 🧠 **App.tsx - El Cerebro de la Aplicación**
+La aplicación se organiza en torno a los siguientes conceptos clave:
 
-**¿Qué hace App.tsx?**
-Es como el **director de orquesta** que decide:
-- ¿Qué página mostrar según la URL?
-- ¿El usuario puede ver esta página?
-- ¿Cómo organizar la información?
+- **Layouts** (`/layouts`): Definen la estructura visual base.
+  - `PublicLayout`: Incluye el Header y Footer para los clientes.
+  - `AdminLayout`: Incluye el AdminSidebar y la barra superior para el panel de gestión.
 
-```typescript
-// App.tsx hace esto:
-1. Envuelve todo en "contextos" (información compartida)
-2. Define las rutas (URLs) y qué página mostrar
-3. Protege las páginas de admin
-4. Aplica layouts (plantillas) a las páginas
-```
+- **Pages** (`/pages`): Son las vistas que el usuario final ve en el navegador, compuestas por múltiples componentes. Se dividen en `public` y `admin`.
 
-**Ejemplo de cómo funciona:**
-- Usuario va a `/` → Muestra la página de inicio
-- Usuario va a `/admin` → Verifica si es admin, si no lo redirige
-- Usuario va a `/product/123` → Muestra el producto con ID 123
+- **Contexts** (`/contexts`): Manejan la lógica de negocio y el estado que se comparte a través de la aplicación.
+  - `AuthContext`: Gestiona el inicio/cierre de sesión y la información del usuario administrador.
+  - `CartContext`: Controla todos los aspectos del carrito de compras.
 
----
+- **Components** (`/components`): Son las piezas de construcción más pequeñas y reutilizables de la UI.
 
-## 🎭 **Layouts - Las Plantillas**
+## Prerrequisitos
 
-Los **layouts** son como plantillas que envuelven las páginas:
+Asegúrate de tener instalado lo siguiente en tu sistema:
 
-### 🌐 **PublicLayout** (Para clientes)
-```
-┌─────────────────────┐
-│      HEADER         │ ← Logo, menú, carrito
-├─────────────────────┤
-│                     │
-│    PÁGINA ACTUAL    │ ← Inicio, productos, etc.
-│                     │
-├─────────────────────┤
-│      FOOTER         │ ← Información de contacto
-└─────────────────────┘
-```
+- **Node.js** (versión 16 o superior): Incluye npm.
+- **Git**: Para clonar el repositorio.
 
-### 🔒 **AdminLayout** (Para administrador)
-```
-┌─────────────────────┐
-│    ADMIN HEADER     │ ← Notificaciones, usuario
-├─────┬───────────────┤
-│MENU │               │
-│LADO │  PÁGINA ADMIN │ ← Dashboard, productos, etc.
-│     │               │
-└─────┴───────────────┘
-```
+## Estado del Proyecto
 
----
-
-## 📄 **Páginas (Pages)**
-
-### 🌐 **Páginas Públicas** (Cualquiera puede ver)
-
-#### **🏠 HomePage** (`/`)
-**¿Qué hace?**
-- Muestra la página principal de la tienda
-- Presenta productos destacados
-- Información de la marca
-
-**¿Qué puede hacer el usuario?**
-- Ver productos
-- Navegar a categorías
-- Contactar a la tienda
-
-#### **🛍️ ProductDetail** (`/product/:id`)
-**¿Qué hace?**
-- Muestra un producto específico
-- Permite seleccionar talla, color, cantidad
-- Muestra productos relacionados
-
-**¿Qué puede hacer el usuario?**
-- Ver fotos del producto
-- Leer descripción detallada
-- Agregar al carrito
-- Cambiar cantidad
-
-#### **📂 CategoryPage** (`/category/:category`)
-**¿Qué hace?**
-- Muestra todos los productos de una categoría
-- Permite filtrar y ordenar
-
-**¿Qué puede hacer el usuario?**
-- Ver productos por categoría
-- Ordenar por precio o nombre
-- Ir a detalles de producto
-
-#### **🛒 CartPage** (`/cart`)
-**¿Qué hace?**
-- Muestra productos en el carrito
-- Calcula totales y envío
-- Permite finalizar compra
-
-**¿Qué puede hacer el usuario?**
-- Ver productos agregados
-- Cambiar cantidades
-- Eliminar productos
-- Aplicar cupones de descuento
-- Finalizar compra
-
----
-
-### 🔒 **Páginas Privadas** (Solo administrador)
-
-#### **🔐 AdminLogin** (`/admin/login`)
-**¿Qué hace?**
-- Página de inicio de sesión para administradores
-
-**¿Qué puede hacer?**
-- Ingresar usuario y contraseña
-- Acceder al panel de administración
-
-#### **📊 AdminDashboard** (`/admin`)
-**¿Qué hace?**
-- Muestra resumen general de la tienda
-- Estadísticas importantes
-
-**¿Qué puede ver el admin?**
-- Total de productos
-- Carritos activos
-- Productos con stock bajo
-- Ingresos totales
-
-#### **📦 AdminProducts** (`/admin/products`)
-**¿Qué hace?**
-- Lista todos los productos de la tienda
-- Permite gestionar el catálogo
-
-**¿Qué puede hacer el admin?**
-- Ver todos los productos
-- Buscar productos
-- Filtrar por categoría
-- Editar productos
-- Eliminar productos
-- Crear nuevos productos
-
-#### **✏️ AdminProductForm** (`/admin/products/new` o `/admin/products/:id/edit`)
-**¿Qué hace?**
-- Formulario para crear o editar productos
-
-**¿Qué puede hacer el admin?**
-- Agregar título, descripción, precio
-- Subir imágenes
-- Establecer stock
-- Definir categoría
-- Activar/desactivar producto
-
-#### **🛒 AdminCarts** (`/admin/carts`)
-**¿Qué hace?**
-- Muestra todos los carritos de compras
-- Permite ver qué están comprando los clientes
-
-**¿Qué puede hacer el admin?**
-- Ver todos los carritos
-- Ver detalles de cada carrito
-- Eliminar carritos
-- Ver estadísticas de compras
-
-#### **⚙️ AdminSettings** (`/admin/settings`)
-**¿Qué hace?**
-- Configuraciones generales de la tienda
-
-**¿Qué puede hacer el admin?**
-- Cambiar configuraciones
-- Gestionar usuarios admin
-- Ver logs del sistema
-
----
-
-## 🔄 **Contexts - Información Compartida**
-
-Los **contexts** son como "cajas de información" que todas las páginas pueden usar:
-
-### 🛒 **CartContext**
-**¿Qué guarda?**
-- Productos en el carrito
-- Cantidades de cada producto
-- Total del carrito
-
-**¿Qué funciones tiene?**
-- `addToCart()` - Agregar producto
-- `removeFromCart()` - Quitar producto
-- `updateQuantity()` - Cambiar cantidad
-- `clearCart()` - Vaciar carrito
-- `getTotalItems()` - Contar productos
-- `getTotalPrice()` - Calcular total
-
-### 🔐 **AuthContext**
-**¿Qué guarda?**
-- Si hay un usuario logueado
-- Información del usuario (nombre, rol)
-- Token de autenticación
-
-**¿Qué funciones tiene?**
-- `login()` - Iniciar sesión
-- `logout()` - Cerrar sesión
-- `isAuthenticated` - ¿Está logueado?
-- `isAdmin` - ¿Es administrador?
-
----
-
-## 🧩 **Components - Piezas Reutilizables**
-
-### 🌐 **Componentes Públicos**
-
-#### **🎯 Header**
-- Logo de la tienda
-- Menú de navegación
-- Icono del carrito con contador
-- Botón de login de admin
-
-#### **🦶 Footer**
-- Información de contacto
-- Redes sociales
-- Enlaces importantes
-
-#### **🏠 HeroSection**
-- Imagen principal de la página de inicio
-- Mensaje de bienvenida
-
-#### **📦 ProductCatalog**
-- Muestra grid de productos
-- Tarjetas de productos
-
-#### **📞 ContactSection**
-- Formulario de contacto
-- Información de la tienda
-
-### 🔒 **Componentes de Admin**
-
-#### **📋 AdminSidebar**
-- Menú lateral del panel de administración
-- Enlaces a diferentes secciones
-
-#### **🎯 AdminHeader**
-- Barra superior del admin
-- Notificaciones
-- Información del usuario
-
-#### **🛡️ ProtectedRoute**
-- Protege rutas que solo pueden ver los admins
-- Redirige si no estás autorizado
-
----
-
-## 🧭 **Navegación - Cómo se mueve el usuario**
-
-### 🌐 **Navegación Pública**
-```
-Inicio (/) 
-├── Ver producto (/product/123)
-│   ├── Agregar al carrito
-│   └── Ver productos relacionados
-├── Ver categoría (/category/lenceria)
-│   └── Ver producto específico
-└── Ver carrito (/cart)
-    └── Finalizar compra
-```
-
-### 🔒 **Navegación Admin**
-```
-Login Admin (/admin/login)
-└── Dashboard (/admin)
-    ├── Productos (/admin/products)
-    │   ├── Nuevo producto (/admin/products/new)
-    │   └── Editar producto (/admin/products/123/edit)
-    ├── Carritos (/admin/carts)
-    └── Configuración (/admin/settings)
-```
-
----
-
-## 🔐 **Seguridad**
-
-### **¿Cómo se protegen las páginas de admin?**
-1. **ProtectedRoute**: Componente que verifica si eres admin
-2. **AuthContext**: Guarda si estás logueado
-3. **Token JWT**: Se guarda en localStorage
-4. **Redirección**: Si no eres admin, te envía al login
-
-### **¿Qué pasa si alguien trata de acceder sin permisos?**
-- Se redirige automáticamente al login
-- No puede ver información sensible
-- No puede modificar productos
-
----
-
-## 📱 **Responsive Design**
-
-La aplicación se adapta a diferentes tamaños de pantalla:
-- **📱 Móvil**: Menú hamburguesa, layout vertical
-- **💻 Tablet**: Layout adaptado, botones más grandes
-- **🖥️ Desktop**: Layout completo, sidebar visible
-
----
-
-## 🎨 **Estilos y Diseño**
-
-### **Colores Principales**
-- **Clay**: Marrón elegante para acentos
-- **Deep Clay**: Marrón oscuro para textos
-- **Bone**: Beige claro para fondos
-- **Pure White**: Blanco para tarjetas
-
-### **Tipografía**
-- **Serif**: Para títulos elegantes
-- **Sans-serif**: Para texto normal
-
----
-
-## 🚀 **¿Cómo agregar una nueva página?**
-
-### **Página Pública**
-1. Crear archivo en `src/pages/public/`
-2. Agregar ruta en `App.tsx` dentro de `PublicLayout`
-3. Agregar enlace en `Header.tsx`
-
-### **Página Admin**
-1. Crear archivo en `src/pages/admin/`
-2. Agregar ruta en `App.tsx` dentro de `AdminLayout` y `ProtectedRoute`
-3. Agregar enlace en `AdminSidebar.tsx`
-
----
-
-## 🛠️ **Comandos Útiles**
-
-```bash
-# Instalar dependencias
-npm install
-
-# Ejecutar en desarrollo
-npm run dev
-
-# Crear build para producción
-npm run build
-
-# Previsualizar build
-npm run preview
-```
-
+✅ **Completado** - Funcionalidades principales implementadas y listas para conectar con un servicio backend.

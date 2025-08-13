@@ -1,4 +1,17 @@
-"use client";
+/*
+  ====================  CartPage ====================
+
+  Este componente es la página del carrito de compras de la tienda online.
+  Su objetivo es mostrar los productos que el usuario agregó al carrito, permitir 
+  modificar cantidades, eliminarlos, vaciar el carrito, y proceder a la compra o 
+  consulta por WhatsApp. Utiliza apiService.getSiteContent para obtener el número
+  de contacto del sitio. y useCart para manejar el estado del carrito. 
+  También incluye un resumen del pedido con el subtotal y botones de acción para
+  realizar la compra virtual o consultar por WhatsApp.
+
+  =========================================================
+*/
+
 
 import { Link, useNavigate } from "react-router-dom";
 import {

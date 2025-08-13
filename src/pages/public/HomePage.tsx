@@ -1,4 +1,3 @@
-"use client"
 
 import HeroSection from "../../components/home/HeroSection"
 import ProductCatalog from "../../components/home/ProductCatalog"
